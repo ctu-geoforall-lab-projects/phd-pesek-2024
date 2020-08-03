@@ -1,0 +1,301 @@
+% ========================================================================
+% 
+% DOCTORAL THESIS
+% Possibilities of use of artificial neural networks in work with spatial data
+% 
+% Ondřej Pešek
+% 
+% ========================================================================
+
+\documentclass[
+  12pt,         			% velikost základního písma je 12 bodů
+  a4paper,      			% formát papíru je A4
+  oneside,       			% Oboustranný tisk
+  pdftex,				    % překlad bude proveden programem 'pdftex' do PDF
+  english,
+  %draft
+]{report}       			% dokument třídy 'zpráva'
+
+
+\newcommand{\Fbox}[1]{\fbox{\strut#1}}
+
+\usepackage[english, czech]{babel}	% použití češtiny, angličtiny
+\usepackage[utf8]{inputenc}			% kódování zdrojových souborů je UTF8
+
+\usepackage[square,sort,comma,numbers]{natbib}
+
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+
+\usepackage[dvipsnames]{xcolor}
+\definecolor{light-gray}{gray}{0.95}
+
+\captionsetup{font=small}
+\usepackage{enumitem}
+\setlist{leftmargin=*} % bez odsazení
+
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpbot}{0pt plus 1fil}
+\makeatletter
+
+\usepackage[dvips]{graphicx}   
+\usepackage{color}
+\usepackage{transparent}
+\usepackage{wrapfig}
+\usepackage{float} 
+
+\usepackage{cmap}           
+\usepackage[T1]{fontenc}    
+
+\usepackage{textcomp}
+\usepackage[compact]{titlesec}
+\usepackage{amsmath}
+\addtolength{\jot}{1em} 
+
+\let\counterwithout\relax
+\let\counterwithin\relax
+\usepackage{chngcntr}
+\counterwithout{footnote}{chapter}
+
+\usepackage{acronym}
+
+\usepackage[
+    unicode,                
+    breaklinks=true,        
+    hypertexnames=false,
+    colorlinks=true, % true for print version
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+]{hyperref}         
+
+\usepackage{url}
+\usepackage{fancyhdr}
+% \usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{algcompatible}
+\renewcommand{\ALG@name}{Pseudocode}% update algorithm name
+\def\ALG@name{Pseudocode}
+
+\usepackage[
+  cvutstyle,          
+  phd,
+  english
+]{thesiscvut}
+
+
+\newif\ifweb
+\ifx\ifHtml\undefined % mimo HTML.
+    \webfalse
+\else % v HTML.
+    \webtrue
+\fi 
+
+\renewcommand{\figurename}{Obrázek}
+\def\figurename{Obrázek}
+
+\lstdefinestyle{python}{
+   language=python,
+   basicstyle={\footnotesize\ttfamily},
+   keywordstyle=\color{blue}\ttfamily,
+   stringstyle=\color{green}\ttfamily,
+   commentstyle=\color{brown}\ttfamily,
+   showstringspaces=false,
+   morekeywords={True, False, sqrt}
+}
+
+%\renewcommand\lstlistingname{Pseudocode}
+%\renewcommand*{\lstlistlistingname}{Content of pseudocodes}
+
+\usepackage{dirtree}
+
+\lstset{
+	extendedchars=true,
+	literate={á}{{\'a}}1}
+
+\makeatletter
+\newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
+\makeatother
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, shapes}
+\tikzset{%
+  >={Latex[width=1mm,length=1mm]},
+  % Specifications for style of nodes:
+            base/.style = {rectangle, rounded corners, draw=black,
+                           minimum width=4cm, minimum height=1cm,
+                           text centered, font=\sffamily},
+  activityStarts/.style = {base, fill=blue!30},
+       startstop/.style = {base, fill=red!30},
+    activityRuns/.style = {base, fill=green!30},
+    test/.style = {base, diamond, aspect=2, text width=8em, fill=yellow!30},
+         process/.style = {base, minimum width=2.5cm, fill=orange!15,
+                           font=\ttfamily},
+}
+
+\usepackage[justification=centering]{caption}
+
+\newcommand\textstyleEmphasis[1]{\textit{#1}}
+\newcommand\liststyleLi{%
+\renewcommand\labelitemi{{\textbullet}}
+\renewcommand\labelitemii{{\textbullet}}
+\renewcommand\labelitemiii{{\textbullet}}
+\renewcommand\labelitemiv{{\textbullet}}
+}
+\newcommand\liststyleLii{%
+\renewcommand\labelitemi{{\textbullet}}
+\renewcommand\labelitemii{{\textbullet}}
+\renewcommand\labelitemiii{{\textbullet}}
+\renewcommand\labelitemiv{{\textbullet}}
+}
+
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+
+% ========================================================================
+% Definice informací o dokumentu
+% ========================================================================
+
+% název práce
+\nazev{Possibilities of use of artificial neural networks in work with spatial data}
+{Možnosti využití umělých neuronových sítí v práci s~prostorovými daty}
+
+% jméno a příjmení autora
+\autor{Ing. Ondřej}{Pešek}
+
+% jméno a příjmení vedoucího práce včetně titulů
+\garant{Prof. Aleš Čepek,~CSc.; Ing. Martin Landa,~PhD.}
+
+% označení oboru studia
+\oborstudia{Geomatics}{}
+
+% označení ústavu
+\ustav{Department of Geomatics}{}
+
+% rok obhajoby
+\rok{2020}
+
+% měsíc obhajoby
+\mesic{}
+
+% místo obhajoby
+\misto{Prague}
+
+% abstrakt
+\abstrakt 
+{In recent years, the speed of technological progress in certain science fields is getting faster and faster. It is making it hard for other scientific areas to keep up with this tempo. One of the~exemplary relationships is the link between artificial neural network structures and the province of geomatics or remote sensing. New architectures of artificial neural network models are being published with an expeditious tempo and the common approach of the~remote sensing researchers is to use the most recent structures, without the~basic understanding of the background or relative performance. The goal of this thesis is to perform systematic research on the possibilities of use of chosen artificial neural network architectures on various selected use cases from the field of remote sensing.}
+{Technologický vývoj v některých vědních odvětvích nabírá v posledních několika letech stále na rychlosti. A pro ostatní vědní obory je těžké držet s okolím tempo. Jedním takovým vztahem jsou struktury umělých neuronových sítí a obor geomatiky, případně dálkového průzkumu Země. Nové architektury modelů umělých neuronových sítí se objevují nebývalým kvapem, a běžný přístup výzkumníků dálkového průzkumu Země bývá ten, že si pro zpracovávání dat vybírají bez větší znalosti pozadí či porovnání nejnovější modely. Cílem této doktorské práce je systematicky prozkoumat a porovnat možnosti využití určených architektur umělých neuronových sítí na vybraných aplikačních tématech z prostředí dálkového průzkumu Země.}
+
+
+% klíčová slova
+\klicovaslova
+{artificial neural networks, convolutional neural networks}
+{umělé neuronové sítě, konvoluční neuronové sítě}
+
+% ========================================================================
+% Nastavení polí ve vlastnostech dokumentu PDF
+% ========================================================================
+\nastavenipdf
+
+% začátek dokumentu
+\begin{document}
+
+\catcode`\-=12  % pro vypnutí aktivního znaku '-' používaného např. v \cline 
+
+% aktivace záhlaví
+\zahlavi
+
+% předefinování vzhledu záhlaví
+\renewcommand{\chaptermark}[1]{%
+	\markboth{\MakeUppercase
+	{%
+	\thechapter.%
+	\ #1}}{}}
+
+% vysázení přebalu práce
+%\vytvorobalku
+
+% vysázení titulní stránky práce
+\vytvortitulku
+
+% Vysázení listu zadani
+\stranka{}%
+	%{\includegraphics[scale=0.7]{./pictures/zadanidp.pdf}}%\sffamily\Huge\centering\ }%ZDE VLOŽIT LIST ZADÁNÍ}%
+	%{\sffamily\centering Z~důvodu správného číslování stránek}
+
+% vysázení stránky s abstraktem
+\vytvorabstrakt
+
+% vysázení prohlaseni o samostatnosti
+%\vytvorprohlaseni
+
+% vysázení poděkování
+%\stranka{%nahore
+%       }{%uprostred
+%       }{%dole
+%       \sffamily
+%	\begin{flushleft}
+%		\large
+%		\MakeUppercase{Acknowledgement}
+%	\end{flushleft}
+%	\vspace{1em}
+%		%\noindent
+%	\par\hspace{2ex}
+%	{I would like to thank my parents for their support during my studies.
+%	Then I would like to thank Martin Landa, not only for supervising my thesis
+%	but also for the initial impulse in the direction to artificial neural
+%	networks and open source GIS generally. My thanks also belong to Margherita Di
+%	Leo for long initial discussions about the usage of neural networks in the
+%	field of GIS, to Moritz Lennert for testing and comments during the code
+%	sprint in Bonn, and to Luca Delucchi and Fondazione Edmund Mach for
+%	the~willingness to exploit their time and resources to test modules.}
+%}
+
+% vysázení obsahu
+% \setcounter{tocdepth}{1}
+%\obsah
+
+% vysázení seznamu obrázků
+%\seznamobrazku
+
+% vysázení seznamu tabulek
+% \seznamtabulek
+
+% vysázení seznamu ukázek kódu
+%\cleardoublepage
+%\thispagestyle{empty}
+% \lstlistoflistings
+%\newpage
+
+% jednotlivé kapitoly
+%\include{1-intro}
+%\include{2-bg}
+%\include{3-image-ann}
+%\include{4-technologies}
+%\include{5-implementation}
+%\include{6-conclusion}
+
+% vysázení seznamu zkratek
+%\include{zkratky}
+
+% literatura
+\nocite{*}
+\def\refname{References}
+\bibliographystyle{mystyle}
+\bibliography{literatura}
+
+
+% začátek příloh
+%\def\figurename{Figure}%
+%\prilohy
+
+% vysázení seznamu příloh
+%\seznampriloh
+
+% Vložení souboru s přílohami
+%\include{prilohy}
+
+% konec dokumentu
+\end{document}
