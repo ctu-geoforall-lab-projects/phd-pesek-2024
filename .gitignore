@@ -1,0 +1,15 @@
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.tex.bak
+*.bbl
+*.blg
+__pycache__
+*~
+*.toc
+*.loa
+*.lof
+*.bak
+professional-debate/ondrej-pesek-professional-debate-2020.pdf
+text/ondrej-pesek-phd-2020.pdf
