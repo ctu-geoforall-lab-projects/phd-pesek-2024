@@ -1,9 +1,16 @@
 \chapter{Motivation}
 \label{motivation}
 
-In August 2020, an experiment was conducted - a query for papers with the below-described restrictions was done on selected academic database websites. The goal of the experiment was to research whether authors of papers dealing with the use of convolutional neural networks (\zk{CNN}) in the field of remote sensing are comparing results of proposed or used architectures with results of other architectures on the same task.
+In August 2020, an experiment was conducted - a query for papers with the below-described restrictions was done on selected academic database websites. The goal of the experiment was to research whether authors of papers dealing with the use of convolutional neural networks (\zk{CNN}) in the field of remote sensing are comparing results of proposed or used architectures with results of other architectures on the same task. This experiment is summarized in chapter \ref{top-papers}.
 
-\section{Web of Science}
+This experiment was immediately followed by an overview of the top \textit{review-type} papers - as something akin is the goal of this thesis, it could be taken as the~summary of the~current situation and research on work dealing with the~same problems. This is summarized in chapter \ref{situation}.
+
+% possible titles:
+% Top cited papers dealing with use of convolutional neural networks in the field of remote sensing
+\section{Articles on CNNs in the field of remote sensing}
+\label{top-papers}
+
+\subsection{Web of Science}
 \label{wos}
 
 The first used website was Web of Science\footnote{\url{www.webofknowledge.com}} (\zk{WoS}). The~following query restrictions were used:
@@ -64,7 +71,7 @@ In \textit{Hyperspectral Image Classification Using Convolutional Neural Network
 % compared with Faster R-CNN and not with YOLOv2 or YOLO, two datasets (both about ships), compared time needs
 % "YOLOv2-reduced is best for real time object detection problem."
 
-\section{Scopus}
+\subsection{Scopus}
 \label{scopus}
 
 The second used website was Scopus\footnote{\url{www.scopus.com}}. The~following query restrictions were used:
@@ -99,4 +106,5 @@ The third most cited article on Scopus - \textit{Deep learning in remote sensing
 
 The last reviewed article - \textit{Very Deep Convolutional Neural Networks for Complex Land Cover Mapping Using Multispectral Remote Sensing Imagery} - deals with land cover mapping using \zk{CNN}s with a focus on wetlands detection. Therefore it is not a surprise that they do not experiment with different datasets; however, it would give much more general overview of \zk{CNN} options in the wetland detection to use data from different parts of the world and not only from Newfoundland and Labrador, Canada. Besides that, the paper experiments with DenseNet-121 \cite{densenet}, Inception V3 \cite{inception}, VGG-16 \cite{vgg}, VGG-19, Xception \cite{xception}, \zk{ResNet}-50, and Inception \zk{ResNet} V2 \cite{inception-resnet}, and also with \zk{ML} methods of \zk{SVM} and \zk{RF}. Authors also use different patch sizes and report processing times.
 
-
+\section{Reviews of CNNs in the field of remote sensing}
+\label{situation}
