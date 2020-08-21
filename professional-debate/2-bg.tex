@@ -142,3 +142,18 @@ The main focus of \textit{Geographic Object-Based Image Analysis: A Primer and F
 
 \subsection{Scopus}
 \label{scopus-reviews}
+
+When compared with the query described in chapter \ref{scopus-papers}, an extra parameter \verb|Document type| was used to get only \textit{review-type} articles. Therefore, the following restrictions were used for the~query:
+
+\begin{itemize}
+	\item \verb|Search string: "remote sensing" cnn|. To focus only on articles dealing with \zk{CNN}s in the area of remote sensing. The~term \verb|cnn| was preferred over the~term \verb|convolutional neural network| as in some papers, only the~abbreviated form was used.
+	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
+	\item \verb|Access type: Open Access|. To focus only on articles in \textit{Scopus Gold Open Access}\footnote{\url{www.elsevier.com/open-access}}. It includes fully open journals, hybrid journals (authors pay a fee to make an article open access), open archives and articles with free promotional access.
+	\item \verb|Document type: Review|. To focus only on reviews.
+\end{itemize}
+
+The Scopus query is apparently - due to the~smaller flexibility when it comes to the~open access restrictions - more tolerant and includes articles filtered out from the~\zk{WoS} query. Also, because there is no scientific category \verb|remote sensing| in the~Scopus search engine, the~phrase was included in the~search phrase. It resulted in the~fact that from the~top 20 articles when orded by the~attribute \verb|Cited by|, 19 were filtered out as they either did not correspond with the~main focus of the~thesis on the classification task with object detection and semantic and instance segmentation in the field of remote sensing, or they were found completely insufficient in terms of providing a~comparison of mentioned architectures.
+
+The 19 filtered articles were the following: \cite{dl-for-cv} with 251 citations (as in chapter \ref{scopus-papers}), \cite{state-of-the-art-dl} with 73 citations (as in chapter \ref{scopus-papers}), \cite{review-water-dl} with 71 citations, \cite{review-plant-stress} with 66 citations, \cite{review-text-class} with 53 citations, \cite{review-oil-spill} with 50 citations, \cite{review-cv-infra-inspections} with 49 citations, \cite{review-vessel-detection} with 39 citations, \cite{review-ml-smart-grid} with 30 citations, \cite{review-autonomus-vehicles} with 28 citations, \cite{review-grasp} with 21 citations, \cite{review-3d-human-interaction} with 21 citations, \cite{review-dl-3d-classification} with 19 citations, \cite{review-crop-phenomics} with 19 citations, \cite{review-age-estimation} with 18 citations, \cite{review-shot-boundary} with 17 citations, \cite{review-crop-phenomics-breeding} with 16 citations, \cite{review-video-crowd} with 15 citations, and \cite{review-dl-food} with 15 citations.
+
+The only article that had a bigger than an insignificant overlap with the goal of this thesis was the ninth result, \textit{Deep learning meets hyperspectral image analysis: A multidisciplinary review} \cite{review-dl-hs-rs-bio}. Tha aim of this review is to give a~general overview of the~use of \zk{DL} in fields of remote sensing and biomedicine and it does so by naming and referencing an impressive amount of papers, but without any abundant architecture list and without original experiments. Not even citations of results from original papers could be found.
