@@ -13,10 +13,49 @@ This experiment was immediately followed by an overview of the top \textit{revie
 \subsection{Web of Science}
 \label{wos-papers}
 
+\subsubsection{Using the search term \textit{convolutional-neural-network}}
+\label{wos-papers-full-length}
+
 The first used website was Web of Science\footnote{\url{www.webofknowledge.com}} (\zk{WoS}). The~following query restrictions were used:
 
 \begin{itemize}
-	\item \verb|Search string: cnn|. To focus only on articles dealing with \zk{CNN}s. The~term \verb|cnn| was preferred over the~term \verb|convolutional neural network| as in some papers, only the~abbreviated form was used (this does not apply to papers only marginally mentioning \zk{CNN}s, where the term is normally full-length).
+	\item \verb|Search string: convolutional neural network|. To focus only on articles dealing with \zk{CNN}s.
+	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
+	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
+	\item \verb|Web of Science categories: REMOTE SENSING|. To focus only on the~scien\-ti\-fic area of interest.
+	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals\footnote{\url{www.doaj.org}} (\zk{DOAJ}).
+\end{itemize}
+
+\noindent The top five results from the query, when ordered by the~attribute \verb|Times Cited| and filtered as will be described below, were the following:
+
+\begin{itemize}
+	\item Building Extraction in Very High Resolution Remote Sensing Imagery Using Deep Learning and Guided Filters: 81 citations. \cite{res-u-net}
+	\item Very Deep Convolutional Neural Networks for Complex Land Cover Mapping Using Multispectral Remote Sensing Imagery: 71 citations. \cite{very-deep-cnn-lc}
+	\item Evaluation of Different Machine Learning Methods and Deep-Learning Convolutional Neural Networks for Landslide Detection: 51 citations. \cite{landslide-evaluation}
+	\item 3D Convolutional Neural Networks for Crop Classification with Multi-Temporal Remote Sensing Images: 50 citations. \cite{3d-cnn-crop}
+	\item Multi-Temporal Land Cover Classification with Sequential Recurrent Encoders: 38 citations. \cite{multi-temporal-sequential-recurrent}
+\end{itemize}
+
+\textit{Building Extraction in Very High Resolution Remote Sensing Imagery Using Deep Learning and Guided Filters} proposes a new \zk{CNN} architecture based on the residual network (\zk{ResNet}) \cite{resnet} called Res-U-Net and - using explicitly defined metrics - compares it to those of SegNet \cite{segnet}, fully convolutional network (\zk{FCN}) \cite{fcn}, a combination of \zk{CNN} and random forest (\zk{RF}) \cite{rf}, Multi-scale deep network \cite{hierarchical-labeling}, and a combination of \zk{CNN}, \zk{RF} and conditional random fields (\zk{CRF}) \cite{hierarchical-labeling}, but authors do not explain how exactly are these models built, so it does not give the~reader any solid comparison. Especially terms like \zk{CNN} and \zk{FCN} are so general that they do not imply anything more than just the basic approach. In the end, it is not even sure whether authors have tested these models on the~datasets on their own, or if they just report results found in other articles. Authors experiment on two datasets differing in used bands and spatial resolution, and also with including and excluding the normalized differential vegetation index (\zk{NDVI}) and the digital surface model (\zk{DSM}). However, both datasets are of German cities and therefore very similar in the~content, both also being binary datasets containg only two classes - \textit{building} and \textit{clutter} (unknown). Time and memory needs are not mentioned in the~study.
+
+The second reviewed article - \textit{Very Deep Convolutional Neural Networks for Complex Land Cover Mapping Using Multispectral Remote Sensing Imagery} - deals with land cover mapping using \zk{CNN}s with a focus on wetlands detection. Therefore it is not a surprise that they do not experiment with different datasets; however, it would give much more general overview of \zk{CNN} possibilities in the wetland detection data from different parts of the world were used, and not only from Newfoundland and Labrador, Canada. Besides that, the paper experiments with DenseNet-121 \cite{densenet}, Inception V3 \cite{inception}, VGG-16 \cite{vgg}, VGG-19, Xception \cite{xception}, \zk{ResNet}-50, and Inception \zk{ResNet} V2 \cite{inception-resnet}, and also with machine learning (\zk{ML}) methods of support vector machine (\zk{SVM}) \cite{svm} and \zk{RF}. Authors also use different patch sizes and report processing times.
+
+The third result contains the phrase \textit{evaluation of different methods} already in the title and compares \zk{CNN}s with other popular \zk{ML} methods, namely \zk{SVM}, \zk{RF}, and even with a simple artificial neural network (\zk{ANN}) architecture called multi-layer perceptron (\zk{MLP}) \cite{mlp} with a hidden layer of 30 neurons. Even the \zk{CNN} approach is diversified into two architectures - one of them comprising of five layers, the other one of seven layers. To make the results more general, authors experiment also with five different input window sizes, compare the~use of spectral bands versus the~use of a combination of spectral bands and topographical ones, and apply their models on two different datasets. Time consumption of different methods would be also valuable information on the comparison, yet this metric is not included in the article. It is apparent that authors of the paper came from the same impulse as this thesis, reading statements like \textit{"CNNs do not automatically outperform ANN, SVM and RF, although this is sometimes claimed. Rather, the performance of CNNs strongly depends on their design, i.e., layer depth, input window sizes and training strategies."} Or, in another place, \textit{"CNN will not automatically outperform other methods - as popular science articles and magazines may imply."} With felicitously set parameters, \zk{CNN}s outperformed other approaches, but their use was done under critical supervision and without trend-surfing shouts.
+
+The fourth article, \textit{3D Convolutional Neural Networks for Crop Classification with Multi-Temporal Remote Sensing Images}, again experiments with different kernel sizes and other parameters, and compares the proposed 3D \zk{CNN} architecture with K-nearest neighbour (\zk{KNN}) \cite{knn}, principal component analysis (\zk{PCA}) \cite{pca}, \zk{SVM}, and an ad-hoc defined 2D \zk{CNN} structure. No time consumption analysis of different approaches was presented. Although the presented results seem to prove their claims that their proposed architecture performs better than the other ones, a more extensive research experimenting with more datasets and more advanced, state-of-the-art architectures could give such claims more solid position.
+
+% The proposed method in this work can obtain improvements in terms of overall accuracy, precision and F_1 over the classical classification systems.
+
+Authors of \textit{Multi-Temporal Land Cover Classification with Sequential Recurrent Encoders} do admit that their comparison part is not ideal; that is true as they compare results of their proposed architecture only with results of other architectures reported in other papers - these results were achieved using different datasets, different preprocessing, different numbers of classes and training samples, different spatial resolution and different bands. Therefore, it is arguable whether this comparison is relevant at all. Authors test their architecture on a multi-class dataset coming from one area in Germany split into two years; this also does not serve as a test on multiple independent datasets. Positive is the~fact that authors explicitly define used quality metrics and report time needs of the training, although only the~overall accuracy is presented for other architectures in the~comparison table.
+
+\subsubsection{Using the search term \textit{cnn}}
+\label{wos-papers-cnn}
+
+As in some articles, only the abbreviation \textit{\zk{CNN}} is used instead of the full-length term \textit{convolutional neural network}, the~same research using \textit{\zk{CNN}} as the search term was done.
+
+\begin{itemize}
+	\item \verb|Search string: cnn|. To focus only on articles dealing with \zk{CNN}s.
+	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Web of Science categories: REMOTE SENSING|. To focus only on the~scien\-ti\-fic area of interest.
 	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals\footnote{\url{www.doaj.org}} (\zk{DOAJ}).
@@ -32,18 +71,13 @@ The first used website was Web of Science\footnote{\url{www.webofknowledge.com}}
 	\item Deformable Faster R-CNN with Aggregating Multi-Layer Features for Partially Occluded Object Detection in Optical Remote Sensing Images: 24 citations. \cite{deformable-faster-r-cnn}
 \end{itemize}
 
-Two results were filtered out. \cite{cnn-fusion-clouds} with 28 citations and \cite{cnn-fusion-hr-hsr} with 25 citations. They were filtered out only because they do not correspond with the~main focus of the~thesis on the classification task with object detection and semantic and instance segmentation, but dealt with an image fusion instead. 
-
-The research starts very positively. The first result contains the phrase \textit{evaluation of different methods} already in the title and compares \zk{CNN}s with other popular machine learning (\zk{ML}) methods, namely support vector machine (\zk{SVM}) \cite{svm}, random forest (\zk{RF}) \cite{rf} and even with a simple artificial neural network (\zk{ANN}) architecture called multi-layer perceptron (\zk{MLP}) \cite{mlp} with a hidden layer of 30 neurons. Even the \zk{CNN} approach is diversified into two architectures - one of them comprising of five layers, the other one of seven layers. To make the results even more general, authors experiments also with five different input window sizes, compare the~use of spectral bands versus the~use of a combination of spectral bands and topographical ones and apply their models on two different datasets. Time consumption of different methods would be also valuable information on the comparison, yet this one is metric is not included in the article. It is apparent that authors of the paper came from the same impulse as this thesis, reading statements like \textit{"CNNs do not automatically outperform ANN, SVM and RF, although this is sometimes claimed. Rather, the performance of CNNs strongly depends on their design, i.e., layer depth, input window sizes and training strategies."} Or, in another place, \textit{"CNN will not automatically outperform other methods - as popular science articles and magazines may imply."} With felicitously set parameters, \zk{CNN}s outperformed other approaches, but their use was done under critical supervision and without trend-surfing shouts.
-
-The second article, \textit{3D Convolutional Neural Networks for Crop Classification with Multi-Temporal Remote Sensing Images},  again experiments with different kernel sizes and other parameters, and compares the proposed 3D \zk{CNN} architecture with K-nearest neighbour (\zk{KNN}) \cite{knn}, principal component analysis (\zk{PCA}) \cite{pca}, \zk{SVM}, and an ad-hoc defined 2D \zk{CNN} structure. No time consumption analysis of different approaches was presented. Although the presented results seem to prove their claims that their proposed architecture performs better than the other ones, a more extensive research experimenting with more datasets and more advanced, state-of-the-art architectures could give such claims more solid position.
+Two results were filtered out. \cite{cnn-fusion-clouds} with 28 citations and \cite{cnn-fusion-hr-hsr} with 25 citations. They were filtered out only because they do not correspond with the~main focus of the~thesis on the classification task with object detection and semantic and instance segmentation, but dealt with an image fusion instead. The top two results correspond to articles reviewed already in the previous section; therefore they are being skipped now.
 
 The comparison part of \textit{Geospatial Object Detection in High Resolution Satellite Images Based on Multi-Scale Convolutional Neural Network} is a bit more minimalistic. The proposed method is compared only with an architecture called Faster \zk{R-CNN} (region based convolutional neural network) \cite{faster-rcnn} and with the single shot multi-box detector (\zk{SSD}) \cite{ssd} without a more detailed description of inner parametrization or experiments with it. Authors use also only one dataset to test their method, so there is no evidence on how versatile the method is when it comes to the data greed. On the other hand, they report the time greed of the three used methods.
 
 In \textit{Hyperspectral Image Classification Using Convolutional Neural Networks and Multiple Feature Learning}, authors go a~different way - to compare their architecture, they create two different architectures and show that the~proposed one is the~one performing the best. A comparison with any other well-known architecture or other \zk{ML} method is missing. The pro of this paper is the use of three different datasets.
 
 24 citations reaching \textit{Deformable Faster R-CNN with Aggregating Multi-Layer Features for Partially Occluded Object Detection in Optical Remote Sensing Images} also proposes a new architecture, called \textit{deformable R-CNN}. Authors compare this model with \zk{SSD} and R-P-Faster \zk{R-CNN} \cite{rp-faster-rcnn} on three datasets. No comparison of time or memory requirements is included in the article.
-
 
 % Convolution Neural Network Architecture Learning for Remote Sensing Scene Classification
 % https://arxiv.org/abs/2001.09614
@@ -78,6 +112,7 @@ The second used website was Scopus\footnote{\url{www.scopus.com}}. The~following
 
 \begin{itemize}
 	\item \verb|Search string: "remote sensing" cnn|. To focus only on articles dealing with \zk{CNN}s in the area of remote sensing. The~term \verb|cnn| was preferred over the~term \verb|convolutional neural network| as in some papers, only the~abbreviated form was used (this does not apply to papers only marginally mentioning \zk{CNN}s, where the term is normally full-length).
+	\item \verb|Search field: All fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Access type: Open Access|. To focus only on articles in \textit{Scopus Gold Open Access}\footnote{\url{www.elsevier.com/open-access}}. It includes fully open journals, hybrid journals (authors pay a fee to make an article open access), open archives and articles with free promotional access.
 \end{itemize}
@@ -88,7 +123,7 @@ The second used website was Scopus\footnote{\url{www.scopus.com}}. The~following
 	\item A new deep convolutional neural network for fast hyperspectral image classification: 123 citations.  \cite{cnn-hs-class}
 	\item Automatic ship detection in remote sensing images from google earth of complex scenes based on multiscale rotation Dense Feature Pyramid Networks: 97 citations. \cite{ship-rdfpn}
 	\item Deep learning in remote sensing applications: A meta-analysis and review: 93 citations. \cite{dl-remote-sensing-review}
-	\item Building extraction in very high resolution remote sensing imagery using deep learning and guided filters: 92 citations. \cite{vhr-building}
+	\item Building extraction in very high resolution remote sensing imagery using deep learning and guided filters: 92 citations. \cite{res-u-net}
 	\item Very Deep Convolutional Neural Networks for Complex Land Cover Mapping Using Multispectral Remote Sensing Imagery: 72 citations. \cite{very-deep-cnn-lc}
 \end{itemize}
 
@@ -100,11 +135,9 @@ The first article, \textit{A new deep convolutional neural network for fast hype
 
 The third most cited article on Scopus - \textit{Deep learning in remote sensing applications: A meta-analysis and review} - is a review coming from similar impulses as this thesis or partly \cite{landslide-evaluation} mentioned in chapter \ref{wos-papers}. The motivation is formulated in the sense that \textit{"it appears that a more systematic (i.e. quantitative) analysis is necessary to get a comprehensive and objective understanding of the applications of DL for remote-sensing analysis."}. Authors focus on many more fields than is the goal of this thesis, including image fusion, image registration, scene classification, object detection, land use and land cover classification, image segmentation, object-based image analysis (\zk{OBIA}), and other tasks. The~value of the~paper lies in its extensive research on what are the~most frequent targets of the~use of deep learning (\zk{DL}) for remote sensing, what are the~most frequent \zk{DL} models, spatial resolutions, application areas (urban, vegetation, etc.), average accuracies, common training datasets and even the~most used scientific terms in titles and abstracts of these papers. Although it is a high-class review and it works as a valuable overview about \zk{DL} stronger and weaker positions in the~field, authors have not conducted their own experiments, so only results reported in the~original papers are mentioned, if mentioned.
 
-\textit{Building extraction in very high resolution remote sensing imagery using deep learning and guided filters} again proposes a new architecture and compares it to those of SegNet \cite{segnet}, fully convolutional network (\zk{FCN}) \cite{fcn}, a combination of \zk{CNN} and \zk{RF}, Multi-scale deep network \cite{hierarchical-labeling}, and a combination of \zk{CNN}, \zk{RF}, and conditional random fields (\zk{CRF}) \cite{hierarchical-labeling}, but authors do not explain how exactly are these models built, so it does not give the~reader any solid comparison. Especially terms like \zk{CNN} and \zk{FCN} are so general that they do not imply anything more than the basic approach. Time and memory needs are completely ignored in the~study and even though authors experimented on two datasets, both of them were of German cities and therefore very similar in the~content, although differing in used bands.
+\textit{Building extraction in very high resolution remote sensing imagery using deep learning and guided filters} is the same one as the one mentioned in chapter \ref{wos-papers}, only with different number of citations due to the difference between the \zk{WoS} and Scopus systems; therefore it is being skipped in this section.
 
-% Experimental results demonstrated that our methods were better than the other methods
-
-The last reviewed article - \textit{Very Deep Convolutional Neural Networks for Complex Land Cover Mapping Using Multispectral Remote Sensing Imagery} - deals with land cover mapping using \zk{CNN}s with a focus on wetlands detection. Therefore it is not a surprise that they do not experiment with different datasets; however, it would give much more general overview of \zk{CNN} options in the wetland detection to use data from different parts of the world and not only from Newfoundland and Labrador, Canada. Besides that, the paper experiments with DenseNet-121 \cite{densenet}, Inception V3 \cite{inception}, VGG-16 \cite{vgg}, VGG-19, Xception \cite{xception}, \zk{ResNet}-50, and Inception \zk{ResNet} V2 \cite{inception-resnet}, and also with \zk{ML} methods of \zk{SVM} and \zk{RF}. Authors also use different patch sizes and report processing times.
+\textit{Very Deep Convolutional Neural Networks for Complex Land Cover Mapping Using Multispectral Remote Sensing Imagery} is the same one as the one mentioned in chapter \ref{wos-papers}, only with different number of citations due to the difference between the \zk{WoS} and Scopus systems; therefore it is being skipped in this section.
 
 \section{Reviews of CNNs in the field of remote sensing}
 \label{situation}
@@ -116,6 +149,7 @@ When compared with the query described in chapter \ref{wos-papers}, an extra par
 
 \begin{itemize}
 	\item \verb|Search string: cnn|. To focus only on articles dealing with \zk{CNN}s. The~term \verb|cnn| was preferred over the~term \verb|convolutional neural network| as in some papers, only the~abbreviated form was used (this does not apply to papers only marginally mentioning \zk{CNN}s, where the term is normally full-length).
+	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Web of Science categories: REMOTE SENSING|. To focus only on the~scien\-ti\-fic area of interest.
 	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals\footnote{\url{www.doaj.org}} (\zk{DOAJ}).
@@ -147,6 +181,7 @@ When compared with the query described in chapter \ref{scopus-papers}, an extra 
 
 \begin{itemize}
 	\item \verb|Search string: "remote sensing" cnn|. To focus only on articles dealing with \zk{CNN}s in the area of remote sensing. The~term \verb|cnn| was preferred over the~term \verb|convolutional neural network| as in some papers, only the~abbreviated form was used (this does not apply to papers only marginally mentioning \zk{CNN}s, where the term is normally full-length).
+	\item \verb|Search field: All fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Access type: Open Access|. To focus only on articles in \textit{Scopus Gold Open Access}\footnote{\url{www.elsevier.com/open-access}}. It includes fully open journals, hybrid journals (authors pay a fee to make an article open access), open archives and articles with free promotional access.
 	\item \verb|Document type: Review|. To focus only on reviews.
