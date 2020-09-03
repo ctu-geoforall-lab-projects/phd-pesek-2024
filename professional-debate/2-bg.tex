@@ -174,7 +174,44 @@ From the~results above, the top four results correspond to articles reviewed alr
 \subsection{Web of Science}
 \label{wos-reviews}
 
+\subsubsection{Using the search term \textit{convolutional neural network}}
+\label{wos-reviews-full-length}
+
 When compared with the query described in chapter \ref{wos-papers}, an extra parameter \verb|Document Types| was used to get only \textit{review-type} articles. Therefore, the following restrictions were used for the~query:
+
+\begin{itemize}
+	\item \verb|Search string: convolutional neural network|. To focus only on articles dealing with \zk{CNN}s.
+	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
+	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
+	\item \verb|Web of Science categories: REMOTE SENSING|. To focus only on the~scien\-ti\-fic area of interest.
+	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals\footnote{\url{www.doaj.org}} (\zk{DOAJ}).
+	\item \verb|Document Types: REVIEW|. To focus only on reviews.
+\end{itemize}
+
+\noindent There were only seven results for the~described query and two of them - \textit{Spatiotemporal Image Fusion in Remote Sensing} \cite{review-st-fusion} with 14 citations and \textit{Meta-Analysis of Wetland Classification Using Remote Sensing: A Systematic Review of a 40-Year Trend in North America} \cite{review-wetlands-40-years} with 0 citations - were filtered out as they dealt with the~image fusion and with the history of wetland classification and did not overlay with the main focus of this thesis. The rest, when ordered by the~attribute \verb|Times Cited|, were the following:
+
+\begin{itemize}
+	\item Review and Evaluation of Deep Learning Architectures for Efficient Land Cover Mapping with UAS Hyper-Spatial Imagery: A Case Study Over a Wetland: 3 citations. \cite{review-dl-wetlands}
+	\item Object Detection and Image Segmentation with Deep Learning on Earth Observation Data: A Review-Part I: Evolution and Recent Trends: 1 citation. \cite{review-dl-eo}
+	\item Geographic Object-Based Image Analysis: A Primer and Future Directions: 0 citations. \cite{geobia}
+	\item Deep Learning for Land Use and Land Cover Classification Based on Hyperspectral and Multispectral Earth Observation Data: A Review: 0 citations. \cite{review-dl-lulc}
+	\item Deep Learning Approaches Applied to Remote Sensing Datasets for Road Extraction: A State-Of-The-Art Review: 0 citations. \cite{review-dl-road-extraction}
+\end{itemize}
+
+As \cite{very-deep-cnn-lc}, \textit{Review and Evaluation of Deep Learning Architectures for Efficient Land Cover Mapping with UAS Hyper-Spatial Imagery: A Case Study Over a Wetland} focuses on wetlands. And although authors evaluate and describe a pleasurable amount of architectures including SegNet, U-Net \cite{u-net}, DenseNet, DeepLab V3+ \cite{deeplab}, Pyramid scene parsing network (\zk{PSPNet}) \cite{pspnet}, and an architecture called MobileU-Net (a combination of MobileNet \cite{mobilenet} and U-Net) and dedicate a lot of space to used evaluation metrics, their findings would be even more valuable and universal if tested on more than one dataset. An application of at least one of the~common \zk{ML} methods would also give the~article an added value in the form of a~well-understood relative comparison.
+
+\textit{Object Detection and Image Segmentation with Deep Learning on Earth Observation Data: A Review-Part I} (part two is as of August 14, 2020 not yet published) focuses on an overview and the~evolution of different approaches in the topic. Authors present a comprehensive overview of \zk{DL} architectures commonly or less commonly used on Earth observation (\zk{EO}) data, but - due to their main goal being just an overview - do not conduct their own experiments; instead, they report results based on the~\zk{MS-COCO} dataset (Microsoft-Common Objects in Context) \cite{coco}, a dataset with contents very different than those of \zk{EO} data.
+
+The main focus of \textit{Geographic Object-Based Image Analysis: A Primer and Future Directions} is on the geographic object-based analysis (\zk{GEOBIA}) and not \zk{CNN}s; however, a not negligible part of the~review deals with \zk{CNN}s and \zk{CNN}s - called geographic object-based convolutional neural networks (\zk{GEOCNN}s) - are proposed as one of the~most promising future directions of \zk{GEOBIA}. But when it comes to the~chapter \textit{Accuracies of GEOCNN Methods Versus Conventional GEOBIA}, no experiments are conducted and the~entire report is reduced to citations with trifling claims without numbers like \textit{"method following Approach 3 resulted in higher thematic accuracy than per-pixel classification with patch-based CNNs and FCNs"} or \textit{"method following Approach 2 resulted in higher segmentation accuracy than GEOBIA"}.
+
+As in \cite{review-dl-eo}, authors of \textit{Deep Learning for Land Use and Land Cover Classification Based on Hyperspectral and Multispectral Earth Observation Data: A Review} also do not conduct any experiment, but rather report the evolution of the \zk{DL} and land cover and land use classification. And although they sketch the connection between different topic problems and different \zk{ML} or \zk{DL} architectures, they do not report any numbers and when they rarely write about about performances, only general phrases like "\textit{U-Net has shown very promising results in extracting buildings}" are used.
+
+\textit{Deep Learning Approaches Applied to Remote Sensing Datasets for Road Extraction: A State-Of-The-Art Review} introduces different approaches to road extraction using \zk{DL}. Although it gives always multiple model examples for every approach, their results - crucial for the right model choice - are taken from original papers; therefore, different metrics are used, time needs are mentioned only exceptionally, and different datasets are used, and even when the same dataset is used, different setting (as the training-validation images ratio) could lead to different scores.
+
+\subsubsection{Using the search term \textit{cnn}}
+\label{wos-reviews-cnn}
+
+As in some articles, only the abbreviation \textit{\zk{CNN}} is used instead of the full-length term \textit{convolutional neural network}, the~same research using \textit{\zk{CNN}} as the search term was done.
 
 \begin{itemize}
 	\item \verb|Search string: cnn|. To focus only on articles dealing with \zk{CNN}s. The~term \verb|cnn| was preferred over the~term \verb|convolutional neural network| as in some papers, only the~abbreviated form was used (this does not apply to papers only marginally mentioning \zk{CNN}s, where the term is normally full-length).
@@ -194,13 +231,7 @@ When compared with the query described in chapter \ref{wos-papers}, an extra par
 	\item Geographic Object-Based Image Analysis: A Primer and Future Directions: 0 citation. \cite{geobia}
 \end{itemize}
 
-As \cite{very-deep-cnn-lc}, \textit{Review and Evaluation of Deep Learning Architectures for Efficient Land Cover Mapping with UAS Hyper-Spatial Imagery: A Case Study Over a Wetland} focuses on wetlands. And although authors evaluate and describe a pleasurable amount of architectures including SegNet, U-Net \cite{u-net}, DenseNet, DeepLab V3+ \cite{deeplab}, Pyramid scene parsing network (\zk{PSPNet}) \cite{pspnet}, and an architecture called MobileU-Net (a combination of MobileNet \cite{mobilenet} and U-Net) and dedicate a lot of space to used evaluation metrics, their findings would be even more valuable and universal if tested on more than one dataset. An application of at least one of the~common \zk{ML} methods would also give the~article an added value in the form of a~well-understood relative comparison.
-
-\textit{UAV-Based Structural Damage Mapping} does not focus primarily on \zk{CNN}s, but as they constitute a big part of UAV-based damage mapping, there is a lot of reviewing of them in the~article. However, the~article works more as an overview of the evolution of different approaches in the topic. Therefore, no novel experiments were conducted and when some results are mentioned, they are only copied from original papers; papers, where these methods could have been used on different data with different results.
-
-The same approach - major focus on an overview and the~evolution - is also in \textit{Object Detection and Image Segmentation with Deep Learning on Earth Observation Data: A Review-Part I} (part two is as of August 14, 2020 not yet published). Authors present a comprehensive overview of \zk{DL} architectures commonly or less commonly used on Earth observation (\zk{EO}) data, but do not conduct their own experiments; instead, they report results based on the~\zk{MS-COCO} dataset (Microsoft-Common Objects in Context) \cite{coco}, a dataset with contents very different than those of \zk{EO} data.
-
-The main focus of \textit{Geographic Object-Based Image Analysis: A Primer and Future Directions} is on the geographic object-based analysis (\zk{GEOBIA}) and not \zk{CNN}s; however, a not negligible part of the~review deals with \zk{CNN}s and \zk{CNN}s - called geographic object-based convolutional neural networks (\zk{GEOCNN}s) - are proposed as one of the~most promising future directions of \zk{GEOBIA}. But when it comes to the~chapter \textit{Accuracies of GEOCNN Methods Versus Conventional GEOBIA}, no experiments are conducted and the~entire report is reduced to citations with trifling claims without numbers like \textit{"method following Approach 3 resulted in higher thematic accuracy than per-pixel classification with patch-based CNNs and FCNs"} or \textit{"method following Approach 2 resulted in higher segmentation accuracy than GEOBIA"}.
+The only review not described in the previous section is the second one. \textit{UAV-Based Structural Damage Mapping: A Review} does not focus primarily on \zk{CNN}s, but as they constitute a big part of UAV-based damage mapping, there is a lot of reviewing of them in the~article. However, the~article works more as an overview of the evolution of different approaches in the topic. Therefore, no novel experiments were conducted and when some results are mentioned, they are only copied from original papers; papers, where these methods could have been used on different data with different results.
 
 \subsection{Scopus}
 \label{scopus-reviews}
