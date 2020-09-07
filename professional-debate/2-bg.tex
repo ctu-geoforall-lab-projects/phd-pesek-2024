@@ -287,7 +287,22 @@ The Scopus query is apparently - due to the~smaller flexibility when it comes to
 
 The 19 filtered articles were the following: \cite{dl-for-cv} with 251 citations, \cite{review-ml-in-rs} with 177 citations, \cite{review-ml-agriculture} with 153 citations, \cite{review-uav-applications} with 104 citations, \cite{state-of-the-art-ann} with 85 citations, \cite{lc-2-0} with 83 citations, \cite{state-of-the-art-dl} with 73 citations, \cite{review-water-dl} with 71 citations, \cite{review-plant-stress} with 66 citations, \cite{review-text-class} with 53 citations, \cite{cv-animal-ecology} with 50 citations, \cite{review-cv-infra-inspections} with 49 citations, \cite{review-ann-plant-disease} with 48 citations, \cite{review-st-fusion-multisource} with 48 citations, \cite{review-ml-energy} with 47 citations, \cite{review-bd-disaster} with 43 citations, \cite{review-uav-rs} with 34 citations, \cite{nanophotonics} with 33 citations, and \cite{review-point-clouds} with 33 citations.
 
-The only on corresponding with the aim of this thesis is \textit{Deep learning for remote sensing image classification: A survey} \cite{review-dl-rs} with 45 citations. The approach is very fulfilling - authors compare multiple architectures on multiple datasets and define metrics used for the comparison. The fact that almost half of the presented results are taken from a different source is not a problem, but the fact that in the other part, a different training-validation-test data ratio was used for different models is. Also, the researched architectures are just vaguely defined without specifying parameters used to build them.
+The only one corresponding with the aim of this thesis is \textit{Deep learning for remote sensing image classification: A survey} \cite{review-dl-rs} with 45 citations. The approach is very fulfilling - authors compare multiple architectures on multiple datasets and define metrics used for the comparison. The fact that almost half of the presented results are taken from a different source is not a problem, but the fact that in the other part, a different training-validation-test data ratio was used for different models is. Also, the researched architectures are just vaguely defined without specifying parameters used to build them.
+
+Using the same query, but restrictive to search only in the title, the abstract, and keywords, the results were as follows:
+
+\begin{itemize}
+	\item Deep learning for remote sensing image classification: A survey: 45 citations. \cite{review-dl-rs}
+	\item Hyperspectral image classification based on spectral and spatial information using multi-scale ResNet: 1 citation. \cite{hs-multi-scale-resnet}
+	\item Deep Learning for Land Use and Land Cover Classification Based on Hyperspectral and Multispectral Earth Observation Data: A Review: 0 citations. \cite{review-dl-lulc}
+	\item Geographic Object-Based Image Analysis: A Primer and Future Directions: 0 citations. \cite{geobia}
+\end{itemize}
+
+\noindent There were only eight results for the~described query and four of them were filtered out - \cite{review-st-fusion} with 15 citations, \cite{ml-cv-phenotyping} with 11 citations, \cite{survey-dl-rs-enhancement} with 8 citations, and \cite{survey-dl-super-resolution} with 6 citations. They were filtered out only because they do not correspond with the~main focus of the~thesis on the classification task with object detection and semantic and instance segmentation in the field of remote sensing.
+
+From the rest, the top result correspond to the article already reviewed in this section and the third and fourth one to articles reviewed already in chapter \ref{wos-papers}, only with different number of citations due to the difference between the \zk{WoS} and Scopus systems. Therefore, only the second one is being reviewed in this section.
+
+The motivation to mark \textit{Hyperspectral image classification based on spectral and spatial information using multi-scale ResNet} as a review could be very speculative, but otherwise the paper meets more-or-less all criteria this thesis puts on complex comparisons and reviews. Authors propose a method based on \zk{ResNet}, define metrics used for accuracy measurements and compare its performance on two multi-class datasets differing in the number of bands with three other methods - a basic \zk{CNN} coming from \cite{cnn-hs}, a convolutional neural network using pixel-pair features (\zk{CNN-PPF}) \cite{cnn-ppf}, and a contextual deep convolutional neural network (\zk{CD-CNN}) \cite{cd-cnn}. Authors even experiment with different training-validation samples ratios for each dataset. The only things that could be rebuked is the lack of more detailed overview of used parameters for used architectures and the lack of time needs comparison.
 
 \subsubsection{Using the search term \textit{cnn}}
 \label{scopus-reviews-cnn}
@@ -307,3 +322,13 @@ The Scopus query is apparently - due to the~smaller flexibility when it comes to
 The 19 filtered articles were the following: \cite{dl-for-cv} with 251 citations, \cite{state-of-the-art-dl} with 73 citations, \cite{review-water-dl} with 71 citations, \cite{review-plant-stress} with 66 citations, \cite{review-text-class} with 53 citations, \cite{review-oil-spill} with 50 citations, \cite{review-cv-infra-inspections} with 49 citations, \cite{review-vessel-detection} with 39 citations, \cite{review-ml-smart-grid} with 30 citations, \cite{review-autonomus-vehicles} with 28 citations, \cite{review-grasp} with 21 citations, \cite{review-3d-human-interaction} with 21 citations, \cite{review-dl-3d-classification} with 19 citations, \cite{review-crop-phenomics} with 19 citations, \cite{review-age-estimation} with 18 citations, \cite{review-shot-boundary} with 17 citations, \cite{review-crop-phenomics-breeding} with 16 citations, \cite{review-video-crowd} with 15 citations, and \cite{review-dl-food} with 15 citations.
 
 The only article that had a bigger than an insignificant overlap with the goal of this thesis was the ninth result, \textit{Deep learning meets hyperspectral image analysis: A multidisciplinary review} \cite{review-dl-hs-rs-bio}. Tha aim of this review is to give a~general overview of the~use of \zk{DL} in fields of remote sensing and biomedicine and it does so by naming and referencing an impressive amount of papers, but without any abundant architecture list and without original experiments. Not even citations of results from original papers could be found.
+
+Using the same query, but restrictive to search only in the title, the abstract, and keywords, the results were as follows:
+
+\begin{itemize}
+	\item UAV-Based Structural Damage Mapping: A Review: 5 citations. \cite{uav-building-damages}
+	\item Hyperspectral image classification based on spectral and spatial information using multi-scale ResNet: 1 citation. \cite{hs-multi-scale-resnet}
+	\item Geographic Object-Based Image Analysis: A Primer and Future Directions: 0 citations. \cite{geobia}
+\end{itemize}
+
+\noindent There were only five results for the~described query and one of them - \textit{Spatiotemporal Image Fusion in Remote Sensing} \cite{review-st-fusion} with 15 citations - was filtered out as it dealt with the~image fusion and not with the~classification. From the rest, the first and fourth results correspond to articles reviewed already in chapter \ref{wos-papers} and the second one to an article reviewed in the previous section. Therefore, all of them are being skipped in this section.
