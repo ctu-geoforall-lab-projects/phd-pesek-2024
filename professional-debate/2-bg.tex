@@ -146,6 +146,18 @@ The third most cited article on Scopus - \textit{Deep learning in remote sensing
 
 Authors of \textit{Semi-Supervised Deep Learning Using Pseudo Labels for Hyperspectral Image Classification} propose their own method called semi-supervised deep learning using pseudo-labels (\zk{PL-SSDL}) using convolutional recurrent neural networks (\zk{CRNN}) and compare its performace on three multi-class hyperspectral datasets differing in number of classes, number of bands, and also in the~spatial resolution (ranging from 1 metre to 2.5 metres). \zk{PL-SSDL} is compared with big amount of \zk{ML} methods, namely \zk{KNN}, \zk{SVM}, label propagation \cite{label-prop}, transductive support vector machine (\zk{TSVM}) \cite{tsvm}, Laplacian support vector machine (\zk{LapSVM}) \cite{lapsvm}, and spatio-spectral Laplacian support vector machine (\zk{SS-LapSVM}) \cite{ss-lapsvm}, and two \zk{ANN} architectures, namely stacked denoising autoencoder (\zk{SDA}) \cite{sda}, and ladder networks \cite{ladder-networks}. As \zk{PL-SSDL} is a \zk{CRNN}, a comparison with \zk{CNN} or \zk{RNN} or their combination would be desirable, especially considering the fact that the used \zk{ANN} models could be built using them. Authors report for every method time complexity and accuracy , but do not specify explicitly what accuracy metric do they use or how do they measure the time complexity (number of epochs is slightly mentioned for \zk{PL-SSDL}, but not for any other approach).
 
+Using the same query, but restrictive to search only in the title, the abstract, and keywords, the results were as follows:
+
+\begin{itemize}
+	\item A new deep convolutional neural network for fast hyperspectral image classification: 123 citations.  \cite{cnn-hs-class}
+	\item Semi-Supervised Deep Learning Using Pseudo Labels for Hyperspectral Image Classification: 77 citations \cite{semi-supervised-hyperspectral}
+	\item Very Deep Convolutional Neural Networks for Complex Land Cover Mapping Using Multispectral Remote Sensing Imagery: 72 citations. \cite{very-deep-cnn-lc}
+	\item 3D Convolutional Neural Networks for Crop Classification with Multi-Temporal Remote Sensing Images: 61 citations. \cite{3d-cnn-crop}
+	\item Hyperspectral Image Classification Using Convolutional Neural Networks and Multiple Feature Learning: 54 citations. \cite{hyperspectral-multiple-feat-cnn}
+\end{itemize}
+
+From the~results above, the two top articles were already received with the \verb|All Fields| query. The rest was reviewed already in chapter \ref{wos-papers}, only with different number of citations due to the difference between the \zk{WoS} and Scopus systems. Therefore, all of them are being skipped now.
+
 \subsubsection{Using the search term \textit{cnn}}
 \label{scopus-papers-cnn}
 
@@ -171,6 +183,20 @@ As in some articles, only the abbreviation \textit{\zk{CNN}} is used instead of 
 Four results were filtered out. \cite{dl-for-cv} with 251 citations, \cite{dl-lungs} with 87 citations, \cite{maoxian-landslide} with 74 citations, and \cite{state-of-the-art-dl} with 73 citations. They were filtered out only because they do not correspond with the~main focus of the~thesis on the classification task with object detection and semantic and instance segmentation in the field of remote sensing.
 
 From the~results above, the top four results correspond to articles reviewed already in the previous section and the fifth one to an article reviewed already in chapter \ref{wos-papers}, only with different number of citations due to the difference between the \zk{WoS} and Scopus systems. Therefore, all of them are being skipped in this section.
+
+Using the same query, but restrictive to search only in the title, the abstract, and keywords, the results were as follows:
+
+\begin{itemize}
+	\item A new deep convolutional neural network for fast hyperspectral image classification: 123 citations.  \cite{cnn-hs-class}
+	\item Very Deep Convolutional Neural Networks for Complex Land Cover Mapping Using Multispectral Remote Sensing Imagery: 72 citations. \cite{very-deep-cnn-lc}
+	\item 3D Convolutional Neural Networks for Crop Classification with Multi-Temporal Remote Sensing Images: 61 citations. \cite{3d-cnn-crop}
+	\item Small object detection in optical remote sensing images via modified Faster R-CNN: 57 citations. \cite{modified-faster-rcnn-small-objects}
+	\item Hyperspectral Image Classification Using Convolutional Neural Networks and Multiple Feature Learning: 54 citations. \cite{hyperspectral-multiple-feat-cnn}
+\end{itemize}
+
+From the~results above, the two top results correspond to articles reviewed already in the previous section and the third and fifth one to articles reviewed already in chapter \ref{wos-papers}, only with different number of citations due to the difference between the \zk{WoS} and Scopus systems. Therefore, only the fourth one is being reviewed in this section.
+
+\textit{Small object detection in optical remote sensing images via modified Faster R-CNN} proposes a modified Faster \zk{R-CNN}-based architecture and tries it on the task of the aeroplanes and ships detection. The goal of the paper is to show that the proposed architecture improves the performance of the baseline Faster \zk{R-CNN}, so the comparison with the original model is not surprising, although showing a relative comparison with some other architectures to show the full picture would be valuable; even the Faster \zk{R-CNN}-modified Faster \zk{R-CNN} comparison is a bit vague as variable parameters that affect the performance of the architecture like the backbone architecture and the total stride are defined differently for each case in the presented experiment. A test on a different dataset or a task would be also beneficial, as well as info about the time needs of the new model.
 
 \section{Reviews of CNNs in the field of remote sensing}
 \label{situation}
