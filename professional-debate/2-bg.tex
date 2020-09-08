@@ -18,17 +18,17 @@ Research indicates that a lot of new \zk{CNN} architecture proposals do not deal
 \subsubsection{Using the search term \textit{convolutional neural network}}
 \label{wos-papers-full-length}
 
-The first used website was Web of Science\footnote{\url{www.webofknowledge.com}} (\zk{WoS}). The~following query restrictions were used:
+The first used academic access website was Web of Science\footnote{\url{www.webofknowledge.com}} (\zk{WoS}). The~following query restrictions were used:
 
 \begin{itemize}
 	\item \verb|Query string: convolutional neural network|. To focus only on articles dealing with \zk{CNN}s.
-	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
+	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily at remote sensing or \zk{CNN}s - but deal also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Web of Science categories: REMOTE SENSING|. To focus only on the~scien\-ti\-fic area of interest.
 	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals\footnote{\url{www.doaj.org}} (\zk{DOAJ}).
 \end{itemize}
 
-\noindent The top five results from the query, when ordered by the~attribute \verb|Times Cited| and filtered as will be described below, were the following:
+\noindent The top five results from the query, when ordered by the~attribute \verb|Times Cited|, were the following:
 
 \begin{itemize}
 	\item Building Extraction in Very High Resolution Remote Sensing Imagery Using Deep Learning and Guided Filters: 81 citations. \cite{res-u-net}
@@ -38,9 +38,9 @@ The first used website was Web of Science\footnote{\url{www.webofknowledge.com}}
 	\item Multi-Temporal Land Cover Classification with Sequential Recurrent Encoders: 38 citations. \cite{multi-temporal-sequential-recurrent}
 \end{itemize}
 
-\textit{Building Extraction in Very High Resolution Remote Sensing Imagery Using Deep Learning and Guided Filters} proposes a new \zk{CNN} architecture based on the residual network (\zk{ResNet}) \cite{resnet} called Res-U-Net and - using explicitly defined metrics - compares it to those of SegNet \cite{segnet}, fully convolutional network (\zk{FCN}) \cite{fcn}, a combination of \zk{CNN} and random forest (\zk{RF}) \cite{rf}, Multi-scale deep network \cite{hierarchical-labeling}, and a combination of \zk{CNN}, \zk{RF} and conditional random fields (\zk{CRF}) \cite{hierarchical-labeling}, but authors do not explain how exactly are these models built, so it does not give the~reader any solid comparison. Especially terms like \zk{CNN} and \zk{FCN} are so general that they do not imply anything more than just the basic approach. In the end, it is not even sure whether authors have tested these models on the~datasets on their own, or if they just report results found in other articles. Authors experiment on two datasets differing in used bands and spatial resolution, and also with including and excluding the normalized differential vegetation index (\zk{NDVI}) and the digital surface model (\zk{DSM}). However, both datasets are of German cities and therefore very similar in the~content, both also being binary datasets containg only two classes - \textit{building} and \textit{clutter} (unknown). Time and memory needs are not mentioned in the~study.
+\textit{Building Extraction in Very High Resolution Remote Sensing Imagery Using Deep Learning and Guided Filters} proposes a new \zk{CNN} architecture based on the residual network (\zk{ResNet}) \cite{resnet} called Res-U-Net and - using explicitly defined metrics - compares it to those of SegNet \cite{segnet}, fully convolutional network (\zk{FCN}) \cite{fcn}, a combination of \zk{CNN} and random forest (\zk{RF}) \cite{rf}, multi-scale deep network \cite{hierarchical-labeling}, and a combination of \zk{CNN}, \zk{RF} and conditional random fields (\zk{CRF}) \cite{hierarchical-labeling}, but authors do not explain how exactly are these models built, so it does not give the~reader any solid comparison. Especially terms like \zk{CNN} and \zk{FCN} are so general that they do not imply anything more than just the basic approach. In the end, it is not even sure whether authors have tested these models on the~datasets on their own, or if they just report results found in other articles. Authors experiment with two datasets differing in used bands and spatial resolution, and also with including and excluding the normalized differential vegetation index (\zk{NDVI}) and the digital surface model (\zk{DSM}). However, both datasets are of German cities and therefore very similar in the~content, both also being binary datasets containg only two classes - \textit{building} and \textit{clutter} (unknown). Time and memory needs are not mentioned in the~study.
 
-The second reviewed article - \textit{Very Deep Convolutional Neural Networks for Complex Land Cover Mapping Using Multispectral Remote Sensing Imagery} - deals with land cover mapping using \zk{CNN}s with a focus on wetlands detection. Therefore it is not a surprise that they do not experiment with different datasets; however, it would give much more general overview of \zk{CNN} possibilities in the wetland detection data from different parts of the world were used, and not only from Newfoundland and Labrador, Canada. Besides that, the paper experiments with DenseNet-121 \cite{densenet}, Inception V3 \cite{inception}, VGG-16 \cite{vgg}, VGG-19, Xception \cite{xception}, \zk{ResNet}-50, and Inception \zk{ResNet} V2 \cite{inception-resnet}, and also with machine learning (\zk{ML}) methods of support vector machine (\zk{SVM}) \cite{svm} and \zk{RF}. Authors also use different patch sizes and report processing times.
+The second reviewed article - \textit{Very Deep Convolutional Neural Networks for Complex Land Cover Mapping Using Multispectral Remote Sensing Imagery} - deals with land cover mapping using \zk{CNN}s with a focus on wetlands detection. Therefore, it is not a surprise that authors do not experiment with different datasets; however, it would give much more universal overview of \zk{CNN} possibilities in the wetland detection if data from different parts of the world were used, and not only from Newfoundland and Labrador, Canada. Besides that, the paper experiments with DenseNet-121 \cite{densenet}, Inception V3 \cite{inception}, VGG-16 \cite{vgg}, VGG-19, Xception \cite{xception}, \zk{ResNet}-50, and Inception \zk{ResNet} V2 \cite{inception-resnet}, and also with machine learning (\zk{ML}) methods of support vector machine (\zk{SVM}) \cite{svm} and \zk{RF}. Authors also use different patch sizes and report processing times.
 
 The third result contains the phrase \textit{evaluation of different methods} already in the title and compares \zk{CNN}s with other popular \zk{ML} methods, namely \zk{SVM}, \zk{RF}, and even with a simple artificial neural network (\zk{ANN}) architecture called multi-layer perceptron (\zk{MLP}) \cite{mlp} with a hidden layer of 30 neurons. Even the \zk{CNN} approach is diversified into two architectures - one of them comprising of five layers, the other one of seven layers. To make the results more general, authors experiment also with five different input window sizes, compare the~use of spectral bands versus the~use of a combination of spectral bands and topographical ones, and apply their models on two different datasets. Time consumption of different methods would be also valuable information on the comparison, yet this metric is not included in the article. It is apparent that authors of the paper came from the same impulse as this thesis, reading statements like \textit{"CNNs do not automatically outperform ANN, SVM and RF, although this is sometimes claimed. Rather, the performance of CNNs strongly depends on their design, i.e., layer depth, input window sizes and training strategies."} Or, in another place, \textit{"CNN will not automatically outperform other methods - as popular science articles and magazines may imply."} With felicitously set parameters, \zk{CNN}s outperformed other approaches, but their use was done under critical supervision and without trend-surfing shouts.
 
@@ -59,7 +59,7 @@ As in some articles, only the abbreviation \textit{\zk{CNN}} is used instead of 
 
 \begin{itemize}
 	\item \verb|Query string: cnn|. To focus only on articles dealing with \zk{CNN}s.
-	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
+	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily at remote sensing or \zk{CNN}s - but deal also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Web of Science categories: REMOTE SENSING|. To focus only on the~scien\-ti\-fic area of interest.
 	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals\footnote{\url{www.doaj.org}} (\zk{DOAJ}).
@@ -77,7 +77,7 @@ As in some articles, only the abbreviation \textit{\zk{CNN}} is used instead of 
 
 Two results were filtered out. \cite{cnn-fusion-clouds} with 28 citations and \cite{cnn-fusion-hr-hsr} with 25 citations. They were filtered out only because they do not correspond with the~main focus of the~thesis on the classification task with object detection and semantic and instance segmentation, but dealt with an image fusion instead. The top two results correspond to articles reviewed already in the previous section; therefore they are being skipped now.
 
-The comparison part of \textit{Geospatial Object Detection in High Resolution Satellite Images Based on Multi-Scale Convolutional Neural Network} is a bit more minimalistic. The proposed method is compared only with an architecture called Faster \zk{R-CNN} (region based convolutional neural network) \cite{faster-rcnn} and with the single shot multi-box detector (\zk{SSD}) \cite{ssd} without a more detailed description of inner parametrization or experiments with it. Authors use also only one dataset to test their method, so there is no evidence on how versatile the method is when it comes to the data greed. On the other hand, they report the time greed of the three used methods.
+The comparison part of \textit{Geospatial Object Detection in High Resolution Satellite Images Based on Multi-Scale Convolutional Neural Network} is a bit minimalistic. The proposed method is compared only with an architecture called Faster \zk{R-CNN} (region based convolutional neural network) \cite{faster-rcnn} and with the single shot multi-box detector (\zk{SSD}) \cite{ssd} without a more detailed description of inner parametrization or experiments with it. Authors use also only one dataset to test their method, so there is no evidence on how versatile the method is. But positively, they report the time greed of the three used methods.
 
 In \textit{Hyperspectral Image Classification Using Convolutional Neural Networks and Multiple Feature Learning}, authors go a~different way - to compare their architecture, they create two different architectures and show that the~proposed one is the~one performing the best. A comparison with any other well-known architecture or other \zk{ML} method is missing. The pro of this paper is the use of three different datasets.
 
@@ -121,7 +121,7 @@ The second used website was Scopus\footnote{\url{www.scopus.com}}. The~following
 
 \begin{itemize}
 	\item \verb|Query string: "remote sensing" "convolutional neural network"|. To fo\-cus only on articles dealing with \zk{CNN}s in the area of remote sensing.
-	\item \verb|Search field: All fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
+	\item \verb|Search field: All fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily at remote sensing or \zk{CNN}s - but deal also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Access type: Open Access|. To focus only on articles in \textit{Scopus Gold Open Access}\footnote{\url{www.elsevier.com/open-access}}. It includes fully open journals, hybrid journals (authors pay a fee to make an article open access), open archives and articles with free promotional access.
 \end{itemize}
@@ -167,7 +167,7 @@ As in some articles, only the abbreviation \textit{\zk{CNN}} is used instead of 
 
 \begin{itemize}
 	\item \verb|Query string: "remote sensing" cnn|. To focus only on articles dealing with \zk{CNN}s in the area of remote sensing.
-	\item \verb|Search field: All fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
+	\item \verb|Search field: All fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily at remote sensing or \zk{CNN}s - but deal also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Access type: Open Access|. To focus only on articles in \textit{Scopus Gold Open Access}\footnote{\url{www.elsevier.com/open-access}}. It includes fully open journals, hybrid journals (authors pay a fee to make an article open access), open archives and articles with free promotional access.
 \end{itemize}
@@ -213,7 +213,7 @@ When compared with the query described in chapter \ref{wos-papers}, an extra par
 
 \begin{itemize}
 	\item \verb|Query string: convolutional neural network|. To focus only on articles dealing with \zk{CNN}s.
-	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
+	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily at remote sensing or \zk{CNN}s - but deal also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Web of Science categories: REMOTE SENSING|. To focus only on the~scien\-ti\-fic area of interest.
 	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals\footnote{\url{www.doaj.org}} (\zk{DOAJ}).
@@ -249,7 +249,7 @@ As in some articles, only the abbreviation \textit{\zk{CNN}} is used instead of 
 
 \begin{itemize}
 	\item \verb|Query string: cnn|. To focus only on articles dealing with \zk{CNN}s.
-	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
+	\item \verb|Search field: All Fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily at remote sensing or \zk{CNN}s - but deal also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Web of Science categories: REMOTE SENSING|. To focus only on the~scien\-ti\-fic area of interest.
 	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals\footnote{\url{www.doaj.org}} (\zk{DOAJ}).
@@ -279,13 +279,13 @@ When compared with the query described in chapter \ref{scopus-papers}, an extra 
 
 \begin{itemize}
 	\item \verb|Query string: "remote sensing" "convolutional neural network"|. To focus only on articles dealing with \zk{CNN}s in the area of remote sensing.
-	\item \verb|Search field: All fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
+	\item \verb|Search field: All fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily at remote sensing or \zk{CNN}s - but deal also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Access type: Open Access|. To focus only on articles in \textit{Scopus Gold Open Access}\footnote{\url{www.elsevier.com/open-access}}. It includes fully open journals, hybrid journals (authors pay a fee to make an article open access), open archives and articles with free promotional access.
 	\item \verb|Document type: Review|. To focus only on reviews.
 \end{itemize}
 
-The Scopus query is apparently - due to the~smaller flexibility when it comes to the~open access restrictions - more tolerant and includes articles filtered out from the~\zk{WoS} query. Also, because there is no scientific category \verb|remote sensing| in the~Scopus search engine, the~phrase was included in the~search phrase. It resulted in the~fact that from the~top 20 articles when orded by the~attribute \verb|Cited by|, 19 were filtered out as they either did not correspond with the~main focus of the~thesis on the classification task with object detection and semantic and instance segmentation in the field of remote sensing, or they were found completely insufficient in terms of providing a~comparison of mentioned architectures.
+\noindent The Scopus query is apparently - due to the~smaller flexibility when it comes to the~open access restrictions - more tolerant and includes articles filtered out from the~\zk{WoS} query. Also, because there is no scientific category \verb|remote sensing| in the~Scopus search engine, the~phrase was included in the~search phrase. It resulted in the~fact that from the~top 20 articles when orded by the~attribute \verb|Cited by|, 19 were filtered out as they either did not correspond with the~main focus of the~thesis on the classification task with object detection and semantic and instance segmentation in the field of remote sensing, or they were found completely insufficient in terms of providing a~comparison of mentioned architectures.
 
 The 19 filtered articles were the following: \cite{dl-for-cv} with 251 citations, \cite{review-ml-in-rs} with 177 citations, \cite{review-ml-agriculture} with 153 citations, \cite{review-uav-applications} with 104 citations, \cite{state-of-the-art-ann} with 85 citations, \cite{lc-2-0} with 83 citations, \cite{state-of-the-art-dl} with 73 citations, \cite{review-water-dl} with 71 citations, \cite{review-plant-stress} with 66 citations, \cite{review-text-class} with 53 citations, \cite{cv-animal-ecology} with 50 citations, \cite{review-cv-infra-inspections} with 49 citations, \cite{review-ann-plant-disease} with 48 citations, \cite{review-st-fusion-multisource} with 48 citations, \cite{review-ml-energy} with 47 citations, \cite{review-bd-disaster} with 43 citations, \cite{review-uav-rs} with 34 citations, \cite{nanophotonics} with 33 citations, and \cite{review-point-clouds} with 33 citations.
 
@@ -300,7 +300,7 @@ Using the same query, but restrictive to search only in the title, the abstract,
 	\item Geographic Object-Based Image Analysis: A Primer and Future Directions: 0 citations. \cite{geobia}
 \end{itemize}
 
-\noindent There were only eight results for the~described query and four of them were filtered out - \cite{review-st-fusion} with 15 citations, \cite{ml-cv-phenotyping} with 11 citations, \cite{survey-dl-rs-enhancement} with 8 citations, and \cite{survey-dl-super-resolution} with 6 citations. They were filtered out only because they do not correspond with the~main focus of the~thesis on the classification task with object detection and semantic and instance segmentation in the field of remote sensing.
+There were only eight results for the~described query and four of them were filtered out - \cite{review-st-fusion} with 15 citations, \cite{ml-cv-phenotyping} with 11 citations, \cite{survey-dl-rs-enhancement} with 8 citations, and \cite{survey-dl-super-resolution} with 6 citations. They were filtered out only because they do not correspond with the~main focus of the~thesis on the classification task with object detection and semantic and instance segmentation in the field of remote sensing.
 
 From the rest, the top result correspond to the article already reviewed in this section and the third and fourth one to articles reviewed already in chapter \ref{wos-papers}, only with different number of citations due to the difference between the \zk{WoS} and Scopus systems. Therefore, only the second one is being reviewed in this section.
 
@@ -313,7 +313,7 @@ As in some articles, only the abbreviation \textit{\zk{CNN}} is used instead of 
 
 \begin{itemize}
 	\item \verb|Query string: "remote sensing" cnn|. To focus only on articles dealing with \zk{CNN}s in the area of remote sensing.
-	\item \verb|Search field: All fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily to remote sensing or \zk{CNN}s - but dealing also with the second of the~subjects could be found.
+	\item \verb|Search field: All fields|. To check also articles dealing with with the topic, but not specifying it in the~title nor the abstract or keywords. This way, articles that aim more general - primarily at remote sensing or \zk{CNN}s - but deal also with the second of the~subjects could be found.
 	\item \verb|Publication years: 2020, 2019, 2018|. To focus only on recent publications.
 	\item \verb|Access type: Open Access|. To focus only on articles in \textit{Scopus Gold Open Access}\footnote{\url{www.elsevier.com/open-access}}. It includes fully open journals, hybrid journals (authors pay a fee to make an article open access), open archives and articles with free promotional access.
 	\item \verb|Document type: Review|. To focus only on reviews.
@@ -333,4 +333,4 @@ Using the same query, but restrictive to search only in the title, the abstract,
 	\item Geographic Object-Based Image Analysis: A Primer and Future Directions: 0 citations. \cite{geobia}
 \end{itemize}
 
-\noindent There were only five results for the~described query and one of them - \textit{Spatiotemporal Image Fusion in Remote Sensing} \cite{review-st-fusion} with 15 citations - was filtered out as it dealt with the~image fusion and not with the~classification. From the rest, the first and fourth results correspond to articles reviewed already in chapter \ref{wos-papers} and the second one to an article reviewed in the previous section. Therefore, all of them are being skipped in this section.
+\noindent There were only four results for the~described query and one of them - \textit{Spatiotemporal Image Fusion in Remote Sensing} \cite{review-st-fusion} with 15 citations - was filtered out as it dealt with the~image fusion and not with the~classification. From the rest, the first and third results correspond to articles reviewed already in chapter \ref{wos-papers} and the second one to an article reviewed in the previous section. Therefore, all of them are being skipped in this section.
