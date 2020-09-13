@@ -1,4 +1,4 @@
-FILE=ondrej-pesek-dp-2018
+FILE=ondrej-pesek-phd-2020
 
 all:
 	pdflatex $(FILE)
