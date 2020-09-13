@@ -5,3 +5,55 @@ The best comparison is the one using things readers already know. The best compa
 
 % TODO: After the professional debate, delete the note about it
 As the aim of this thesis is to evaluate the performance of different \zk{CNN} models on different tasks from the field of remote sensing and make an order in \textit{why is an~architecture X used on Y}, use cases chosen for experiments should correspond with tasks normal remote sensing researchers could face. This chapter presents a~research on these chosen use cases (currently - for the purpose of the professional debate - the phrase \textit{use cases} should be actually used in a singular form as there is only one use case so far).
+
+\section{Urban green detection}
+\label{urban-green}
+
+\subsection{Previous works}
+\label{urban-green-situation}
+
+% TODO: Move the info about search engines to the general chapter intro after having more use cases
+For research on other works dealing with the task of urban green detection or classification from remote sensing data using \zk{CNN}s, the same accademic search engines as in chapter \ref{motivation} were used - \zk{WoS} and Scopus. Terms \textit{urban green}, \textit{urban vegetation}, and - although they are not the only aim of this use case, they present a big part of urban greens - \textit{parks} were used in search phrases to maximize the grasp of the research. The research was done in September 2020.
+
+\subsubsection{Web of Science}
+\label{urban-green-wos}
+
+The following restrictions were used for the first query in \zk{WoS}:
+
+\begin{itemize}
+	\item \verb|Query string: urban green convolutional neural network|. To focus only on articles dealing with \zk{CNN}s.
+	\item \verb|Search field: All Fields|. Due to the small number of results, a more restricted query did not make sense.
+	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals (\zk{DOAJ}).
+\end{itemize}
+
+Only 7 results were found with this query, and 6 of them were filtered out as not dealing with the selected task. The filtered results were \cite{tree-detection-uav-cnn} with 7 citations, \cite{cascaded-cnn-trees} with 2 citations, \cite{window-zooming-fruit} with 2 citations, \cite{urban-green-quantification} with 1 citation, \cite{urban-green-obesity} with 0 citations, and \cite{urban-green-contamination} with 0 citations.
+
+TODO: Delete the next article? In the end, it also does not tdeal with the urban vegetation detection, it is just vegetation that is by chance urban...
+
+The only result dealing with the chosen task was \textit{Assessing alternative methods for unsupervised segmentation of urban vegetation in very high-resolution multispectral aerial imagery} \cite{urban-green-unsupervised-aerial}, although only a bit as the vegetation is in the end urban only because of the chosen area and the difference between urban and rural vegetation is not mentioned. Authors focus on the unsupervised semantic segmentation of a selected urban area, classifying pervious classes water / shadow, soil / ground, shrub / tree, grass, and other. Authors of the article are using the National agricultural imagery program (\zk{NAIP}) dataset with the spatial resolution of 0.6 to 1 meters and 4 bands (blue, green, red, and near infrared with the wavelength of 808 to 882 nanometers) enhanced by the \zk{NDVI} and enhanced vegetation index (\zk{EVI}) to augment the vegetation signal, the soil adjusted vegetation index (\zk{SAVI}) and crust index (\zk{CI}) to minimize background soil effects, and atmospherically resistant vegetation index (\zk{ARVI}) and visual atmospheric resistance index (\zk{VARI}) to reduce atmospheric and topographic effects, resulting in 10 bands. To avoid sham classifications, authors firstly mask out pixels presenting impervious classes, a step in which their approach largely differs from the intended goal of this thesis in this task. They compare k-means clustering \cite{k-means} (using k-means++ seeding \cite{k-means-plusplus} to minimize the eventuality of having a wrong initialization), clustering with a Gaussian mixture model (\zk{GMM}) \cite{gmm}, and a \zk{CNN} model based on \cite{cnn-hs-unsupervised-fuzzy}. The article faces a classical problem of the unsupervised learning evaluation about how to evaluate such methods, but using the Davies-Bouldin index (\zk{DBI}) \cite{dbi} and ad-hoc manually labeled data, k-means surprisingly outperforms both \zk{GMM} and \zk{CNN}. The main task this thesis would like to focus on is the difference
+
+% Myint et al. [8] describe, to classify objects like landscape features, the spatial resolution of the imagery “needs to be at least one-half the diameter of the smallest object.”
+% National Agricultural Imagery Program (NAIP) has the highest spatial resolution (0.6 or 1.0 meters)
+
+The following restrictions were used for the second query in \zk{WoS}:
+
+\begin{itemize}
+	\item \verb|Query string: urban vegetation convolutional neural network|. To focus only on articles dealing with \zk{CNN}s.
+	\item \verb|Search field: All Fields|. Due to the small number of results, a more restricted query did not make sense.
+	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals (\zk{DOAJ}).
+\end{itemize}
+
+Only 9 results were found with this query and all of them were filtered out as not dealing with the selected task. The found results were \cite{cnn-satellite-orthoimagery} with 129 citations, \cite{urban-green-trees-worldview} with 12 citations, \cite{cnn-urban-aerial} with 4 citations, \cite{gated-cnn-rs} with 3 citations, \cite{polarized-sar-cnn} with 3 citations, \cite{urban-green-quantification} with 1 citation, \cite{dl-vegetation} with 0 citations, \cite{urban-green-unsupervised-aerial} with 0 citations, and \cite{tibet-ice-ml} with 0 citations.
+
+The following restrictions were used for the last query in \zk{WoS}:
+
+\begin{itemize}
+	\item \verb|Query string: parks convolutional neural network|. To focus only on articles dealing with \zk{CNN}s.
+	\item \verb|Search field: All Fields|. Due to the small number of results, a more restricted query did not make sense.
+	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals (\zk{DOAJ}).
+\end{itemize}
+
+From the top twenty results obtained with the described query, all were filtered out as not dealing with the selected task. The found results were \cite{dl-rs-built-up-areas} with 17 citations, \cite{dl-bird-detection} with 11 citations, \cite{dnn-iot} with 9 citations, \cite{dl-sl-wetland} with 8 citations, \cite{dl-corneal-epithelium} with 8 citations, \cite{dl-age-estimation} with 7 citations, \cite{cnn-parking-occupacy} with 3 citations, \cite{ground-measurement-forest} with 2 citations, \cite{bike-sharing-destination} with 2 citations, \cite{w-net-lc} with 1 citation, \cite{mimo-fmcw-parking} with 1 citation, \cite{urban-green-obesity} with 0 citations, \cite{robust-parking-surveillance} with 0 citations, \cite{social-media-open-space} with 0 citations, \cite{dcnn-parking-detection} with 0 citations, \cite{review-crowd-monitoring} with 0 citations, \cite{dl-galapagos-snake} with 0 citations, \cite{deep-binary-vehicle} with 0 citations, \cite{cnn-parrots} with 0 citations, and \cite{indoor-positioning-error} with 0 citations.
+
+\subsubsection{Scopus}
+\label{urban-green-scopus}
