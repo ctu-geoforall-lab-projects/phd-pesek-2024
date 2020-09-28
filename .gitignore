@@ -11,5 +11,20 @@ __pycache__
 *.loa
 *.lof
 *.bak
+
+# tex
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.loa
+*.lof
+*.toc
+*.lot
+*.gz
+*.synctex.gz
+*.lol
+
 # professional-debate/ondrej-pesek-professional-debate-2020.pdf
 text/ondrej-pesek-phd-2020.pdf
