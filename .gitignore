@@ -12,6 +12,9 @@ __pycache__
 *.lof
 *.bak
 
+# PyCharm junk
+.idea
+
 # TeX
 
 *.aux
