@@ -13,7 +13,13 @@ __pycache__
 *.bak
 
 # PyCharm junk
+
 .idea
+
+# outputs from training
+
+models
+logs
 
 # TeX
 
