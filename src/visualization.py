@@ -139,7 +139,7 @@ def visualize_detections(images, ground_truths, detections, id2code,
         plt.xlabel('Predicted label')
         plt.ylabel('True label')
         ax2.grid(b=None)
-        # write values into the confusion number
+        # write percentage values (0.00 -- 1.00) into the confusion matrix
         threshold = cm_norm.max() / 2.
         for row in range(len(conf_matrix)):
             for col in range(len(conf_matrix)):
