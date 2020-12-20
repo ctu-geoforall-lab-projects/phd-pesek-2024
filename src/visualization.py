@@ -39,7 +39,7 @@ def onehot_decode(onehot, colormap, nr_bands=3, enhance_colours=True):
 # TODO: parameter smooth
 def write_stats(result, out_path='/tmp/accu.png'):
     """Write graphs with loss, val_loss, accuracy and val_accuracy.
-    
+
     :param result: output from model.fit()
     :param out_path: a filepath where the graphs will be written into
     """
@@ -73,7 +73,7 @@ def write_stats(result, out_path='/tmp/accu.png'):
     plt.close()
 
 
-def visualize_detections(images, ground_truths, detections, id2code, 
+def visualize_detections(images, ground_truths, detections, id2code,
                          label_codes, label_names, out_dir='/tmp'):
     """Create visualizations.
 
