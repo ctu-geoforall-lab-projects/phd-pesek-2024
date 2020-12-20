@@ -147,6 +147,7 @@ def visualize_detections(images, ground_truths, detections, id2code,
                     colour = 'white'
                 else:
                     colour = 'black'
+                # TODO: class names, not codes
                 ax2.text(row, col, cm_norm[col, row], color=colour,
                          horizontalalignment='center')
 
