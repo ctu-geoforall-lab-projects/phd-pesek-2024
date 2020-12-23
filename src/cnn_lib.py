@@ -36,7 +36,7 @@ def rasterio_generator(data_dir, rescale=False, batch_size=5):
     :param rescale: boolean saying whether to rescale images or not
         (rescaling is a division by 255)
     :param batch_size: the number of samples that will be propagated through
-        the network
+        the network at once
     :return: yielded batch-sized np stack of images
     """
     index = 1
@@ -71,7 +71,7 @@ def TrainAugmentGenerator(data_dir, id2code, seed=1, batch_size=5):
     :param id2code: dictionary mapping label ids to their codes
     :param seed: the generator seed
     :param batch_size: the number of samples that will be propagated through
-        the network
+        the network at once
     :return: yielded tuple of batch-sized np stacks of training images and
         masks
     """
@@ -112,7 +112,7 @@ def ValAugmentGenerator(data_dir, id2code, seed=1, batch_size=5):
     :param id2code: dictionary mapping label ids to their codes
     :param seed: the generator seed
     :param batch_size: the number of samples that will be propagated through
-        the network
+        the network at once
     :return: yielded tuple of batch-sized np stacks of validation images and
         masks
     """

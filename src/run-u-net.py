@@ -119,7 +119,7 @@ def train(data_dir, model, id2code, batch_size, model_fn, nr_epochs,
     :param model: model to be used for the detection
     :param id2code: dictionary mapping label ids to their codes
     :param batch_size: the number of samples that will be propagated through
-        the network
+        the network at once
     :param model_fn: path where the model will be saved
     :param nr_epochs: number of epochs to train the model
     :param nr_samples: sum of training and validation samples together
@@ -170,7 +170,7 @@ def detect(data_dir, model, id2code, batch_size, label_codes,
     :param model: model to be used for the detection
     :param id2code: dictionary mapping label ids to their codes
     :param batch_size: the number of samples that will be propagated through
-        the network
+        the network at once
     :param label_codes: list with label codes
     :param label_names: list with label names
     :param seed: the generator seed
