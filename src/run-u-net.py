@@ -17,12 +17,8 @@ from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
 
-def main(data_dir, nr_epochs, batch_size):
+def main(data_dir, nr_epochs, batch_size, seed):
     print_device_info()
-
-    # TODO: parameterize
-    # Seed defined for aligning images and their masks
-    seed = 1
 
     # TODO: Make nr of bands automatically read
     generate_dataset_structure(data_dir, 12)
@@ -200,7 +196,12 @@ if __name__ == '__main__':
         '--batch_size', type=int, default=1,
         help='The number of samples that will be propagated through the '
              'network at once')
+    # TODO: make seed affecting also initial weights in the model (see
+    #       tf.random.set_seed)
+    parser.add_argument(
+        '--seed', type=int, default=1,
+        help='Generator random seed')
 
     args = parser.parse_args()
 
-    main(args.data_dir, args.nr_epochs, args.batch_size)
+    main(args.data_dir, args.nr_epochs, args.batch_size, args.seed)
