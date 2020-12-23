@@ -17,11 +17,10 @@ from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
 
-def main(data_dir):
+def main(data_dir, nr_epochs):
     print_device_info()
 
     # TODO: parameterize
-    nr_epochs = 1
     batch_size = 10
     # Seed defined for aligning images and their masks
     seed = 1
@@ -195,7 +194,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--data_dir', type=str, required=True,
         help='Path to the directory containing images and labels')
+    parser.add_argument(
+        '--nr_epochs', type=int, default=1,
+        help='Number of epochs to train the model')
 
     args = parser.parse_args()
 
-    main(args.data_dir)
+    main(args.data_dir, args.nr_epochs)
