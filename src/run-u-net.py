@@ -17,7 +17,7 @@ from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
 
-def main(data_dir, nr_bands, nr_epochs, batch_size, seed):
+def main(data_dir, model_path, nr_bands, nr_epochs, batch_size, seed):
     print_device_info()
 
     generate_dataset_structure(data_dir, nr_bands)
@@ -27,13 +27,9 @@ def main(data_dir, nr_bands, nr_epochs, batch_size, seed):
 
     model = create_model(len(id2code), nr_bands)
 
-    # TODO: parameterize model_fn
-    model_fn = '/home/ondrej/workspace/phd-pesek-2022/models/' \
-               'lc_ep{}_bs{}.h5'.format(nr_epochs, batch_size)
-
     # TODO: parameterize train/detect
     # Train model
-    train(data_dir, model, id2code, batch_size, model_fn, nr_epochs, 100,
+    train(data_dir, model, id2code, batch_size, model_path, nr_epochs, 100,
           '/home/ondrej/workspace/phd-pesek-2022/logs',
           seed=seed, patience=100)
 
@@ -187,6 +183,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--data_dir', type=str, required=True,
         help='Path to the directory containing images and labels')
+    parser.add_argument(
+        '--output_dir', type=str, required=True,
+        help='Path where logs and the model will be saved')
+    parser.add_argument(
+        '--model_fn', type=str,
+        help='Output model filename')
     # TODO: Make nr of bands automatically read from images
     parser.add_argument(
         '--nr_bands', type=int, default=12,
@@ -206,5 +208,16 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(args.data_dir, args.nr_bands, args.nr_epochs, args.batch_size,
-         args.seed)
+    # create model_path
+    if args.model_fn is None:
+        model_fn = 'lc_ep{}_bs{}.h5'.format(args.nr_epochs, args.batch_size)
+    else:
+        model_fn = args.model_fn
+
+    model_path = os.path.join(args.output_dir, model_fn)
+
+    if not os.path.exists(args.output_dir):
+        os.mkdir(args.output_dir)
+
+    main(args.data_dir, model_path, args.nr_bands, args.nr_epochs,
+         args.batch_size, args.seed)
