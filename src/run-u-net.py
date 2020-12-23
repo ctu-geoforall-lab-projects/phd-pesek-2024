@@ -2,11 +2,12 @@
 
 import os
 import random
+import argparse
 import rasterio
 
 import numpy as np
-
 import tensorflow as tf
+
 from tensorflow.python.keras.callbacks import TensorBoard, ModelCheckpoint, \
     EarlyStopping
 
@@ -16,11 +17,10 @@ from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
 
-def main():
+def main(data_dir):
     print_device_info()
 
     # TODO: parameterize
-    data_dir = '/home/ondrej/workspace/training_set/'
     nr_epochs = 1
     batch_size = 10
     # Seed defined for aligning images and their masks
@@ -189,4 +189,13 @@ def detect(data_dir, model, id2code, batch_size, label_codes,
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(
+        description='Run U-Net training and detection')
+
+    parser.add_argument(
+        '--data_dir', type=str, required=True,
+        help='Path to the directory containing images and labels')
+
+    args = parser.parse_args()
+
+    main(args.data_dir)
