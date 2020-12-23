@@ -17,11 +17,10 @@ from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
 
-def main(data_dir, nr_epochs):
+def main(data_dir, nr_epochs, batch_size):
     print_device_info()
 
     # TODO: parameterize
-    batch_size = 10
     # Seed defined for aligning images and their masks
     seed = 1
 
@@ -197,7 +196,11 @@ if __name__ == '__main__':
     parser.add_argument(
         '--nr_epochs', type=int, default=1,
         help='Number of epochs to train the model')
+    parser.add_argument(
+        '--batch_size', type=int, default=1,
+        help='The number of samples that will be propagated through the '
+             'network at once')
 
     args = parser.parse_args()
 
-    main(args.data_dir, args.nr_epochs)
+    main(args.data_dir, args.nr_epochs, args.batch_size)
