@@ -17,17 +17,15 @@ from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
 
-def main(data_dir, nr_epochs, batch_size, seed):
+def main(data_dir, nr_bands, nr_epochs, batch_size, seed):
     print_device_info()
 
-    # TODO: Make nr of bands automatically read
-    generate_dataset_structure(data_dir, 12)
+    generate_dataset_structure(data_dir, nr_bands)
 
     label_codes, label_names, id2code = get_codings(
         data_dir + 'label_colors.txt')
 
-    # TODO: Make nr of bands automatically read
-    model = create_model(len(id2code), 12)
+    model = create_model(len(id2code), nr_bands)
 
     # TODO: parameterize model_fn
     model_fn = '/home/ondrej/workspace/phd-pesek-2022/models/' \
@@ -189,6 +187,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--data_dir', type=str, required=True,
         help='Path to the directory containing images and labels')
+    # TODO: Make nr of bands automatically read from images
+    parser.add_argument(
+        '--nr_bands', type=int, default=12,
+        help='Number of bands of input images')
     parser.add_argument(
         '--nr_epochs', type=int, default=1,
         help='Number of epochs to train the model')
@@ -204,4 +206,5 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(args.data_dir, args.nr_epochs, args.batch_size, args.seed)
+    main(args.data_dir, args.nr_bands, args.nr_epochs, args.batch_size,
+         args.seed)
