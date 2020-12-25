@@ -22,6 +22,9 @@ models
 logs
 outputs
 
+# cache from matplotlib
+src/.cache
+
 # TeX
 
 *.aux
