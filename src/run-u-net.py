@@ -17,7 +17,8 @@ from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
 
-def main(data_dir, model_path, nr_bands, nr_epochs, batch_size, seed):
+def main(operation, data_dir, model_path, nr_bands, nr_epochs, batch_size,
+         seed):
     print_device_info()
 
     generate_dataset_structure(data_dir, nr_bands)
@@ -27,15 +28,18 @@ def main(data_dir, model_path, nr_bands, nr_epochs, batch_size, seed):
 
     model = create_model(len(id2code), nr_bands)
 
-    # TODO: parameterize train/detect
-    # Train model
-    train(data_dir, model, id2code, batch_size, model_path, nr_epochs, 100,
-          '/home/ondrej/workspace/phd-pesek-2022/logs',
-          seed=seed, patience=100)
-
-    # detect
-    detect(data_dir, model, id2code, batch_size, [i[0] for i in label_codes],
-           label_names, seed, '/tmp')
+    # TODO: read nr of samples automatically
+    if operation == 'train':
+        # Train model
+        # TODO: get logs dir automatically from output_dir
+        train(data_dir, model, id2code, batch_size, model_path, nr_epochs, 100,
+              '/home/ondrej/workspace/phd-pesek-2022/logs',
+              seed=seed, patience=100)
+    else:
+        # detect
+        # TODO: parameterize visualizations path
+        detect(data_dir, model, id2code, batch_size,
+               [i[0] for i in label_codes], label_names, seed, '/tmp')
 
 
 def print_device_info():
@@ -181,6 +185,10 @@ if __name__ == '__main__':
         description='Run U-Net training and detection')
 
     parser.add_argument(
+        '--operation', type=str, required=True, choices=('train', 'detect'),
+        help='Choose either to train the model or to use a trained one for '
+             'detection')
+    parser.add_argument(
         '--data_dir', type=str, required=True,
         help='Path to the directory containing images and labels')
     parser.add_argument(
@@ -219,5 +227,5 @@ if __name__ == '__main__':
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
 
-    main(args.data_dir, model_path, args.nr_bands, args.nr_epochs,
-         args.batch_size, args.seed)
+    main(args.operation, args.data_dir, model_path, args.nr_bands,
+         args.nr_epochs, args.batch_size, args.seed)
