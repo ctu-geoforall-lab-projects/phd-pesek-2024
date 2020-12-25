@@ -24,7 +24,7 @@ def main(operation, data_dir, model_path, nr_bands, nr_epochs, batch_size,
     generate_dataset_structure(data_dir, nr_bands)
 
     label_codes, label_names, id2code = get_codings(
-        data_dir + 'label_colors.txt')
+        os.path.join(data_dir, 'label_colors.txt'))
 
     model = create_model(len(id2code), nr_bands)
 
