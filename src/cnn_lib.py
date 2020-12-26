@@ -43,7 +43,7 @@ def rasterio_generator(data_dir, rescale=False, batch_size=5):
     batch = []
     while True:
         for file in sorted(os.listdir(data_dir)):
-            a = rasterio.open(data_dir + file)
+            a = rasterio.open(os.path.join(data_dir, file))
             q = a.read()
             q = np.transpose(q, (1, 2, 0))
             if rescale:
