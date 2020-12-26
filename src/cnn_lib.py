@@ -77,9 +77,9 @@ def TrainAugmentGenerator(data_dir, id2code, seed=1, batch_size=5):
     """
     # TODO: the train directory seems redundant
     train_image_generator = rasterio_generator(
-        data_dir + 'train_images/train/', False, batch_size)
+        os.path.join(data_dir, 'train_images', 'train'), False, batch_size)
     train_mask_generator = rasterio_generator(
-        data_dir + 'train_masks/train/', False, batch_size)
+        os.path.join(data_dir, 'train_masks', 'train'), False, batch_size)
 
     while True:
         x1i = next(train_image_generator)
@@ -118,9 +118,9 @@ def ValAugmentGenerator(data_dir, id2code, seed=1, batch_size=5):
     """
     # TODO: the val directory seems redundant
     val_image_generator = rasterio_generator(
-        data_dir + 'val_images/val/', False, batch_size)
+        os.path.join(data_dir, 'val_images', 'val'), False, batch_size)
     val_mask_generator = rasterio_generator(
-        data_dir + 'val_masks/val/', False, batch_size)
+        os.path.join(data_dir, 'val_masks', 'val'), False, batch_size)
 
     while True:
         x1i = next(val_image_generator)
