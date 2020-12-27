@@ -196,7 +196,7 @@ if __name__ == '__main__':
         help='Path where logs and the model will be saved')
     parser.add_argument(
         '--model_fn', type=str,
-        help='Output model filename')
+        help='ONLY FOR OPERATION == TRAIN: Output model filename')
     # TODO: Make nr of bands automatically read from images
     parser.add_argument(
         '--nr_bands', type=int, default=12,
