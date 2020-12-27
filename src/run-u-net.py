@@ -17,7 +17,7 @@ from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
 
-def main(operation, data_dir, out_model_path, in_model_path, logs_dir,
+def main(operation, data_dir, output_dir, model_fn, in_model_path,
          nr_bands, nr_epochs, batch_size, seed):
     print_device_info()
 
@@ -32,8 +32,8 @@ def main(operation, data_dir, out_model_path, in_model_path, logs_dir,
     if operation == 'train':
         # Train model
         # TODO: parameterize patience
-        train(data_dir, model, id2code, batch_size, out_model_path, nr_epochs,
-              100, logs_dir, seed=seed, patience=100)
+        train(data_dir, model, id2code, batch_size, output_dir,
+              model_fn, nr_epochs, 100, seed=seed, patience=100)
     else:
         # detect
         # TODO: parameterize visualizations path
@@ -103,8 +103,8 @@ def create_model(nr_classes, nr_bands, optimizer='adam',
 
 
 # TODO: support initial_epoch for fine-tuning
-def train(data_dir, model, id2code, batch_size, model_fn, nr_epochs,
-          nr_samples, log_dir, seed=1, patience=100):
+def train(data_dir, model, id2code, batch_size, output_dir, model_fn,
+          nr_epochs, nr_samples, seed=1, patience=100):
     """Run model training.
 
     :param data_dir: path to the directory containing images
@@ -112,15 +112,27 @@ def train(data_dir, model, id2code, batch_size, model_fn, nr_epochs,
     :param id2code: dictionary mapping label ids to their codes
     :param batch_size: the number of samples that will be propagated through
         the network at once
+    :param output_dir: path where logs and the model will be saved
     :param model_fn: path where the model will be saved
     :param nr_epochs: number of epochs to train the model
     :param nr_samples: sum of training and validation samples together
-    :param log_dir: the path of the directory where to save the log files to
-        be parsed by TensorBoard
     :param seed: the generator seed
     :param patience: number of epochs with no improvement after which training
         will be stopped
     """
+    # create model_path
+    if model_fn is None:
+        model_fn = 'lc_ep{}_bs{}.h5'.format(args.nr_epochs, args.batch_size)
+    else:
+        model_fn = args.model_fn
+
+    out_model_path = os.path.join(output_dir, model_fn)
+
+    log_dir = os.path.join(output_dir, 'logs')
+
+    if not os.path.exists(output_dir):
+        os.mkdir(args.output_dir)
+
     tb = TensorBoard(log_dir=log_dir, write_graph=True)
     # TODO: parameterize monitored value
     mc = ModelCheckpoint(
@@ -227,18 +239,6 @@ if __name__ == '__main__':
         raise parser.error(
             'Argument model_path required for operation == detect')
 
-    # create model_path
-    if args.model_fn is None:
-        model_fn = 'lc_ep{}_bs{}.h5'.format(args.nr_epochs, args.batch_size)
-    else:
-        model_fn = args.model_fn
-
-    out_model_path = os.path.join(args.output_dir, model_fn)
-
-    logs_dir = os.path.join(args.output_dir, 'logs')
-
-    if not os.path.exists(args.output_dir):
-        os.mkdir(args.output_dir)
-
-    main(args.operation, args.data_dir, out_model_path, args.model_path,
-         logs_dir, args.nr_bands, args.nr_epochs, args.batch_size, args.seed)
+    main(args.operation, args.data_dir, args.output_dir, args.model_fn,
+         args.model_path, args.nr_bands, args.nr_epochs,
+         args.batch_size, args.seed)
