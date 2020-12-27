@@ -17,8 +17,8 @@ from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
 
-def main(operation, data_dir, model_path, nr_bands, nr_epochs, batch_size,
-         seed):
+def main(operation, data_dir, out_model_path, in_model_path, nr_bands,
+         nr_epochs, batch_size, seed):
     print_device_info()
 
     generate_dataset_structure(data_dir, nr_bands)
@@ -32,13 +32,13 @@ def main(operation, data_dir, model_path, nr_bands, nr_epochs, batch_size,
     if operation == 'train':
         # Train model
         # TODO: get logs dir automatically from output_dir
-        train(data_dir, model, id2code, batch_size, model_path, nr_epochs, 100,
-              '/home/ondrej/workspace/phd-pesek-2022/logs',
+        train(data_dir, model, id2code, batch_size, out_model_path, nr_epochs,
+              100, '/home/ondrej/workspace/phd-pesek-2022/logs',
               seed=seed, patience=100)
     else:
         # detect
         # TODO: parameterize visualizations path
-        detect(data_dir, model, id2code, batch_size,
+        detect(data_dir, model, in_model_path, id2code, batch_size,
                [i[0] for i in label_codes], label_names, seed, '/tmp')
 
 
@@ -155,12 +155,13 @@ def train(data_dir, model, id2code, batch_size, model_fn, nr_epochs,
     write_stats(result, '/tmp/accu.png')
 
 
-def detect(data_dir, model, id2code, batch_size, label_codes,
+def detect(data_dir, model, in_model_path, id2code, batch_size, label_codes,
            label_names, seed=1, out_dir='/tmp'):
     """Run detection.
 
     :param data_dir: path to the directory containing images
     :param model: model to be used for the detection
+    :param in_model_path: path to a model to be loaded for the detection
     :param id2code: dictionary mapping label ids to their codes
     :param batch_size: the number of samples that will be propagated through
         the network at once
@@ -169,11 +170,11 @@ def detect(data_dir, model, id2code, batch_size, label_codes,
     :param seed: the generator seed
     :param out_dir: directory where the output visualizations will be saved
     """
-    # TODO: model.load_weights()
     # TODO: Do not test on augmented data
     testing_gen = ValAugmentGenerator(data_dir, id2code, seed, batch_size)
 
     batch_img, batch_mask = next(testing_gen)
+    model.load_weights(in_model_path)
     pred_all = model.predict(batch_img)
 
     visualize_detections(batch_img, batch_mask, pred_all, id2code,
@@ -197,6 +198,9 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model_fn', type=str,
         help='ONLY FOR OPERATION == TRAIN: Output model filename')
+    parser.add_argument(
+        '--model_path', type=str,
+        help='ONLY FOR OPERATION == DETECT: Input model path')
     # TODO: Make nr of bands automatically read from images
     parser.add_argument(
         '--nr_bands', type=int, default=12,
@@ -222,10 +226,10 @@ if __name__ == '__main__':
     else:
         model_fn = args.model_fn
 
-    model_path = os.path.join(args.output_dir, model_fn)
+    out_model_path = os.path.join(args.output_dir, model_fn)
 
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
 
-    main(args.operation, args.data_dir, model_path, args.nr_bands,
-         args.nr_epochs, args.batch_size, args.seed)
+    main(args.operation, args.data_dir, out_model_path, args.model_path,
+         args.nr_bands, args.nr_epochs, args.batch_size, args.seed)
