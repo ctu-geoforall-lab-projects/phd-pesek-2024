@@ -113,14 +113,14 @@ def train(data_dir, model, id2code, batch_size, output_dir, model_fn,
     :param batch_size: the number of samples that will be propagated through
         the network at once
     :param output_dir: path where logs and the model will be saved
-    :param model_fn: path where the model will be saved
+    :param model_fn: model file name
     :param nr_epochs: number of epochs to train the model
     :param nr_samples: sum of training and validation samples together
     :param seed: the generator seed
     :param patience: number of epochs with no improvement after which training
         will be stopped
     """
-    # create model_path
+    # set up model_path
     if model_fn is None:
         model_fn = 'lc_ep{}_bs{}.h5'.format(args.nr_epochs, args.batch_size)
     else:
@@ -128,11 +128,14 @@ def train(data_dir, model, id2code, batch_size, output_dir, model_fn,
 
     out_model_path = os.path.join(output_dir, model_fn)
 
+    # set up log dir
     log_dir = os.path.join(output_dir, 'logs')
 
+    # create output_dir if it does not exist
     if not os.path.exists(output_dir):
         os.mkdir(args.output_dir)
 
+    # set up monitoring
     tb = TensorBoard(log_dir=log_dir, write_graph=True)
     # TODO: parameterize monitored value
     mc = ModelCheckpoint(
@@ -151,6 +154,7 @@ def train(data_dir, model, id2code, batch_size, output_dir, model_fn,
     validation_steps = (
         float((round(0.1 * nr_samples))) / float(batch_size))
 
+    # train
     # TODO: check fit_generator()
     result = model.fit(
         TrainAugmentGenerator(data_dir, id2code, seed, batch_size),
