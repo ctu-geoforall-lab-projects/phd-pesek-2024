@@ -136,7 +136,7 @@ def train(data_dir, model, id2code, batch_size, output_dir, model_fn,
     tb = TensorBoard(log_dir=log_dir, write_graph=True)
     # TODO: parameterize monitored value
     mc = ModelCheckpoint(
-        mode='max', filepath=model_fn,
+        mode='max', filepath=out_model_path,
         monitor='val_accuracy', save_best_only='True',
         save_weights_only='True',
         verbose=1)
@@ -161,7 +161,7 @@ def train(data_dir, model, id2code, batch_size, output_dir, model_fn,
         epochs=nr_epochs,
         callbacks=callbacks)
     # TODO: is it needed with the model checkpoint?
-    model.save_weights(model_fn, overwrite=True)
+    model.save_weights(out_model_path, overwrite=True)
 
     write_stats(result, '/tmp/accu.png')
 
