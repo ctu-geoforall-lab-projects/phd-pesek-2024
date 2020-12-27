@@ -17,8 +17,8 @@ from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
 
-def main(operation, data_dir, out_model_path, in_model_path, nr_bands,
-         nr_epochs, batch_size, seed):
+def main(operation, data_dir, out_model_path, in_model_path, logs_dir,
+         nr_bands, nr_epochs, batch_size, seed):
     print_device_info()
 
     generate_dataset_structure(data_dir, nr_bands)
@@ -31,10 +31,8 @@ def main(operation, data_dir, out_model_path, in_model_path, nr_bands,
     # TODO: read nr of samples automatically
     if operation == 'train':
         # Train model
-        # TODO: get logs dir automatically from output_dir
         train(data_dir, model, id2code, batch_size, out_model_path, nr_epochs,
-              100, '/home/ondrej/workspace/phd-pesek-2022/logs',
-              seed=seed, patience=100)
+              100, logs_dir, seed=seed, patience=100)
     else:
         # detect
         # TODO: parameterize visualizations path
@@ -228,8 +226,10 @@ if __name__ == '__main__':
 
     out_model_path = os.path.join(args.output_dir, model_fn)
 
+    logs_dir = os.path.join(args.output_dir, 'logs')
+
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
 
     main(args.operation, args.data_dir, out_model_path, args.model_path,
-         args.nr_bands, args.nr_epochs, args.batch_size, args.seed)
+         logs_dir, args.nr_bands, args.nr_epochs, args.batch_size, args.seed)
