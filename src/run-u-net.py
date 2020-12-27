@@ -31,6 +31,7 @@ def main(operation, data_dir, out_model_path, in_model_path, logs_dir,
     # TODO: read nr of samples automatically
     if operation == 'train':
         # Train model
+        # TODO: parameterize patience
         train(data_dir, model, id2code, batch_size, out_model_path, nr_epochs,
               100, logs_dir, seed=seed, patience=100)
     else:
@@ -191,13 +192,13 @@ if __name__ == '__main__':
         '--data_dir', type=str, required=True,
         help='Path to the directory containing images and labels')
     parser.add_argument(
-        '--output_dir', type=str, required=True,
+        '--output_dir', type=str, default=None,
         help='Path where logs and the model will be saved')
     parser.add_argument(
         '--model_fn', type=str,
         help='ONLY FOR OPERATION == TRAIN: Output model filename')
     parser.add_argument(
-        '--model_path', type=str,
+        '--model_path', type=str, default=None,
         help='ONLY FOR OPERATION == DETECT: Input model path')
     # TODO: Make nr of bands automatically read from images
     parser.add_argument(
@@ -217,6 +218,14 @@ if __name__ == '__main__':
         help='Generator random seed')
 
     args = parser.parse_args()
+
+    # check required arguments by individual operations
+    if args.operation == 'train' and args.output_dir is None:
+        raise parser.error(
+            'Argument output_dir required for operation == train')
+    if args.operation == 'detect' and args.model_path is None:
+        raise parser.error(
+            'Argument model_path required for operation == detect')
 
     # create model_path
     if args.model_fn is None:
