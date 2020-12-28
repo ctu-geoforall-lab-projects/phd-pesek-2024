@@ -18,7 +18,7 @@ from visualization import write_stats, visualize_detections
 
 
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
-         nr_bands, nr_epochs, batch_size, seed):
+         nr_bands, nr_epochs, batch_size, seed, patience):
     print_device_info()
 
     generate_dataset_structure(data_dir, nr_bands)
@@ -31,9 +31,8 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     # TODO: read nr of samples automatically
     if operation == 'train':
         # Train model
-        # TODO: parameterize patience
         train(data_dir, model, id2code, batch_size, output_dir,
-              model_fn, nr_epochs, 100, seed=seed, patience=100)
+              model_fn, nr_epochs, 100, seed=seed, patience=patience)
     else:
         # detect
         # TODO: parameterize visualizations path
@@ -232,6 +231,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--seed', type=int, default=1,
         help='Generator random seed')
+    parser.add_argument(
+        '--patience', type=int, default=100,
+        help='Number of epochs with no improvement after which training will '
+             'be stopped')
 
     args = parser.parse_args()
 
@@ -245,4 +248,4 @@ if __name__ == '__main__':
 
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
          args.model_path, args.nr_bands, args.nr_epochs,
-         args.batch_size, args.seed)
+         args.batch_size, args.seed, args.patience)
