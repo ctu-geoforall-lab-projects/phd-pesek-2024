@@ -101,7 +101,6 @@ def visualize_detections(images, ground_truths, detections, id2code,
                       images[i][:, :, 1]), axis=2)
         ax1.imshow((255 / a.max() * a).astype(np.uint8))
         ax1.title.set_text('Actual image')
-        ax1.grid(b=None)
 
         # ground truths
         ax3 = fig.add_subplot(2, 2, 3)
@@ -109,14 +108,12 @@ def visualize_detections(images, ground_truths, detections, id2code,
         gt_labels = ground_truths[i]
         gt_labels = onehot_decode(gt_labels, id2code)
         ax3.imshow(gt_labels)
-        ax3.grid(b=None)
 
         # detections
         ax4 = fig.add_subplot(2, 2, 4)
         ax4.set_title('Predicted labels')
         pred_labels = onehot_decode(detections[i], id2code)
         ax4.imshow(pred_labels)
-        ax4.grid(b=None)
 
         # confusion matrix
         ax2 = fig.add_subplot(2, 2, 2)
@@ -138,7 +135,6 @@ def visualize_detections(images, ground_truths, detections, id2code,
         plt.yticks(name_range, y_labels)
         plt.xlabel('Predicted label')
         plt.ylabel('True label')
-        ax2.grid(b=None)
         # write percentage values (0.00 -- 1.00) into the confusion matrix
         threshold = cm_norm.max() / 2.
         for row in range(len(conf_matrix)):
