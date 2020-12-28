@@ -233,7 +233,8 @@ if __name__ == '__main__':
         help='Number of bands of input images')
     parser.add_argument(
         '--nr_epochs', type=int, default=1,
-        help='Number of epochs to train the model')
+        help='ONLY FOR OPERATION == TRAIN: Number of epochs to train '
+             'the model')
     parser.add_argument(
         '--batch_size', type=int, default=1,
         help='The number of samples that will be propagated through the '
@@ -243,8 +244,8 @@ if __name__ == '__main__':
         help='Generator random seed')
     parser.add_argument(
         '--patience', type=int, default=100,
-        help='Number of epochs with no improvement after which training will '
-             'be stopped')
+        help='ONLY FOR OPERATION == TRAIN: Number of epochs with no '
+             'improvement after which training will be stopped')
 
     args = parser.parse_args()
 
