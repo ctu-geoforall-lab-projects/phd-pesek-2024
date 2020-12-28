@@ -18,7 +18,7 @@ from visualization import write_stats, visualize_detections
 
 
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
-         nr_bands, nr_epochs, batch_size, seed, patience):
+         visualization_path, nr_bands, nr_epochs, batch_size, seed, patience):
     print_device_info()
 
     generate_dataset_structure(data_dir, nr_bands)
@@ -32,12 +32,13 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     if operation == 'train':
         # Train model
         train(data_dir, model, id2code, batch_size, output_dir,
-              model_fn, nr_epochs, 100, seed=seed, patience=patience)
+              visualization_path, model_fn, nr_epochs, 100, seed=seed,
+              patience=patience)
     else:
         # detect
-        # TODO: parameterize visualizations path
         detect(data_dir, model, in_model_path, id2code, batch_size,
-               [i[0] for i in label_codes], label_names, seed, '/tmp')
+               [i[0] for i in label_codes], label_names, seed,
+               visualization_path)
 
 
 def print_device_info():
@@ -102,8 +103,9 @@ def create_model(nr_classes, nr_bands, optimizer='adam',
 
 
 # TODO: support initial_epoch for fine-tuning
-def train(data_dir, model, id2code, batch_size, output_dir, model_fn,
-          nr_epochs, nr_samples, seed=1, patience=100):
+def train(data_dir, model, id2code, batch_size, output_dir,
+          visualization_path, model_fn, nr_epochs, nr_samples, seed=1,
+          patience=100):
     """Run model training.
 
     :param data_dir: path to the directory containing images
@@ -112,6 +114,8 @@ def train(data_dir, model, id2code, batch_size, output_dir, model_fn,
     :param batch_size: the number of samples that will be propagated through
         the network at once
     :param output_dir: path where logs and the model will be saved
+    :param visualization_path: path to a directory where the output
+        visualizations will be saved
     :param model_fn: model file name
     :param nr_epochs: number of epochs to train the model
     :param nr_samples: sum of training and validation samples together
@@ -166,7 +170,7 @@ def train(data_dir, model, id2code, batch_size, output_dir, model_fn,
     # TODO: is it needed with the model checkpoint?
     model.save_weights(out_model_path, overwrite=True)
 
-    write_stats(result, '/tmp/accu.png')
+    write_stats(result, os.path.join(visualization_path, 'accu.png'))
 
 
 def detect(data_dir, model, in_model_path, id2code, batch_size, label_codes,
@@ -215,6 +219,11 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model_path', type=str, default=None,
         help='ONLY FOR OPERATION == DETECT: Input model path')
+    parser.add_argument(
+        '--visualization_path', type=str, default='/tmp',
+        help='Path to a directory where the accuracy visualization '
+             '(operation == train) or detection visualizations '
+             '(operation == detect) will be saved')
     # TODO: Make nr of bands automatically read from images
     parser.add_argument(
         '--nr_bands', type=int, default=12,
@@ -247,5 +256,5 @@ if __name__ == '__main__':
             'Argument model_path required for operation == detect')
 
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
-         args.model_path, args.nr_bands, args.nr_epochs,
-         args.batch_size, args.seed, args.patience)
+         args.model_path, args.visualization_path, args.nr_bands,
+         args.nr_epochs, args.batch_size, args.seed, args.patience)
