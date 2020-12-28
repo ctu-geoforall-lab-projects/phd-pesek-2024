@@ -18,7 +18,8 @@ from visualization import write_stats, visualize_detections
 
 
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
-         visualization_path, nr_bands, nr_epochs, batch_size, seed, patience):
+         visualization_path, nr_bands, nr_epochs, batch_size, seed, patience,
+         monitored_value):
     print_device_info()
 
     generate_dataset_structure(data_dir, nr_bands)
@@ -36,7 +37,7 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
         # Train model
         train(data_dir, model, id2code, batch_size, output_dir,
               visualization_path, model_fn, nr_epochs, 100, seed=seed,
-              patience=patience)
+              patience=patience, monitored_value=monitored_value)
     else:
         # detect
         detect(data_dir, model, in_model_path, id2code, batch_size,
@@ -108,7 +109,7 @@ def create_model(nr_classes, nr_bands, optimizer='adam',
 # TODO: support initial_epoch for fine-tuning
 def train(data_dir, model, id2code, batch_size, output_dir,
           visualization_path, model_fn, nr_epochs, nr_samples, seed=1,
-          patience=100):
+          patience=100, monitored_value='val_accuracy'):
     """Run model training.
 
     :param data_dir: path to the directory containing images
@@ -125,6 +126,7 @@ def train(data_dir, model, id2code, batch_size, output_dir,
     :param seed: the generator seed
     :param patience: number of epochs with no improvement after which training
         will be stopped
+    :param monitored_value: metric name to be monitored
     """
     # set up model_path
     if model_fn is None:
@@ -143,12 +145,13 @@ def train(data_dir, model, id2code, batch_size, output_dir,
 
     # set up monitoring
     tb = TensorBoard(log_dir=log_dir, write_graph=True)
-    # TODO: parameterize monitored value
     mc = ModelCheckpoint(
         mode='max', filepath=out_model_path,
-        monitor='val_accuracy', save_best_only='True',
+        monitor=monitored_value, save_best_only='True',
         save_weights_only='True',
         verbose=1)
+    # TODO: check custom earlystopping to monitor multiple metrics
+    #       https://stackoverflow.com/questions/64556120/early-stopping-with-multiple-conditions
     es = EarlyStopping(mode='max', monitor='val_accuracy', patience=patience,
                        verbose=1, restore_best_weights=True)
     callbacks = [tb, mc, es]
@@ -246,6 +249,9 @@ if __name__ == '__main__':
         '--patience', type=int, default=100,
         help='ONLY FOR OPERATION == TRAIN: Number of epochs with no '
              'improvement after which training will be stopped')
+    parser.add_argument(
+        '--monitored_value', type=str, default='val_accuracy',
+        help='ONLY FOR OPERATION == TRAIN: Metric name to be monitored')
 
     args = parser.parse_args()
 
@@ -259,4 +265,5 @@ if __name__ == '__main__':
 
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
          args.model_path, args.visualization_path, args.nr_bands,
-         args.nr_epochs, args.batch_size, args.seed, args.patience)
+         args.nr_epochs, args.batch_size, args.seed, args.patience,
+         args.monitored_value)
