@@ -26,6 +26,9 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     label_codes, label_names, id2code = get_codings(
         os.path.join(data_dir, 'label_colors.txt'))
 
+    # set TensorFlow seed
+    tf.random.set_seed(seed)
+
     model = create_model(len(id2code), nr_bands)
 
     # TODO: read nr of samples automatically
@@ -235,8 +238,6 @@ if __name__ == '__main__':
         '--batch_size', type=int, default=1,
         help='The number of samples that will be propagated through the '
              'network at once')
-    # TODO: make seed affecting also initial weights in the model (see
-    #       tf.random.set_seed)
     parser.add_argument(
         '--seed', type=int, default=1,
         help='Generator random seed')
