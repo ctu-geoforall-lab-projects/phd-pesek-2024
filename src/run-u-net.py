@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import glob
 import random
 import argparse
 import rasterio
@@ -8,6 +9,7 @@ import rasterio
 import numpy as np
 import tensorflow as tf
 
+from osgeo import gdal
 from tensorflow.python.keras.callbacks import TensorBoard, ModelCheckpoint, \
     EarlyStopping
 
@@ -18,9 +20,15 @@ from visualization import write_stats, visualize_detections
 
 
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
-         visualization_path, nr_bands, nr_epochs, batch_size, seed, patience,
+         visualization_path, nr_epochs, batch_size, seed, patience,
          monitored_value):
     print_device_info()
+
+    # get nr of bands
+    dataset = glob.glob(os.path.join(data_dir, '*[0-9].tif'))
+    dataset_image = gdal.Open(dataset[0])
+    nr_bands = dataset_image.RasterCount
+    dataset_image = None
 
     generate_dataset_structure(data_dir, nr_bands)
 
@@ -230,10 +238,6 @@ if __name__ == '__main__':
         help='Path to a directory where the accuracy visualization '
              '(operation == train) or detection visualizations '
              '(operation == detect) will be saved')
-    # TODO: Make nr of bands automatically read from images
-    parser.add_argument(
-        '--nr_bands', type=int, default=12,
-        help='Number of bands of input images')
     parser.add_argument(
         '--nr_epochs', type=int, default=1,
         help='ONLY FOR OPERATION == TRAIN: Number of epochs to train '
@@ -264,6 +268,5 @@ if __name__ == '__main__':
             'Argument model_path required for operation == detect')
 
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
-         args.model_path, args.visualization_path, args.nr_bands,
-         args.nr_epochs, args.batch_size, args.seed, args.patience,
-         args.monitored_value)
+         args.model_path, args.visualization_path, args.nr_epochs,
+         args.batch_size, args.seed, args.patience, args.monitored_value)
