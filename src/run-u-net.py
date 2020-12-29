@@ -19,7 +19,7 @@ from visualization import write_stats, visualize_detections
 
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
          visualization_path, nr_epochs, batch_size, seed, patience,
-         monitored_value):
+         tensor_shape, monitored_value):
     print_device_info()
 
     # get nr of bands
@@ -28,7 +28,7 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     nr_bands = dataset_image.RasterCount
     dataset_image = None
 
-    generate_dataset_structure(data_dir, nr_bands)
+    generate_dataset_structure(data_dir, nr_bands, tensor_shape)
 
     label_codes, label_names, id2code = get_codings(
         os.path.join(data_dir, 'label_colors.txt'))
@@ -36,7 +36,7 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     # set TensorFlow seed
     tf.random.set_seed(seed)
 
-    model = create_model(len(id2code), nr_bands)
+    model = create_model(len(id2code), nr_bands, tensor_shape)
 
     # TODO: read nr of samples automatically
     if operation == 'train':
@@ -81,7 +81,7 @@ def get_codings(description_file):
     return label_codes, label_names, id2code
 
 
-def create_model(nr_classes, nr_bands, optimizer='adam',
+def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
                  loss='categorical_crossentropy', metrics=None, verbose=1):
     """Create intended model.
 
@@ -89,6 +89,7 @@ def create_model(nr_classes, nr_bands, optimizer='adam',
 
     :param nr_classes: number of classes to be predicted
     :param nr_bands: number of bands of intended input images
+    :param tensor_shape: shape of the first two dimensions of input tensors
     :param optimizer: name of built-in optimizer or optimizer instance
     :param loss: name of a built-in objective function,
         objective function or tf.keras.losses.Loss instance
@@ -101,7 +102,8 @@ def create_model(nr_classes, nr_bands, optimizer='adam',
     if metrics is None:
         metrics = ['accuracy']
 
-    model = get_unet(nr_classes, nr_bands=nr_bands, nr_filters=32)
+    model = get_unet(nr_classes, nr_bands=nr_bands, nr_filters=32,
+                     tensor_shape=tensor_shape)
 
     # TODO: check other metrics (tversky loss, dice coef)
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
@@ -252,6 +254,12 @@ if __name__ == '__main__':
         help='ONLY FOR OPERATION == TRAIN: Number of epochs with no '
              'improvement after which training will be stopped')
     parser.add_argument(
+        '--tensor_height', type=int, default=256,
+        help='Height of the tensor representing the image')
+    parser.add_argument(
+        '--tensor_width', type=int, default=256,
+        help='Width of the tensor representing the image')
+    parser.add_argument(
         '--monitored_value', type=str, default='val_accuracy',
         help='ONLY FOR OPERATION == TRAIN: Metric name to be monitored')
 
@@ -267,4 +275,5 @@ if __name__ == '__main__':
 
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
          args.model_path, args.visualization_path, args.nr_epochs,
-         args.batch_size, args.seed, args.patience, args.monitored_value)
+         args.batch_size, args.seed, args.patience,
+         (args.tensor_height, args.tensor_width), args.monitored_value)

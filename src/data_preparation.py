@@ -7,14 +7,11 @@ import numpy as np
 import tensorflow as tf
 
 
-# TODO: output_height, output_width not taken as arguments
-def convert_to_tensor(fname, output_height=256, output_width=256,
-                      normalize_data=False):
+def convert_to_tensor(fname, tensor_shape=(256, 256), normalize_data=False):
     """Convert an ndarray to a tensor while resizing and normalizing it.
 
     :param fname: ndarray with an image
-    :param output_height: height of output tensors
-    :param output_width: width of output tensors
+    :param tensor_shape: shape of the first two dimensions of output tensors
     :param normalize_data: boolean saying whether or not should the data be
         normalized to range (-1, 1)
     :return: a processed tensor
@@ -27,10 +24,11 @@ def convert_to_tensor(fname, output_height=256, output_width=256,
     # imgs_decoded = a.read()
 
     # Resize the image
-    output = tf.image.resize(fname, [output_height, output_width])
+    output = tf.image.resize(fname, tensor_shape)
 
     # TODO: experiment with normalization
     # TODO: does it really normalize to range (-1, 1)?
+    # TODO: should not be a hard-coded value
     # Normalize if required
     if normalize_data:
         output = (output - 128) / 128
@@ -39,10 +37,11 @@ def convert_to_tensor(fname, output_height=256, output_width=256,
 
 
 # TODO: get rid of the rasterio dependency
-def read_images(data_dir, verbose=1):
+def read_images(data_dir, tensor_shape=(256, 256), verbose=1):
     """Read images and return them as tensors and lists of filenames.
 
     :param data_dir: path to the directory containing images
+    :param tensor_shape: shape of the first two dimensions of input tensors
     :param verbose: verbosity (0=quiet, >0 verbose)
     :return: image_tensors, masks_tensors, images_filenames, masks_filenames
     """
@@ -87,8 +86,10 @@ def read_images(data_dir, verbose=1):
     images_data = tf.data.Dataset.from_tensor_slices(images_arrays)
     masks_data = tf.data.Dataset.from_tensor_slices(masks_arrays)
 
-    image_tensors = images_data.map(convert_to_tensor)
-    masks_tensors = masks_data.map(convert_to_tensor)
+    image_tensors = images_data.map(
+        lambda x: convert_to_tensor(x, tensor_shape))
+    masks_tensors = masks_data.map(
+        lambda x: convert_to_tensor(x, tensor_shape))
 
     # TODO: benchmark the way above with the following
     # Read images into the tensor dataset
@@ -122,7 +123,8 @@ def parse_label_code(line):
 
 
 # TODO: get rid of the rasterio dependency
-def generate_dataset_structure(data_dir, nr_bands=12, verbose=1):
+def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
+                               verbose=1):
     """Generate the expected dataset structure.
 
     Will generate directories train_images, train_masks, val_images and
@@ -130,6 +132,7 @@ def generate_dataset_structure(data_dir, nr_bands=12, verbose=1):
 
     :param data_dir: path to the directory containing images
     :param nr_bands: number of bands of intended input images
+    :param tensor_shape: shape of the first two dimensions of input tensors
     :param verbose: verbosity (0=quiet, >0 verbose)
     """
     # Create folders to hold images and masks
@@ -141,7 +144,8 @@ def generate_dataset_structure(data_dir, nr_bands=12, verbose=1):
         if not os.path.isdir(dir_full_path):
             os.makedirs(dir_full_path)
 
-    images, masks, images_filenames, masks_filenames = read_images(data_dir)
+    images, masks, images_filenames, masks_filenames = read_images(
+        data_dir, tensor_shape)
 
     # TODO: would be nice to avoid tf.compat.v1 (stay v2) (what about my
     #       generator?)
@@ -155,12 +159,14 @@ def generate_dataset_structure(data_dir, nr_bands=12, verbose=1):
     # TODO: Experiment with uint16
     # TODO: parameterize shape
     # TODO: read crs automatically
-    frame_profile = {'driver': 'GTiff', 'nodata': None, 'width': 256,
-                     'height': 256, 'count': nr_bands,
+    frame_profile = {'driver': 'GTiff', 'nodata': None,
+                     'height': tensor_shape[0], 'width': tensor_shape[1],
+                     'count': nr_bands,
                      'crs': rasterio.crs.CRS.from_epsg(32633), 'tiled': False,
                      'interleave': 'pixel', 'dtype': 'uint8'}
-    mask_profile = {'driver': 'GTiff', 'nodata': None, 'width': 256,
-                    'height': 256, 'count': 1,
+    mask_profile = {'driver': 'GTiff', 'nodata': None,
+                    'height': tensor_shape[0], 'width': tensor_shape[1],
+                    'count': 1,
                     'crs': rasterio.crs.CRS.from_epsg(32633), 'tiled': False,
                     'interleave': 'pixel', 'dtype': 'uint8'}
 

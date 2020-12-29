@@ -7,7 +7,8 @@ from tensorflow.keras.models import Model
 
 
 # TODO: Someone calls it small U-Net - check variations
-def get_unet(nr_classes, nr_bands=12, nr_filters=16, bn=True, dilation_rate=1):
+def get_unet(nr_classes, nr_bands=12, nr_filters=16, bn=True, dilation_rate=1,
+             tensor_shape=(256, 256)):
     """Create the U-Net architecture.
 
     :param nr_classes: number of classes to be predicted
@@ -16,11 +17,10 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=16, bn=True, dilation_rate=1):
         in the model)
     :param bn: boolean saying whether to use batch normalization or not
     :param dilation_rate: convolution dilation rate
+    :param tensor_shape: shape of the first two dimensions of input tensors
     :return: U-Net model
     """
-    # TODO: parameterize shape
-    shape = (256, 256, nr_bands)
-    inputs = Input(shape)
+    inputs = Input((tensor_shape[0], tensor_shape[1], nr_bands))
 
     # TODO: avoid duplicity - make more systematic
     conv1 = Conv2D(nr_filters * 1, (3, 3), activation='relu', padding='same',
