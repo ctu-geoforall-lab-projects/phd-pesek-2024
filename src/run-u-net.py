@@ -2,9 +2,7 @@
 
 import os
 import glob
-import random
 import argparse
-import rasterio
 
 import numpy as np
 import tensorflow as tf
