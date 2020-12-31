@@ -174,9 +174,9 @@ def train(data_dir, model, id2code, batch_size, output_dir,
     # train
     # TODO: check fit_generator()
     result = model.fit(
-        TrainAugmentGenerator(data_dir, id2code, seed, batch_size),
-        validation_data=ValAugmentGenerator(data_dir, id2code, seed,
-                                            batch_size),
+        TrainAugmentGenerator()(data_dir, id2code, seed, batch_size),
+        validation_data=ValAugmentGenerator()(data_dir, id2code, seed,
+                                              batch_size),
         steps_per_epoch=steps_per_epoch,
         validation_steps=validation_steps,
         epochs=nr_epochs,

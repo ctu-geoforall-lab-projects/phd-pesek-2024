@@ -63,39 +63,40 @@ def rasterio_generator(data_dir, rescale=False, batch_size=5):
 # TODO: check keras.utils.Sequence
 # TODO: Does not really augment, does it?
 # TODO: support onehot_encode boolean parameter
-# TODO: should be a class
-def TrainAugmentGenerator(data_dir, id2code, seed=1, batch_size=5):
-    """Generate batches of training data.
+class TrainAugmentGenerator:
 
-    :param data_dir: path to the directory containing images
-    :param id2code: dictionary mapping label ids to their codes
-    :param seed: the generator seed
-    :param batch_size: the number of samples that will be propagated through
-        the network at once
-    :return: yielded tuple of batch-sized np stacks of training images and
-        masks
-    """
-    # TODO: the train directory seems redundant
-    train_image_generator = rasterio_generator(
-        os.path.join(data_dir, 'train_images', 'train'), False, batch_size)
-    train_mask_generator = rasterio_generator(
-        os.path.join(data_dir, 'train_masks', 'train'), False, batch_size)
+    def __call__(self, data_dir, id2code, seed=1, batch_size=5):
+        """Generate batches of training data.
 
-    while True:
-        x1i = next(train_image_generator)
-        x2i = next(train_mask_generator)
+        :param data_dir: path to the directory containing images
+        :param id2code: dictionary mapping label ids to their codes
+        :param seed: the generator seed
+        :param batch_size: the number of samples that will be propagated through
+            the network at once
+        :return: yielded tuple of batch-sized np stacks of training images and
+            masks
+        """
+        # TODO: the train directory seems redundant
+        train_image_generator = rasterio_generator(
+            os.path.join(data_dir, 'train_images', 'train'), False, batch_size)
+        train_mask_generator = rasterio_generator(
+            os.path.join(data_dir, 'train_masks', 'train'), False, batch_size)
 
-        # TODO: have seen the following somewhere - check
-        # One hot encoding RGB images
-        # mask_encoded = [onehot_encode(x2i[0][x, :, :, :], id2code) for x in
-        #                 range(x2i[0].shape[0])]
-        # yield x1i[0], np.asarray(mask_encoded)
+        while True:
+            x1i = next(train_image_generator)
+            x2i = next(train_mask_generator)
 
-        # one hot encode masks
-        mask_encoded = [onehot_encode(x2i[x, :, :, :], id2code) for x in
-                        range(x2i.shape[0])]
+            # TODO: have seen the following somewhere - check
+            # One hot encoding RGB images
+            # mask_encoded = [onehot_encode(x2i[0][x, :, :, :], id2code) for x in
+            #                 range(x2i[0].shape[0])]
+            # yield x1i[0], np.asarray(mask_encoded)
 
-        yield x1i, np.asarray(mask_encoded)
+            # one hot encode masks
+            mask_encoded = [onehot_encode(x2i[x, :, :, :], id2code) for x in
+                            range(x2i.shape[0])]
+
+            yield x1i, np.asarray(mask_encoded)
 
 
 # TODO: can probably be squashed with the TrainAugmentGenerator
@@ -104,34 +105,35 @@ def TrainAugmentGenerator(data_dir, id2code, seed=1, batch_size=5):
 # TODO: check keras.utils.Sequence
 # TODO: Does not really augment, does it?
 # TODO: support onehot_encode boolean parameter
-# TODO: should be a class
-def ValAugmentGenerator(data_dir, id2code, seed=1, batch_size=5):
-    """Generate batches of validation data.
+class ValAugmentGenerator:
 
-    :param data_dir: path to the directory containing images
-    :param id2code: dictionary mapping label ids to their codes
-    :param seed: the generator seed
-    :param batch_size: the number of samples that will be propagated through
-        the network at once
-    :return: yielded tuple of batch-sized np stacks of validation images and
-        masks
-    """
-    # TODO: the val directory seems redundant
-    val_image_generator = rasterio_generator(
-        os.path.join(data_dir, 'val_images', 'val'), False, batch_size)
-    val_mask_generator = rasterio_generator(
-        os.path.join(data_dir, 'val_masks', 'val'), False, batch_size)
+    def __call__(self, data_dir, id2code, seed=1, batch_size=5):
+        """Generate batches of validation data.
 
-    while True:
-        x1i = next(val_image_generator)
-        x2i = next(val_mask_generator)
+        :param data_dir: path to the directory containing images
+        :param id2code: dictionary mapping label ids to their codes
+        :param seed: the generator seed
+        :param batch_size: the number of samples that will be propagated through
+            the network at once
+        :return: yielded tuple of batch-sized np stacks of validation images and
+            masks
+        """
+        # TODO: the val directory seems redundant
+        val_image_generator = rasterio_generator(
+            os.path.join(data_dir, 'val_images', 'val'), False, batch_size)
+        val_mask_generator = rasterio_generator(
+            os.path.join(data_dir, 'val_masks', 'val'), False, batch_size)
 
-        # TODO: has seen the following somewhere - check
-        # mask_encoded = [onehot_encode(x2i[0][x, :, :, :], id2code) for x in
-        #                 range(x2i[0].shape[0])]
+        while True:
+            x1i = next(val_image_generator)
+            x2i = next(val_mask_generator)
 
-        # one hot encode masks
-        mask_encoded = [onehot_encode(x2i[x, :, :, :], id2code) for x in
-                        range(x2i.shape[0])]
+            # TODO: has seen the following somewhere - check
+            # mask_encoded = [onehot_encode(x2i[0][x, :, :, :], id2code) for x in
+            #                 range(x2i[0].shape[0])]
 
-        yield x1i, np.asarray(mask_encoded)
+            # one hot encode masks
+            mask_encoded = [onehot_encode(x2i[x, :, :, :], id2code) for x in
+                            range(x2i.shape[0])]
+
+            yield x1i, np.asarray(mask_encoded)
