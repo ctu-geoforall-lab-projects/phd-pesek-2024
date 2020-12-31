@@ -12,7 +12,7 @@ from tensorflow.python.keras.callbacks import TensorBoard, ModelCheckpoint, \
     EarlyStopping
 
 from data_preparation import parse_label_code, generate_dataset_structure
-from cnn_lib import TrainAugmentGenerator, ValAugmentGenerator
+from cnn_lib import AugmentGenerator
 from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
@@ -174,9 +174,9 @@ def train(data_dir, model, id2code, batch_size, output_dir,
     # train
     # TODO: check fit_generator()
     result = model.fit(
-        TrainAugmentGenerator()(data_dir, id2code, seed, batch_size),
-        validation_data=ValAugmentGenerator()(data_dir, id2code, seed,
-                                              batch_size),
+        AugmentGenerator(data_dir, batch_size, 'train')(id2code, seed),
+        validation_data=AugmentGenerator(data_dir, batch_size, 'val')(id2code,
+                                                                      seed),
         steps_per_epoch=steps_per_epoch,
         validation_steps=validation_steps,
         epochs=nr_epochs,
@@ -203,7 +203,7 @@ def detect(data_dir, model, in_model_path, id2code, batch_size, label_codes,
     :param out_dir: directory where the output visualizations will be saved
     """
     # TODO: Do not test on augmented data
-    testing_gen = ValAugmentGenerator(data_dir, id2code, seed, batch_size)
+    testing_gen = AugmentGenerator(data_dir, batch_size, 'val')(id2code, seed)
 
     batch_img, batch_mask = next(testing_gen)
     model.load_weights(in_model_path)
