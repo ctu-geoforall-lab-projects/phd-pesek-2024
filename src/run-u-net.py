@@ -11,7 +11,7 @@ from osgeo import gdal
 from tensorflow.python.keras.callbacks import TensorBoard, ModelCheckpoint, \
     EarlyStopping
 
-from data_preparation import parse_label_code, generate_dataset_structure
+from data_preparation import parse_label_code
 from cnn_lib import AugmentGenerator
 from architectures import get_unet
 from visualization import write_stats, visualize_detections
@@ -19,7 +19,7 @@ from visualization import write_stats, visualize_detections
 
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
          visualization_path, nr_epochs, batch_size, seed, patience,
-         tensor_shape, monitored_value):
+         tensor_shape, monitored_value, force_dataset_generation):
     print_device_info()
 
     # get nr of bands
@@ -27,8 +27,6 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     dataset_image = gdal.Open(dataset[0])
     nr_bands = dataset_image.RasterCount
     dataset_image = None
-
-    generate_dataset_structure(data_dir, nr_bands, tensor_shape)
 
     label_codes, label_names, id2code = get_codings(
         os.path.join(data_dir, 'label_colors.txt'))
@@ -38,15 +36,20 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
 
     model = create_model(len(id2code), nr_bands, tensor_shape)
 
+    # val generator used for both the training and the detection
+    val_generator = AugmentGenerator(data_dir, batch_size, 'val', nr_bands,
+                                     tensor_shape, force_dataset_generation)
+
     # TODO: read nr of samples automatically
     if operation == 'train':
         # Train model
-        train(data_dir, model, id2code, batch_size, output_dir,
-              visualization_path, model_fn, nr_epochs, 100, seed=seed,
-              patience=patience, monitored_value=monitored_value)
+        train_generator = AugmentGenerator(data_dir, batch_size, 'train')
+        train(model, train_generator, val_generator, id2code, batch_size,
+              output_dir, visualization_path, model_fn, nr_epochs, 100,
+              seed=seed, patience=patience, monitored_value=monitored_value)
     else:
         # detect
-        detect(data_dir, model, in_model_path, id2code, batch_size,
+        detect(model, val_generator, in_model_path, id2code, batch_size,
                [i[0] for i in label_codes], label_names, seed,
                visualization_path)
 
@@ -115,13 +118,14 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
 
 
 # TODO: support initial_epoch for fine-tuning
-def train(data_dir, model, id2code, batch_size, output_dir,
-          visualization_path, model_fn, nr_epochs, nr_samples, seed=1,
-          patience=100, monitored_value='val_accuracy'):
+def train(model, train_generator, val_generator, id2code, batch_size,
+          output_dir, visualization_path, model_fn, nr_epochs, nr_samples,
+          seed=1, patience=100, monitored_value='val_accuracy'):
     """Run model training.
 
-    :param data_dir: path to the directory containing images
     :param model: model to be used for the detection
+    :param train_generator: training data generator
+    :param val_generator: validation data generator
     :param id2code: dictionary mapping label ids to their codes
     :param batch_size: the number of samples that will be propagated through
         the network at once
@@ -174,9 +178,8 @@ def train(data_dir, model, id2code, batch_size, output_dir,
     # train
     # TODO: check fit_generator()
     result = model.fit(
-        AugmentGenerator(data_dir, batch_size, 'train')(id2code, seed),
-        validation_data=AugmentGenerator(data_dir, batch_size, 'val')(id2code,
-                                                                      seed),
+        train_generator(id2code, seed),
+        validation_data=val_generator(id2code, seed),
         steps_per_epoch=steps_per_epoch,
         validation_steps=validation_steps,
         epochs=nr_epochs,
@@ -187,12 +190,12 @@ def train(data_dir, model, id2code, batch_size, output_dir,
     write_stats(result, os.path.join(visualization_path, 'accu.png'))
 
 
-def detect(data_dir, model, in_model_path, id2code, batch_size, label_codes,
-           label_names, seed=1, out_dir='/tmp'):
+def detect(model, val_generator, in_model_path, id2code, batch_size,
+           label_codes, label_names, seed=1, out_dir='/tmp'):
     """Run detection.
 
-    :param data_dir: path to the directory containing images
     :param model: model to be used for the detection
+    :param val_generator: validation data generator
     :param in_model_path: path to a model to be loaded for the detection
     :param id2code: dictionary mapping label ids to their codes
     :param batch_size: the number of samples that will be propagated through
@@ -203,7 +206,7 @@ def detect(data_dir, model, in_model_path, id2code, batch_size, label_codes,
     :param out_dir: directory where the output visualizations will be saved
     """
     # TODO: Do not test on augmented data
-    testing_gen = AugmentGenerator(data_dir, batch_size, 'val')(id2code, seed)
+    testing_gen = val_generator(id2code, seed)
 
     batch_img, batch_mask = next(testing_gen)
     model.load_weights(in_model_path)
@@ -262,6 +265,9 @@ if __name__ == '__main__':
     parser.add_argument(
         '--monitored_value', type=str, default='val_accuracy',
         help='ONLY FOR OPERATION == TRAIN: Metric name to be monitored')
+    parser.add_argument(
+        '--force_dataset_generation', type=bool, default=False,
+        help='Boolean to force the dataset structure generation')
 
     args = parser.parse_args()
 
@@ -276,4 +282,5 @@ if __name__ == '__main__':
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
          args.model_path, args.visualization_path, args.nr_epochs,
          args.batch_size, args.seed, args.patience,
-         (args.tensor_height, args.tensor_width), args.monitored_value)
+         (args.tensor_height, args.tensor_width), args.monitored_value,
+         args.force_dataset_generation)

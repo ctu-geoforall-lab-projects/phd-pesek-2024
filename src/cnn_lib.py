@@ -5,6 +5,8 @@ import rasterio
 
 import numpy as np
 
+from data_preparation import generate_dataset_structure
+
 
 # TODO: check keras.utils.to_categorical
 def onehot_encode(orig_image, colormap):
@@ -64,31 +66,44 @@ def rasterio_generator(data_dir, rescale=False, batch_size=5):
 # TODO: Does not really augment, does it?
 # TODO: support onehot_encode boolean parameter
 class AugmentGenerator:
+    """Data generator."""
 
-    def __init__(self, data_dir, batch_size=5, operation='train'):
+    def __init__(self, data_dir, batch_size=5, operation='train',
+                 nr_bands=12, tensor_shape=(256, 256),
+                 force_dataset_generation=False):
         """
 
         :param data_dir: path to the directory containing images
-        :param batch_size: the number of samples that will be propagated through
-            the network at once
+        :param batch_size: the number of samples that will be propagated
+            through the network at once
         :param operation: either 'train' or 'val'
+        :param nr_bands: number of bands of intended input images
+        :param tensor_shape: shape of the first two dimensions of input tensors
+        :param force_dataset_generation: boolean to force the dataset
+            structure generation
         """
         if operation not in ('train', 'val'):
             raise AttributeError('Only values "train" and "val" supported as '
                                  'operation. "{}" was given'.format(operation))
 
         # TODO: the operation directory seems redundant
+        images_dir = os.path.join(
+            data_dir, '{}_images'.format(operation), operation)
+        masks_dir = os.path.join(
+            data_dir, '{}_masks'.format(operation), operation)
+        # generate the dataset structure if not generated
+        do_exist = [os.path.isdir(i) is True for i in (images_dir, masks_dir)]
+        if force_dataset_generation or not all(do_exist):
+            generate_dataset_structure(data_dir, nr_bands, tensor_shape)
+
+        # create generators
         self.image_generator = rasterio_generator(
-            os.path.join(data_dir, '{}_images'.format(operation), operation),
-            False,
-            batch_size)
+            images_dir, False, batch_size)
         self.mask_generator = rasterio_generator(
-            os.path.join(data_dir, '{}_masks'.format(operation), operation),
-            False,
-            batch_size)
+            masks_dir, False, batch_size)
 
     def __call__(self, id2code, seed=1):
-        """Generate batches of validation data.
+        """Generate batches of data.
 
         :param id2code: dictionary mapping label ids to their codes
         :param seed: the generator seed
