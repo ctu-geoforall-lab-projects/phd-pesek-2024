@@ -102,6 +102,9 @@ class AugmentGenerator:
         self.mask_generator = rasterio_generator(
             masks_dir, False, batch_size)
 
+        # create variables holding number of samples
+        self.nr_samples = len(os.listdir(images_dir))
+
     def __call__(self, id2code, seed=1):
         """Generate batches of data.
 

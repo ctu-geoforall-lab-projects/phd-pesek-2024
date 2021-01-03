@@ -40,12 +40,11 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     val_generator = AugmentGenerator(data_dir, batch_size, 'val', nr_bands,
                                      tensor_shape, force_dataset_generation)
 
-    # TODO: read nr of samples automatically
     if operation == 'train':
         # Train model
         train_generator = AugmentGenerator(data_dir, batch_size, 'train')
         train(model, train_generator, val_generator, id2code, batch_size,
-              output_dir, visualization_path, model_fn, nr_epochs, 100,
+              output_dir, visualization_path, model_fn, nr_epochs,
               seed=seed, patience=patience, monitored_value=monitored_value)
     else:
         # detect
@@ -119,8 +118,8 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
 
 # TODO: support initial_epoch for fine-tuning
 def train(model, train_generator, val_generator, id2code, batch_size,
-          output_dir, visualization_path, model_fn, nr_epochs, nr_samples,
-          seed=1, patience=100, monitored_value='val_accuracy'):
+          output_dir, visualization_path, model_fn, nr_epochs, seed=1,
+          patience=100, monitored_value='val_accuracy'):
     """Run model training.
 
     :param model: model to be used for the detection
@@ -134,7 +133,6 @@ def train(model, train_generator, val_generator, id2code, batch_size,
         visualizations will be saved
     :param model_fn: model file name
     :param nr_epochs: number of epochs to train the model
-    :param nr_samples: sum of training and validation samples together
     :param seed: the generator seed
     :param patience: number of epochs with no improvement after which training
         will be stopped
@@ -168,12 +166,9 @@ def train(model, train_generator, val_generator, id2code, batch_size,
                        verbose=1, restore_best_weights=True)
     callbacks = [tb, mc, es]
 
-    # TODO: check because of generators
     # TODO: parameterize?
-    steps_per_epoch = np.ceil(float(
-        nr_samples - round(0.1 * nr_samples)) / float(batch_size))
-    validation_steps = (
-        float((round(0.1 * nr_samples))) / float(batch_size))
+    steps_per_epoch = np.ceil(train_generator.nr_samples / batch_size)
+    validation_steps = np.ceil(val_generator.nr_samples / batch_size)
 
     # train
     # TODO: check fit_generator()
