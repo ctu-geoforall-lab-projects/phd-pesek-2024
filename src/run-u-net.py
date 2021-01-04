@@ -74,11 +74,7 @@ def get_codings(description_file):
     label_codes, label_names = zip(
         *[parse_label_code(i) for i in open(description_file)])
     label_codes, label_names = list(label_codes), list(label_names)
-    # TODO: do I need code2id, id2name and name2id?
-    code2id = {j: i for i, j in enumerate(label_codes)}
     id2code = {i: j for i, j in enumerate(label_codes)}
-    name2id = {j: i for i, j in enumerate(label_names)}
-    id2name = {i: j for i, j in enumerate(label_names)}
 
     return label_codes, label_names, id2code
 
