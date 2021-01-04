@@ -129,7 +129,7 @@ def visualize_detections(images, ground_truths, detections, id2code,
         cm_norm = np.around(conf_matrix.astype('float') / row_sums, decimals=2)
         # visualize
         ax2.imshow(cm_norm, cmap=plt.cm.Blues)
-        y_labels = ['{}\n{}'.format(label_names[i], row_sums[i]) for i in
+        y_labels = ['{}\n{}'.format(label_names[j], row_sums[j]) for j in
                     name_range]
         plt.xticks(name_range, label_names)
         plt.yticks(name_range, y_labels)
