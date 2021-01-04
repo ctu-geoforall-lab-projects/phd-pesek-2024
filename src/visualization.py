@@ -136,7 +136,7 @@ def visualize_detections(images, ground_truths, detections, id2code,
         plt.xlabel('Predicted label')
         plt.ylabel('True label')
         # write percentage values (0.00 -- 1.00) into the confusion matrix
-        threshold = cm_norm.max() / 2.
+        threshold = cm_norm.max() / 2.  # used to decide for the font colour
         for row in range(len(conf_matrix)):
             for col in range(len(conf_matrix)):
                 if cm_norm[col, row] > threshold:
