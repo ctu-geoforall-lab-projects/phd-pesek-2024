@@ -18,8 +18,8 @@ from visualization import write_stats, visualize_detections
 
 
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
-         visualization_path, nr_epochs, batch_size, seed, patience,
-         tensor_shape, monitored_value, force_dataset_generation):
+         visualization_path, nr_epochs, initial_epoch, batch_size, seed,
+         patience, tensor_shape, monitored_value, force_dataset_generation):
     print_device_info()
 
     # get nr of bands
@@ -40,15 +40,20 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     val_generator = AugmentGenerator(data_dir, batch_size, 'val', nr_bands,
                                      tensor_shape, force_dataset_generation)
 
-    if operation == 'train':
-        # Train model
+    # load weights if the model is supposed to do so
+    if operation in ('detect', 'fine-tune'):
+        model.load_weights(in_model_path)
+
+    if operation in ('train', 'fine-tune'):
+        # Train or fine-tune model
         train_generator = AugmentGenerator(data_dir, batch_size, 'train')
         train(model, train_generator, val_generator, id2code, batch_size,
               output_dir, visualization_path, model_fn, nr_epochs,
-              seed=seed, patience=patience, monitored_value=monitored_value)
+              initial_epoch, seed=seed, patience=patience,
+              monitored_value=monitored_value)
     else:
         # detect
-        detect(model, val_generator, in_model_path, id2code, batch_size,
+        detect(model, val_generator, id2code, batch_size,
                [i[0] for i in label_codes], label_names, seed,
                visualization_path)
 
@@ -114,8 +119,9 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
 
 # TODO: support initial_epoch for fine-tuning
 def train(model, train_generator, val_generator, id2code, batch_size,
-          output_dir, visualization_path, model_fn, nr_epochs, seed=1,
-          patience=100, monitored_value='val_accuracy'):
+          output_dir, visualization_path, model_fn, nr_epochs,
+          initial_epoch=0, seed=1, patience=100,
+          monitored_value='val_accuracy'):
     """Run model training.
 
     :param model: model to be used for the detection
@@ -129,6 +135,7 @@ def train(model, train_generator, val_generator, id2code, batch_size,
         visualizations will be saved
     :param model_fn: model file name
     :param nr_epochs: number of epochs to train the model
+    :param initial_epoch: epoch at which to start training
     :param seed: the generator seed
     :param patience: number of epochs with no improvement after which training
         will be stopped
@@ -174,6 +181,7 @@ def train(model, train_generator, val_generator, id2code, batch_size,
         steps_per_epoch=steps_per_epoch,
         validation_steps=validation_steps,
         epochs=nr_epochs,
+        initial_epoch=initial_epoch,
         callbacks=callbacks)
     # TODO: is it needed with the model checkpoint?
     model.save_weights(out_model_path, overwrite=True)
@@ -181,13 +189,12 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     write_stats(result, os.path.join(visualization_path, 'accu.png'))
 
 
-def detect(model, val_generator, in_model_path, id2code, batch_size,
+def detect(model, val_generator, id2code, batch_size,
            label_codes, label_names, seed=1, out_dir='/tmp'):
     """Run detection.
 
     :param model: model to be used for the detection
     :param val_generator: validation data generator
-    :param in_model_path: path to a model to be loaded for the detection
     :param id2code: dictionary mapping label ids to their codes
     :param batch_size: the number of samples that will be propagated through
         the network at once
@@ -200,7 +207,6 @@ def detect(model, val_generator, in_model_path, id2code, batch_size,
     testing_gen = val_generator(id2code, seed)
 
     batch_img, batch_mask = next(testing_gen)
-    model.load_weights(in_model_path)
     pred_all = model.predict(batch_img)
 
     visualize_detections(batch_img, batch_mask, pred_all, id2code,
@@ -212,7 +218,8 @@ if __name__ == '__main__':
         description='Run U-Net training and detection')
 
     parser.add_argument(
-        '--operation', type=str, required=True, choices=('train', 'detect'),
+        '--operation', type=str, required=True,
+        choices=('train', 'detect', 'fine-tune'),
         help='Choose either to train the model or to use a trained one for '
              'detection')
     parser.add_argument(
@@ -226,7 +233,7 @@ if __name__ == '__main__':
         help='ONLY FOR OPERATION == TRAIN: Output model filename')
     parser.add_argument(
         '--model_path', type=str, default=None,
-        help='ONLY FOR OPERATION == DETECT: Input model path')
+        help='ONLY FOR OPERATION IN (DETECT, FINE-TUNE): Input model path')
     parser.add_argument(
         '--visualization_path', type=str, default='/tmp',
         help='Path to a directory where the accuracy visualization '
@@ -235,7 +242,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--nr_epochs', type=int, default=1,
         help='ONLY FOR OPERATION == TRAIN: Number of epochs to train '
-             'the model')
+             'the model. Note that in conjunction with initial_epoch, '
+             'epochs is to be understood as the final epoch')
+    parser.add_argument(
+        '--initial_epoch', type=int, default=0,
+        help='ONLY FOR OPERATION == FINE-TUNE: Epoch at which to start '
+             'training (useful for resuming a previous training run)')
     parser.add_argument(
         '--batch_size', type=int, default=1,
         help='The number of samples that will be propagated through the '
@@ -266,12 +278,16 @@ if __name__ == '__main__':
     if args.operation == 'train' and args.output_dir is None:
         raise parser.error(
             'Argument output_dir required for operation == train')
-    if args.operation == 'detect' and args.model_path is None:
+    if args.operation in ('detect', 'fine-tune') and args.model_path is None:
         raise parser.error(
-            'Argument model_path required for operation == detect')
+            'Argument model_path required for operation in '
+            '(detect, fine-tune)')
+    if args.operation == 'train' and args.initial_epoch != 0:
+        raise parser.error(
+            'Argument initial_epoch must be 0 for operation == train')
 
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
          args.model_path, args.visualization_path, args.nr_epochs,
-         args.batch_size, args.seed, args.patience,
+         args.initial_epoch, args.batch_size, args.seed, args.patience,
          (args.tensor_height, args.tensor_width), args.monitored_value,
          args.force_dataset_generation)
