@@ -117,7 +117,6 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
     return model
 
 
-# TODO: support initial_epoch for fine-tuning
 def train(model, train_generator, val_generator, id2code, batch_size,
           output_dir, visualization_path, model_fn, nr_epochs,
           initial_epoch=0, seed=1, patience=100,
