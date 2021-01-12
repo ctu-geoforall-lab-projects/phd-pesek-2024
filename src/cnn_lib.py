@@ -4,6 +4,7 @@ import os
 import rasterio
 
 import numpy as np
+import tensorflow as tf
 
 from data_preparation import generate_dataset_structure
 
@@ -126,3 +127,34 @@ class AugmentGenerator:
                             range(x2i.shape[0])]
 
             yield x1i, np.asarray(mask_encoded)
+
+
+def categorical_dice(ground_truth_onehot, predictions, weights=1):
+    """Compute the Sorensen-Dice loss.
+
+    :param ground_truth_onehot: onehot ground truth labels
+        (batch_size, img_height, img_width, nr_classes)
+    :param predictions: predictions from the last layer of the CNN
+        (batch_size, img_height, img_width, nr_classes)
+    :param weights: weights for individual classes
+        (number-of-classes-long vector)
+    :return: dice loss value averaged for all classes
+    """
+    weight_loss = tf.constant(weights, dtype=tf.float32)
+    predictions = tf.cast(predictions, tf.float32)
+    ground_truth_onehot = tf.cast(ground_truth_onehot, tf.float32)
+
+    # Compute dice coefficient
+    numerator = 2. * ground_truth_onehot * predictions
+    denominator = ground_truth_onehot + predictions
+    numerator = tf.reduce_sum(numerator, axis=(1, 2))
+    denominator = tf.reduce_sum(denominator, axis=(1, 2))
+    dice_coef = numerator / denominator
+
+    # reduce mean for batches
+    dice_coef = tf.reduce_mean(dice_coef, axis=0)
+
+    # reduce mean for classes and multiply them by weights
+    loss = 1 - tf.reduce_mean(weights * dice_coef)
+
+    return loss

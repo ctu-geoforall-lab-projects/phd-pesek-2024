@@ -12,14 +12,15 @@ from tensorflow.python.keras.callbacks import TensorBoard, ModelCheckpoint, \
     EarlyStopping
 
 from data_preparation import parse_label_code
-from cnn_lib import AugmentGenerator
+from cnn_lib import AugmentGenerator, categorical_dice
 from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
 
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
-         visualization_path, nr_epochs, initial_epoch, batch_size, seed,
-         patience, tensor_shape, monitored_value, force_dataset_generation):
+         visualization_path, nr_epochs, initial_epoch, batch_size,
+         loss_function, seed, patience, tensor_shape, monitored_value,
+         force_dataset_generation):
     print_device_info()
 
     # get nr of bands
@@ -34,7 +35,8 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     # set TensorFlow seed
     tf.random.set_seed(seed)
 
-    model = create_model(len(id2code), nr_bands, tensor_shape)
+    model = create_model(len(id2code), nr_bands, tensor_shape,
+                         loss=loss_function)
 
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(data_dir, batch_size, 'val', nr_bands,
@@ -85,7 +87,7 @@ def get_codings(description_file):
 
 
 def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
-                 loss='categorical_crossentropy', metrics=None, verbose=1):
+                 loss='dice', metrics=None, verbose=1):
     """Create intended model.
 
     So far it is only U-Net.
@@ -108,7 +110,11 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
     model = get_unet(nr_classes, nr_bands=nr_bands, nr_filters=32,
                      tensor_shape=tensor_shape)
 
-    # TODO: check other metrics (tversky loss, dice coef)
+    # get loss functions corresponding to non-TF losses
+    if loss == 'dice':
+        loss = categorical_dice
+
+    # TODO: check other metrics (tversky loss)
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
     if verbose > 0:
@@ -252,6 +258,11 @@ if __name__ == '__main__':
         help='The number of samples that will be propagated through the '
              'network at once')
     parser.add_argument(
+        '--loss_function', type=str, default='dice',
+        choices=('dice', 'categorical_crossentropy'),
+        help='A function that maps the training onto a real number '
+             'representing cost associated with the epoch')
+    parser.add_argument(
         '--seed', type=int, default=1,
         help='Generator random seed')
     parser.add_argument(
@@ -287,6 +298,6 @@ if __name__ == '__main__':
 
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
          args.model_path, args.visualization_path, args.nr_epochs,
-         args.initial_epoch, args.batch_size, args.seed, args.patience,
-         (args.tensor_height, args.tensor_width), args.monitored_value,
-         args.force_dataset_generation)
+         args.initial_epoch, args.batch_size, args.loss_function, args.seed,
+         args.patience, (args.tensor_height, args.tensor_width),
+         args.monitored_value, args.force_dataset_generation)
