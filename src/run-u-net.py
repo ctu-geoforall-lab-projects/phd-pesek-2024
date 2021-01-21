@@ -181,7 +181,6 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     validation_steps = np.ceil(val_generator.nr_samples / batch_size)
 
     # train
-    # TODO: check fit_generator()
     result = model.fit(
         train_generator(id2code, seed),
         validation_data=val_generator(id2code, seed),
