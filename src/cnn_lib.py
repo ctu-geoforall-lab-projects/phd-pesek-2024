@@ -140,21 +140,50 @@ def categorical_dice(ground_truth_onehot, predictions, weights=1):
         (number-of-classes-long vector)
     :return: dice loss value averaged for all classes
     """
-    weight_loss = tf.constant(weights, dtype=tf.float32)
+    loss = categorical_tversky(ground_truth_onehot, predictions, 0.5, 0.5,
+                               weights)
+
+    return loss
+
+
+def categorical_tversky(ground_truth_onehot, predictions, alpha=0.5,
+                        beta=0.5, weights=1):
+    """Compute the Tversky loss.
+
+    alpha == beta == 0.5 -> Dice loss
+    alpha == beta == 1 -> Tanimoto coefficient/loss
+
+    :param ground_truth_onehot: onehot ground truth labels
+        (batch_size, img_height, img_width, nr_classes)
+    :param predictions: predictions from the last layer of the CNN
+        (batch_size, img_height, img_width, nr_classes)
+    :param alpha: magnitude of penalties for false positives
+    :param beta: magnitude of penalties for false negatives
+    :param weights: weights for individual classes
+        (number-of-classes-long vector)
+    :return: dice loss value averaged for all classes
+    """
+    weight_tensor = tf.constant(weights, dtype=tf.float32)
     predictions = tf.cast(predictions, tf.float32)
     ground_truth_onehot = tf.cast(ground_truth_onehot, tf.float32)
 
-    # Compute dice coefficient
-    numerator = 2. * ground_truth_onehot * predictions
-    denominator = ground_truth_onehot + predictions
+    # compute true positives, false negatives and false positives
+    true_pos = ground_truth_onehot * predictions
+    false_neg = ground_truth_onehot * (1. - predictions)
+    false_pos = (1. - ground_truth_onehot) * predictions
+
+    # compute Tversky coefficient
+    numerator = true_pos
     numerator = tf.reduce_sum(numerator, axis=(1, 2))
+    denominator = true_pos + alpha * false_neg + beta * false_pos
     denominator = tf.reduce_sum(denominator, axis=(1, 2))
-    dice_coef = numerator / denominator
+    tversky = numerator / denominator
 
     # reduce mean for batches
-    dice_coef = tf.reduce_mean(dice_coef, axis=0)
+    tversky = tf.reduce_mean(tversky, axis=0)
 
     # reduce mean for classes and multiply them by weights
-    loss = 1 - tf.reduce_mean(weights * dice_coef)
+    loss = 1 - tf.reduce_mean(weight_tensor * tversky)
 
     return loss
+

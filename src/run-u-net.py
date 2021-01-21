@@ -12,7 +12,7 @@ from tensorflow.python.keras.callbacks import TensorBoard, ModelCheckpoint, \
     EarlyStopping
 
 from data_preparation import parse_label_code
-from cnn_lib import AugmentGenerator, categorical_dice
+from cnn_lib import AugmentGenerator, categorical_dice, categorical_tversky
 from architectures import get_unet
 from visualization import write_stats, visualize_detections
 
@@ -20,7 +20,7 @@ from visualization import write_stats, visualize_detections
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
          visualization_path, nr_epochs, initial_epoch, batch_size,
          loss_function, seed, patience, tensor_shape, monitored_value,
-         force_dataset_generation):
+         force_dataset_generation, tversky_alpha, tversky_beta):
     print_device_info()
 
     # get nr of bands
@@ -35,8 +35,9 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     # set TensorFlow seed
     tf.random.set_seed(seed)
 
-    model = create_model(len(id2code), nr_bands, tensor_shape,
-                         loss=loss_function)
+    model = create_model(
+        len(id2code), nr_bands, tensor_shape, loss=loss_function,
+        alpha=tversky_alpha, beta=tversky_beta)
 
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(data_dir, batch_size, 'val', nr_bands,
@@ -87,7 +88,7 @@ def get_codings(description_file):
 
 
 def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
-                 loss='dice', metrics=None, verbose=1):
+                 loss='dice', metrics=None, verbose=1, alpha=None, beta=None):
     """Create intended model.
 
     So far it is only U-Net.
@@ -113,8 +114,9 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
     # get loss functions corresponding to non-TF losses
     if loss == 'dice':
         loss = categorical_dice
+    elif loss == 'tversky':
+        loss = lambda gt, p: categorical_tversky(gt, p, alpha, beta)
 
-    # TODO: check other metrics (tversky loss)
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
     if verbose > 0:
@@ -259,7 +261,7 @@ if __name__ == '__main__':
              'network at once')
     parser.add_argument(
         '--loss_function', type=str, default='dice',
-        choices=('dice', 'categorical_crossentropy'),
+        choices=('dice', 'categorical_crossentropy', 'tversky'),
         help='A function that maps the training onto a real number '
              'representing cost associated with the epoch')
     parser.add_argument(
@@ -281,6 +283,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--force_dataset_generation', type=bool, default=False,
         help='Boolean to force the dataset structure generation')
+    parser.add_argument(
+        '--tversky_alpha', type=float, default=None,
+        help='ONLY FOR LOSS_FUNCTION == TVERSKY: Coefficient alpha')
+    parser.add_argument(
+        '--tversky_beta', type=float, default=None,
+        help='ONLY FOR LOSS_FUNCTION == TVERSKY: Coefficient beta')
 
     args = parser.parse_args()
 
@@ -295,9 +303,16 @@ if __name__ == '__main__':
     if args.operation == 'train' and args.initial_epoch != 0:
         raise parser.error(
             'Argument initial_epoch must be 0 for operation == train')
+    tversky_none = None in (args.tversky_alpha, args.tversky_beta)
+    if args.loss_function == 'tversky' and tversky_none is True:
+        raise parser.error(
+            'Arguments tversky_alpha and tversky_beta must be set for '
+            'loss_function == tversky')
 
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
          args.model_path, args.visualization_path, args.nr_epochs,
          args.initial_epoch, args.batch_size, args.loss_function, args.seed,
          args.patience, (args.tensor_height, args.tensor_width),
-         args.monitored_value, args.force_dataset_generation)
+         args.monitored_value, args.force_dataset_generation,
+         args.tversky_alpha, args.tversky_beta)
+
