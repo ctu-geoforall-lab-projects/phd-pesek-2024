@@ -186,4 +186,3 @@ def categorical_tversky(ground_truth_onehot, predictions, alpha=0.5,
     loss = 1 - tf.reduce_mean(weight_tensor * tversky)
 
     return loss
-
