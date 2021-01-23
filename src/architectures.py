@@ -1,8 +1,7 @@
 #!/usr/bin/python3
 
-# TODO: change concatenate to Concatenate
 from tensorflow.keras.layers import MaxPooling2D, Conv2D, Input, \
-    BatchNormalization, UpSampling2D, concatenate
+    BatchNormalization, UpSampling2D, Concatenate
 from tensorflow.keras.models import Model
 
 
@@ -81,7 +80,7 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=16, bn=True, dilation_rate=1,
     if bn:
         conv5 = BatchNormalization()(conv5)
 
-    up6 = concatenate([UpSampling2D(size=(2, 2))(conv5), conv4], axis=3)
+    up6 = Concatenate(axis=3)([UpSampling2D(size=(2, 2))(conv5), conv4])
 
     conv6 = Conv2D(nr_filters * 8, (3, 3), activation='relu', padding='same',
                    dilation_rate=dilation_rate)(up6)  # (conv4)  # (up6)
@@ -93,7 +92,7 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=16, bn=True, dilation_rate=1,
     if bn:
         conv6 = BatchNormalization()(conv6)
 
-    up7 = concatenate([UpSampling2D(size=(2, 2))(conv6), conv3], axis=3)
+    up7 = Concatenate(axis=3)([UpSampling2D(size=(2, 2))(conv6), conv3])
 
     conv7 = Conv2D(nr_filters * 4, (3, 3), activation='relu', padding='same',
                    dilation_rate=dilation_rate)(up7)  # (conv3)  # (up7)
@@ -105,7 +104,7 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=16, bn=True, dilation_rate=1,
     if bn:
         conv7 = BatchNormalization()(conv7)
 
-    up8 = concatenate([UpSampling2D(size=(2, 2))(conv7), conv2], axis=3)
+    up8 = Concatenate(axis=3)([UpSampling2D(size=(2, 2))(conv7), conv2])
 
     conv8 = Conv2D(nr_filters * 2, (3, 3), activation='relu', padding='same',
                    dilation_rate=dilation_rate)(up8)
@@ -117,7 +116,7 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=16, bn=True, dilation_rate=1,
     if bn:
         conv8 = BatchNormalization()(conv8)
 
-    up9 = concatenate([UpSampling2D(size=(2, 2))(conv8), conv1], axis=3)
+    up9 = Concatenate(axis=3)([UpSampling2D(size=(2, 2))(conv8), conv1])
 
     conv9 = Conv2D(nr_filters * 1, (3, 3), activation='relu', padding='same',
                    dilation_rate=dilation_rate)(up9)
