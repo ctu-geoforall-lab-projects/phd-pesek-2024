@@ -189,8 +189,6 @@ def train(model, train_generator, val_generator, id2code, batch_size,
         epochs=nr_epochs,
         initial_epoch=initial_epoch,
         callbacks=callbacks)
-    # TODO: is it needed with the model checkpoint?
-    model.save_weights(out_model_path, overwrite=True)
 
     write_stats(result, os.path.join(visualization_path, 'accu.png'))
 
