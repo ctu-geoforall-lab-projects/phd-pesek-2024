@@ -6,6 +6,8 @@ import rasterio
 import numpy as np
 import tensorflow as tf
 
+from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization
+
 from data_preparation import generate_dataset_structure
 
 
@@ -186,3 +188,94 @@ def categorical_tversky(ground_truth_onehot, predictions, alpha=0.5,
     loss = 1 - tf.reduce_mean(weight_tensor * tversky)
 
     return loss
+
+
+class ConvBlock(Layer):
+    """TF Keras layer overriden to represent a convolutional block in U-Net."""
+
+    def __init__(self, nr_filters=16, kernel_size=(3, 3), activation='relu',
+                 padding='same', dilation_rate=1, batch_norm=True, **kwargs):
+        """Create a block of two convolutional layers.
+
+        Each of them could be followed by a batch normalization layer.
+
+        :param nr_filters: number of convolution filters
+        :param kernel_size: an integer or tuple/list of 2 integers, specifying
+            the height and width of the 2D convolution window
+        :param activation: activation function, such as tf.nn.relu, or string
+            name of built-in activation function, such as 'relu'
+        :param padding: 'valid' means no padding. 'same' results in padding
+            evenly to the left/right or up/down of the input such that output
+            has the same height/width dimension as the input
+        :param dilation_rate: convolution dilation rate
+        :param batch_norm: boolean saying whether to use batch normalization
+            or not
+        :param kwargs: supplementary kwargs for the parent __init__()
+        """
+        super(ConvBlock, self).__init__(**kwargs)
+
+        # set init parameters to member variables
+        self.nr_filters = nr_filters
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.padding = padding
+        self.dilation_rate = dilation_rate
+        self.batch_norm = batch_norm
+        self.kwargs = kwargs
+
+        # instantiate layers of the conv block
+        self.conv_layer1 = Conv2D(nr_filters,
+                       kernel_size,
+                       activation=activation,
+                       padding=padding,
+                       dilation_rate=dilation_rate)
+        self.batch_norm1 = BatchNormalization()
+        self.conv_layer2 = Conv2D(nr_filters,
+                       kernel_size,
+                       activation=activation,
+                       padding=padding,
+                       dilation_rate=dilation_rate)
+        self.batch_norm2 = BatchNormalization()
+
+    def call(self, x, training=True, mask=None):
+        """Perform the logic of applying the layer to the input tensors.
+
+        :param x: input tensor
+        :param training: boolean saying whether the call is in inference mode
+            or training mode (currenlty not used)
+        :param mask: boolean tensor encoding masked timesteps in the input,
+            used in RNN layers (currently not used)
+        :return: output layer of the convolutional block
+        """
+        # the first layer of the block
+        x = self.conv_layer1(x)
+        if self.batch_norm is True:
+            x = self.batch_norm1(x)
+
+        # the second layer of the block
+        x = self.conv_layer2(x)
+        if self.batch_norm is True:
+            x = self.batch_norm2(x)
+
+        return x
+
+    def get_config(self):
+        """Return the configuration of the convolutional block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        layer class name.
+
+        :return: the configuration dictionary of the convolutional block
+        """
+        config = super(ConvBlock, self).get_config()
+
+        config.update(nr_filters=self.nr_filters,
+                      kernel_size=self.kernel_size,
+                      activation=self.activation,
+                      padding=self.padding,
+                      dilation_rate=self.dilation_rate,
+                      batch_norm=self.batch_norm,
+                      **self.kwargs)
+
+        return config
