@@ -9,7 +9,8 @@ from cnn_lib import ConvBlock
 
 # TODO: Someone calls it small U-Net - check variations
 def get_unet(nr_classes, nr_bands=12, nr_filters=16, batch_norm=True,
-             dilation_rate=1, tensor_shape=(256, 256), activation='relu'):
+             dilation_rate=1, tensor_shape=(256, 256), activation='relu',
+             padding='same'):
     """Create the U-Net architecture.
 
     :param nr_classes: number of classes to be predicted
@@ -21,6 +22,9 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=16, batch_norm=True,
     :param tensor_shape: shape of the first two dimensions of input tensors
     :param activation: activation function, such as tf.nn.relu, or string
         name of built-in activation function, such as 'relu'
+    :param padding: 'valid' means no padding. 'same' results in padding
+        evenly to the left/right or up/down of the input such that output
+        has the same height/width dimension as the input
     :return: U-Net model
     """
     concat_layers = []
@@ -31,7 +35,7 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=16, batch_norm=True,
 
     # downsampling
     for i in range(4):
-        block = ConvBlock(nr_filters * (2 ** i), (3, 3), activation, 'same',
+        block = ConvBlock(nr_filters * (2 ** i), (3, 3), activation, padding,
                           dilation_rate)
         x = block(x)
         concat_layers.append(x)
@@ -39,14 +43,14 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=16, batch_norm=True,
 
     # upsampling
     for i in range(4, 0, -1):
-        block = ConvBlock(nr_filters * (2 ** i), (3, 3), activation, 'same',
+        block = ConvBlock(nr_filters * (2 ** i), (3, 3), activation, padding,
                           dilation_rate)
         x = block(x)
         x = Concatenate(axis=3)([UpSampling2D(size=(2, 2))(x),
                                  concat_layers[i - 1]])
 
     # the last upsampling without concatenation
-    block = ConvBlock(nr_filters * 1, (3, 3), activation, 'same',
+    block = ConvBlock(nr_filters * 1, (3, 3), activation, padding,
                       dilation_rate)
     x = block(x)
 
@@ -54,7 +58,7 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=16, batch_norm=True,
     classes = Conv2D(nr_classes,
                      (1, 1),
                      activation='softmax',
-                     padding='same',
+                     padding=padding,
                      dilation_rate=dilation_rate)(x)
 
     model = Model(inputs=inputs, outputs=classes)
