@@ -109,6 +109,8 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
         evenly to the left/right or up/down of the input such that output
         has the same height/width dimension as the input
     :param verbose: verbosity (0=quiet, >0 verbose)
+    :param alpha: magnitude of penalties for false positives for Tversky loss
+    :param beta: magnitude of penalties for false negatives for Tversky loss
     :return: compiled model
     """
     if metrics is None:
