@@ -88,7 +88,8 @@ def get_codings(description_file):
 
 
 def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
-                 loss='dice', metrics=None, verbose=1, alpha=None, beta=None):
+                 loss='dice', metrics=None, activation='relu',
+                 padding='same', verbose=1, alpha=None, beta=None):
     """Create intended model.
 
     So far it is only U-Net.
@@ -102,6 +103,11 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
     :param metrics: list of metrics to be evaluated by the model during
         training and testing. Each of this can be a name of a built-in
         function, function or a tf.keras.metrics.Metric instance
+    :param activation: activation function, such as tf.nn.relu, or string
+        name of built-in activation function, such as 'relu'
+    :param padding: 'valid' means no padding. 'same' results in padding
+        evenly to the left/right or up/down of the input such that output
+        has the same height/width dimension as the input
     :param verbose: verbosity (0=quiet, >0 verbose)
     :return: compiled model
     """
@@ -109,8 +115,8 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
         metrics = ['accuracy']
 
     model = get_unet(nr_classes, nr_bands=nr_bands, nr_filters=32,
-                     tensor_shape=tensor_shape, activation='relu',
-                     padding='same')
+                     tensor_shape=tensor_shape, activation=activation,
+                     padding=padding)
 
     # get loss functions corresponding to non-TF losses
     if loss == 'dice':
