@@ -109,7 +109,7 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
         metrics = ['accuracy']
 
     model = get_unet(nr_classes, nr_bands=nr_bands, nr_filters=32,
-                     tensor_shape=tensor_shape)
+                     tensor_shape=tensor_shape, activation='relu')
 
     # get loss functions corresponding to non-TF losses
     if loss == 'dice':
