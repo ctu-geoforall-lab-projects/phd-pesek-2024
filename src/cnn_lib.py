@@ -6,7 +6,8 @@ import rasterio
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization
+from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
+    Activation
 
 from data_preparation import generate_dataset_structure
 
@@ -226,15 +227,15 @@ class ConvBlock(Layer):
         # instantiate layers of the conv block
         self.conv_layer1 = Conv2D(nr_filters,
                        kernel_size,
-                       activation=activation,
                        padding=padding,
                        dilation_rate=dilation_rate)
+        self.activation1 = Activation(activation)
         self.batch_norm1 = BatchNormalization()
         self.conv_layer2 = Conv2D(nr_filters,
                        kernel_size,
-                       activation=activation,
                        padding=padding,
                        dilation_rate=dilation_rate)
+        self.activation2 = Activation(activation)
         self.batch_norm2 = BatchNormalization()
 
     def call(self, x, training=True, mask=None):
@@ -249,11 +250,13 @@ class ConvBlock(Layer):
         """
         # the first layer of the block
         x = self.conv_layer1(x)
+        x = self.activation1(x)
         if self.batch_norm is True:
             x = self.batch_norm1(x)
 
         # the second layer of the block
         x = self.conv_layer2(x)
+        x = self.activation2(x)
         if self.batch_norm is True:
             x = self.batch_norm2(x)
 
