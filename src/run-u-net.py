@@ -20,7 +20,8 @@ from visualization import write_stats, visualize_detections
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
          visualization_path, nr_epochs, initial_epoch, batch_size,
          loss_function, seed, patience, tensor_shape, monitored_value,
-         force_dataset_generation, tversky_alpha, tversky_beta):
+         force_dataset_generation, tversky_alpha, tversky_beta,
+         dropout_rate_input, dropout_rate_hidden):
     print_device_info()
 
     # get nr of bands
@@ -37,7 +38,9 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
 
     model = create_model(
         len(id2code), nr_bands, tensor_shape, loss=loss_function,
-        alpha=tversky_alpha, beta=tversky_beta)
+        alpha=tversky_alpha, beta=tversky_beta,
+        dropout_rate_input=dropout_rate_input,
+        dropout_rate_hidden=dropout_rate_hidden)
 
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(data_dir, batch_size, 'val', nr_bands,
@@ -89,7 +92,8 @@ def get_codings(description_file):
 
 def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
                  loss='dice', metrics=None, activation='relu',
-                 padding='same', verbose=1, alpha=None, beta=None):
+                 padding='same', verbose=1, alpha=None, beta=None,
+                 dropout_rate_input=None, dropout_rate_hidden=None):
     """Create intended model.
 
     So far it is only U-Net.
@@ -111,6 +115,10 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
     :param verbose: verbosity (0=quiet, >0 verbose)
     :param alpha: magnitude of penalties for false positives for Tversky loss
     :param beta: magnitude of penalties for false negatives for Tversky loss
+    :param dropout_rate_input: float between 0 and 1. Fraction of the input
+        units of the input layer to drop
+    :param dropout_rate_hidden: float between 0 and 1. Fraction of the input
+        units of the hidden layers to drop
     :return: compiled model
     """
     if metrics is None:
@@ -118,7 +126,8 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
 
     model = get_unet(nr_classes, nr_bands=nr_bands, nr_filters=32,
                      tensor_shape=tensor_shape, activation=activation,
-                     padding=padding)
+                     padding=padding, dropout_rate_input=dropout_rate_input,
+                     dropout_rate_hidden=dropout_rate_hidden)
 
     # get loss functions corresponding to non-TF losses
     if loss == 'dice':
@@ -295,6 +304,14 @@ if __name__ == '__main__':
     parser.add_argument(
         '--tversky_beta', type=float, default=None,
         help='ONLY FOR LOSS_FUNCTION == TVERSKY: Coefficient beta')
+    parser.add_argument(
+        '--dropout_rate_input', type=float, default=None,
+        help='ONLY FOR OPERATION == TRAIN: Fraction of the input units of the '
+             'input layer to drop')
+    parser.add_argument(
+        '--dropout_rate_hidden', type=float, default=None,
+        help='ONLY FOR OPERATION == TRAIN: Fraction of the input units of the '
+             'hidden layers to drop')
 
     args = parser.parse_args()
 
@@ -314,11 +331,16 @@ if __name__ == '__main__':
         raise parser.error(
             'Arguments tversky_alpha and tversky_beta must be set for '
             'loss_function == tversky')
+    dropout_specified = args.dropout_rate_input is not None or \
+                        args.dropout_rate_hidden is not None
+    if args.operation != 'train' and dropout_specified is True:
+        raise parser.error(
+            'Dropout can be specified only for operation == train')
 
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
          args.model_path, args.visualization_path, args.nr_epochs,
          args.initial_epoch, args.batch_size, args.loss_function, args.seed,
          args.patience, (args.tensor_height, args.tensor_width),
          args.monitored_value, args.force_dataset_generation,
-         args.tversky_alpha, args.tversky_beta)
-
+         args.tversky_alpha, args.tversky_beta, args.dropout_rate_input,
+         args.dropout_rate_hidden)

@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
-    Activation
+    Activation, Dropout
 
 from data_preparation import generate_dataset_structure
 
@@ -195,7 +195,8 @@ class ConvBlock(Layer):
     """TF Keras layer overriden to represent a convolutional block in U-Net."""
 
     def __init__(self, nr_filters=16, kernel_size=(3, 3), activation='relu',
-                 padding='same', dilation_rate=1, batch_norm=True, **kwargs):
+                 padding='same', dilation_rate=1, batch_norm=True,
+                 dropout_rate=None, **kwargs):
         """Create a block of two convolutional layers.
 
         Each of them could be followed by a batch normalization layer.
@@ -211,6 +212,8 @@ class ConvBlock(Layer):
         :param dilation_rate: convolution dilation rate
         :param batch_norm: boolean saying whether to use batch normalization
             or not
+        :param dropout_rate: float between 0 and 1. Fraction of the input
+            units of convolutional layers to drop
         :param kwargs: supplementary kwargs for the parent __init__()
         """
         super(ConvBlock, self).__init__(**kwargs)
@@ -222,6 +225,7 @@ class ConvBlock(Layer):
         self.padding = padding
         self.dilation_rate = dilation_rate
         self.batch_norm = batch_norm
+        self.dropout_rate = dropout_rate
         self.kwargs = kwargs
 
         # instantiate layers of the conv block
@@ -231,31 +235,35 @@ class ConvBlock(Layer):
                        dilation_rate=dilation_rate)
         self.activation1 = Activation(activation)
         self.batch_norm1 = BatchNormalization()
+        self.dropout1 = Dropout(rate=dropout_rate)
         self.conv_layer2 = Conv2D(nr_filters,
                        kernel_size,
                        padding=padding,
                        dilation_rate=dilation_rate)
+        self.dropout2 = Dropout(rate=dropout_rate)
         self.activation2 = Activation(activation)
         self.batch_norm2 = BatchNormalization()
 
-    def call(self, x, training=True, mask=None):
+    def call(self, x, mask=None):
         """Perform the logic of applying the layer to the input tensors.
 
         :param x: input tensor
-        :param training: boolean saying whether the call is in inference mode
-            or training mode (currenlty not used)
         :param mask: boolean tensor encoding masked timesteps in the input,
             used in RNN layers (currently not used)
         :return: output layer of the convolutional block
         """
         # the first layer of the block
         x = self.conv_layer1(x)
+        if self.dropout_rate is not None:
+            x = self.dropout1(x)
         x = self.activation1(x)
         if self.batch_norm is True:
             x = self.batch_norm1(x)
 
         # the second layer of the block
         x = self.conv_layer2(x)
+        if self.dropout_rate is not None:
+            x = self.dropout2(x)
         x = self.activation2(x)
         if self.batch_norm is True:
             x = self.batch_norm2(x)
@@ -279,6 +287,7 @@ class ConvBlock(Layer):
                       padding=self.padding,
                       dilation_rate=self.dilation_rate,
                       batch_norm=self.batch_norm,
+                      dropout_rate=self.dropout_rate,
                       **self.kwargs)
 
         return config

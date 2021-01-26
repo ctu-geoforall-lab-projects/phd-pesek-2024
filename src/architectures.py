@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from tensorflow.keras.layers import MaxPooling2D, Conv2D, Input, UpSampling2D, \
-    Concatenate
+    Concatenate, Dropout
 from tensorflow.keras.models import Model
 
 from cnn_lib import ConvBlock
@@ -10,7 +10,7 @@ from cnn_lib import ConvBlock
 # TODO: Someone calls it small U-Net - check variations
 def get_unet(nr_classes, nr_bands=12, nr_filters=16, batch_norm=True,
              dilation_rate=1, tensor_shape=(256, 256), activation='relu',
-             padding='same'):
+             padding='same', dropout_rate_input=None, dropout_rate_hidden=None):
     """Create the U-Net architecture.
 
     :param nr_classes: number of classes to be predicted
@@ -25,18 +25,26 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=16, batch_norm=True,
     :param padding: 'valid' means no padding. 'same' results in padding
         evenly to the left/right or up/down of the input such that output
         has the same height/width dimension as the input
+    :param dropout_rate_input: float between 0 and 1. Fraction of the input
+        units of the input layer to drop
+    :param dropout_rate_hidden: float between 0 and 1. Fraction of the input
+        units of the hidden layers to drop
     :return: U-Net model
     """
     concat_layers = []
 
     # create input layer from the input tensor
     inputs = Input((tensor_shape[0], tensor_shape[1], nr_bands))
-    x = inputs
+
+    if dropout_rate_input is not None:
+        x = Dropout(rate=dropout_rate_input)(inputs)
+    else:
+        x = inputs
 
     # downsampling
     for i in range(4):
         block = ConvBlock(nr_filters * (2 ** i), (3, 3), activation, padding,
-                          dilation_rate)
+                          dilation_rate, dropout_rate=dropout_rate_hidden)
         x = block(x)
         concat_layers.append(x)
         x = MaxPooling2D(pool_size=(2, 2), data_format='channels_last')(x)
@@ -44,14 +52,14 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=16, batch_norm=True,
     # upsampling
     for i in range(4, 0, -1):
         block = ConvBlock(nr_filters * (2 ** i), (3, 3), activation, padding,
-                          dilation_rate)
+                          dilation_rate, dropout_rate=dropout_rate_hidden)
         x = block(x)
         x = Concatenate(axis=3)([UpSampling2D(size=(2, 2))(x),
                                  concat_layers[i - 1]])
 
     # the last upsampling without concatenation
     block = ConvBlock(nr_filters * 1, (3, 3), activation, padding,
-                      dilation_rate)
+                      dilation_rate, dropout_rate=dropout_rate_hidden)
     x = block(x)
 
     # softmax classifier head layer
