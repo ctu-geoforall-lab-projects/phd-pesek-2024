@@ -90,10 +90,10 @@ def get_codings(description_file):
     return label_codes, label_names, id2code
 
 
-def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
-                 loss='dice', metrics=None, activation='relu',
-                 padding='same', verbose=1, alpha=None, beta=None,
-                 dropout_rate_input=None, dropout_rate_hidden=None):
+def create_model(nr_classes, nr_bands, tensor_shape,
+                 nr_filters=64, optimizer='adam', loss='dice', metrics=None,
+                 activation='relu', padding='same', verbose=1, alpha=None,
+                 beta=None, dropout_rate_input=None, dropout_rate_hidden=None):
     """Create intended model.
 
     So far it is only U-Net.
@@ -101,6 +101,8 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
     :param nr_classes: number of classes to be predicted
     :param nr_bands: number of bands of intended input images
     :param tensor_shape: shape of the first two dimensions of input tensors
+    :param nr_filters: base number of convolution filters (multiplied deeper
+        in the model)
     :param optimizer: name of built-in optimizer or optimizer instance
     :param loss: name of a built-in objective function,
         objective function or tf.keras.losses.Loss instance
@@ -124,7 +126,7 @@ def create_model(nr_classes, nr_bands, tensor_shape, optimizer='adam',
     if metrics is None:
         metrics = ['accuracy']
 
-    model = get_unet(nr_classes, nr_bands=nr_bands, nr_filters=32,
+    model = get_unet(nr_classes, nr_bands=nr_bands, nr_filters=nr_filters,
                      tensor_shape=tensor_shape, activation=activation,
                      padding=padding, dropout_rate_input=dropout_rate_input,
                      dropout_rate_hidden=dropout_rate_hidden)

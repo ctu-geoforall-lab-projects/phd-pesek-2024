@@ -194,7 +194,7 @@ def categorical_tversky(ground_truth_onehot, predictions, alpha=0.5,
 class ConvBlock(Layer):
     """TF Keras layer overriden to represent a convolutional block in U-Net."""
 
-    def __init__(self, nr_filters=16, kernel_size=(3, 3), activation='relu',
+    def __init__(self, nr_filters=64, kernel_size=(3, 3), activation='relu',
                  padding='same', dilation_rate=1, batch_norm=True,
                  dropout_rate=None, **kwargs):
         """Create a block of two convolutional layers.
