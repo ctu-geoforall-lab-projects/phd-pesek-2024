@@ -47,6 +47,7 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
                           dilation_rate, dropout_rate=dropout_rate_hidden)
         x = block(x)
         concat_layers.append(x)
+        # TODO: specify stride
         x = MaxPooling2D(pool_size=(2, 2), data_format='channels_last')(x)
 
     # upsampling
