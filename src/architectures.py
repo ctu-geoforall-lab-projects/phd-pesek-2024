@@ -13,6 +13,10 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
              padding='same', dropout_rate_input=None, dropout_rate_hidden=None):
     """Create the U-Net architecture.
 
+    For the original paper, see <https://arxiv.org/pdf/1505.04597.pdf>.
+    The original architecture was enhanced by the option to perform dropout
+    and batch normalization.
+
     :param nr_classes: number of classes to be predicted
     :param nr_bands: number of bands of intended input images
     :param nr_filters: base number of convolution filters (multiplied deeper
