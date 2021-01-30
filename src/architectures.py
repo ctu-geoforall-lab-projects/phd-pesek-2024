@@ -62,7 +62,8 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
         x = UpSampling2D(size=(2, 2))(x)
         conv2 = Conv2D(nr_filters * (2 ** i), (2, 2), padding=padding,
                        dilation_rate=dilation_rate)
-        # concatenate the upsampled with one from the top-down path
+        # concatenate the upsampled weights with the corresponding ones from
+        # the contracting path
         x = Concatenate(axis=3)([conv2(x), concat_layers[i]])
         block = ConvBlock(nr_filters * (2 ** i), (3, 3), activation, padding,
                           dilation_rate, dropout_rate=dropout_rate_hidden)
