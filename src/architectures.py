@@ -15,7 +15,8 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
 
     For the original paper, see <https://arxiv.org/pdf/1505.04597.pdf>.
     The original architecture was enhanced by the option to perform dropout
-    and batch normalization.
+    and batch normalization and to specify padding (no padding in the
+    original - cropping would be needed in such case).
 
     :param nr_classes: number of classes to be predicted
     :param nr_bands: number of bands of intended input images
