@@ -5,6 +5,7 @@ from tensorflow.keras.layers import MaxPooling2D, Conv2D, Input, UpSampling2D, \
 from tensorflow.keras.models import Model
 
 from cnn_lib import ConvBlock
+from cnn_exceptions import ModelConfigError
 
 
 # TODO: Someone calls it small U-Net - check variations
@@ -36,6 +37,13 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
         units of the hidden layers to drop
     :return: U-Net model
     """
+    # check the reasonability of the architecture parameters
+    if tensor_shape[0] % (2 ** 4) != 0 or tensor_shape[1] % (2 ** 4) != 0:
+        raise ModelConfigError(
+            'The tensor height and tensor width must be devidable by 32 for '
+            'the U-Net architecture, but they are {} and {} respectively '
+            'instead'.format(tensor_shape[0], tensor_shape[1]))
+
     concat_layers = []
 
     # create input layer from the input tensor
