@@ -12,9 +12,11 @@ from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
 from data_preparation import generate_dataset_structure
 
 
-# TODO: check keras.utils.to_categorical
 def onehot_encode(orig_image, colormap):
     """Encode input images into one hot ones.
+
+    Unfortunately, keras.utils.to_categorical cannot be used because our
+    classes are not consecutive.
 
     :param orig_image: original image
     :param colormap: dictionary mapping label ids to their codes
