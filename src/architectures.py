@@ -8,7 +8,6 @@ from cnn_lib import ConvBlock
 from cnn_exceptions import ModelConfigError
 
 
-# TODO: Someone calls it small U-Net - check variations
 def get_unet(nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
              dilation_rate=1, tensor_shape=(256, 256), activation='relu',
              padding='same', dropout_rate_input=None, dropout_rate_hidden=None):
