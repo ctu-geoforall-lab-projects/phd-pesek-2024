@@ -24,8 +24,7 @@ def onehot_encode(orig_image, colormap):
     """
     num_classes = len(colormap)
     shape = orig_image.shape[:2] + (num_classes,)
-    # TODO: Test with np.empty
-    encoded_image = np.zeros(shape, dtype=np.uint8)
+    encoded_image = np.empty(shape, dtype=np.uint8)
     for i, cls in enumerate(colormap):
         tup = (-1, 1)
         resh = orig_image.reshape(tup)
