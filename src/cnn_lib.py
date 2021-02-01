@@ -27,11 +27,10 @@ def onehot_encode(orig_image, colormap):
     encoded_image = np.empty(shape, dtype=np.uint8)
 
     # reshape to the shape used inside the onehot matrix
-    resh = orig_image.reshape((-1, 1))
+    reshaped = orig_image.reshape((-1, 1))
 
     for i, cls in enumerate(colormap):
-        eq = resh == colormap[i]
-        all_ax = np.all(eq, axis=1)
+        all_ax = np.all(reshaped == colormap[i], axis=1)
         encoded_image[:, :, i] = all_ax.reshape(shape[:2])
 
     return encoded_image
