@@ -50,19 +50,21 @@ def rasterio_generator(data_dir, rescale=False, batch_size=5):
     index = 1
     batch = []
 
+    # list of files from which the batch will be created
     files_list = sorted(os.listdir(data_dir))
 
     while True:
         for file in files_list:
-            a = rasterio.open(os.path.join(data_dir, file))
-            q = a.read()
-            q = np.transpose(q, (1, 2, 0))
+            orig_image = rasterio.open(os.path.join(data_dir, file))
+            transposed = np.transpose(orig_image.read(), (1, 2, 0))
             if rescale:
-                q = 1. / 255 * q
+                transposed = 1. / 255 * transposed
 
-            batch.append(q)
+            # add the image to the batch
+            batch.append(transposed)
 
             if index % batch_size == 0:
+                # batch created, return it
                 yield np.stack(batch)
                 batch = []
 
