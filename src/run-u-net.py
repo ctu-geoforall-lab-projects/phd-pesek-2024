@@ -239,6 +239,26 @@ def detect(model, val_generator, id2code, batch_size,
                          label_codes, label_names, out_dir)
 
 
+def _str2bool(string_val):
+    """Transform a string looking lika a boolean value to a boolean value.
+
+    This is needed because using type=bool in argparse actually parses strings.
+    Such an behaviour could result in --force_dataset_generation False being
+    misinterpreted as True (bool('False') == True).
+
+    :param string_val: a string looking like a boolean value
+    :return: the corresponding boolean value
+    """
+    if isinstance(string_val, bool):
+        return string_val
+    elif string_val.lower() in ('true', 'yes', 't', 'y', '1'):
+        return True
+    elif string_val.lower() in ('false', 'no', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Run U-Net training and detection')
@@ -300,10 +320,10 @@ if __name__ == '__main__':
         '--monitored_value', type=str, default='val_accuracy',
         help='ONLY FOR OPERATION == TRAIN: Metric name to be monitored')
     parser.add_argument(
-        '--force_dataset_generation', type=bool, default=False,
+        '--force_dataset_generation', type=_str2bool, default=False,
         help='Boolean to force the dataset structure generation')
     parser.add_argument(
-        '--fit_dataset_in_memory', type=bool, default=False,
+        '--fit_dataset_in_memory', type=_str2bool, default=False,
         help='Boolean to load the entire dataset into memory instead '
              'of opening new files with each request - results in the '
              'reduction of I/O operations and time, but could result in huge '
