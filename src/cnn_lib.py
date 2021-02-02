@@ -37,7 +37,7 @@ def onehot_encode(orig_image, colormap):
 
 
 # TODO: get rid of the rasterio dependency
-def rasterio_generator(data_dir, rescale=False, batch_size=5):
+def rasterio_generator(data_dir, rescale=False, batch_size=5, fit_memory=False):
     """Generate batches of images.
 
     :param data_dir: path to the directory containing images
@@ -45,23 +45,52 @@ def rasterio_generator(data_dir, rescale=False, batch_size=5):
         (rescaling is a division by 255)
     :param batch_size: the number of samples that will be propagated through
         the network at once
+    :param fit_memory: boolean to load the entire dataset into memory
+        instead of opening new files with each request
     :return: yielded batch-sized np stack of images
     """
+    def transpose_image(data_dir, image_name, rescale):
+        """Open an image and transpose it to (1, 2, 0).
+
+        :param data_dir: path to the directory containing images
+        :param image_name: name of the image file in the data dir
+        :param rescale: boolean saying whether to rescale images or not
+            (rescaling is a division by 255)
+        :return: the transposed image as a numpy array
+        """
+        image = rasterio.open(os.path.join(data_dir, image_name))
+        transposed = np.transpose(image.read(), (1, 2, 0))
+        if rescale:
+            transposed = 1. / 255 * transposed
+
+        return transposed
+
     index = 1
     batch = []
 
-    # list of files from which the batch will be created
+    # list of files from which the batches will be created
     files_list = sorted(os.listdir(data_dir))
 
-    while True:
+    if fit_memory is True:
+        # fit the dataset into memory
+        source_list = []
         for file in files_list:
-            orig_image = rasterio.open(os.path.join(data_dir, file))
-            transposed = np.transpose(orig_image.read(), (1, 2, 0))
-            if rescale:
-                transposed = 1. / 255 * transposed
+            image = transpose_image(data_dir, file, rescale)
+
+            # add the image to the source list
+            source_list.append(image)
+    else:
+        source_list = files_list
+
+    while True:
+        for source in source_list:
+            if fit_memory is True:
+                image = source
+            else:
+                image = transpose_image(data_dir, source, rescale)
 
             # add the image to the batch
-            batch.append(transposed)
+            batch.append(image)
 
             if index % batch_size == 0:
                 # batch created, return it
@@ -81,7 +110,7 @@ class AugmentGenerator:
 
     def __init__(self, data_dir, batch_size=5, operation='train',
                  nr_bands=12, tensor_shape=(256, 256),
-                 force_dataset_generation=False):
+                 force_dataset_generation=False, fit_memory=False):
         """
 
         :param data_dir: path to the directory containing images
@@ -92,6 +121,8 @@ class AugmentGenerator:
         :param tensor_shape: shape of the first two dimensions of input tensors
         :param force_dataset_generation: boolean to force the dataset
             structure generation
+        :param fit_memory: boolean to load the entire dataset into memory
+            instead of opening new files with each request
         """
         if operation not in ('train', 'val'):
             raise AttributeError('Only values "train" and "val" supported as '
@@ -109,9 +140,9 @@ class AugmentGenerator:
 
         # create generators
         self.image_generator = rasterio_generator(
-            images_dir, False, batch_size)
+            images_dir, False, batch_size, fit_memory)
         self.mask_generator = rasterio_generator(
-            masks_dir, False, batch_size)
+            masks_dir, False, batch_size, fit_memory)
 
         # create variables holding number of samples
         self.nr_samples = len(os.listdir(images_dir))
