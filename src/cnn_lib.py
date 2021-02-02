@@ -159,7 +159,7 @@ class AugmentGenerator:
             x1i = next(self.image_generator)
             x2i = next(self.mask_generator)
 
-            # TODO: has seen the following somewhere - check
+            # TODO: have seen the following somewhere - check
             # mask_encoded = [onehot_encode(x2i[0][x, :, :, :], id2code) for x in
             #                 range(x2i[0].shape[0])]
 
