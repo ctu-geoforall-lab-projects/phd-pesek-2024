@@ -110,7 +110,6 @@ def rasterio_generator(data_dir, rescale=False, batch_size=5, fit_memory=False):
             index += 1
 
 
-# TODO: check tf.data.Dataset.from_generator()
 # TODO: check tf.keras.preprocessing.image.ImageDataGenerator
 # TODO: check keras.utils.Sequence
 # TODO: Does not really augment, does it?
@@ -159,6 +158,10 @@ class AugmentGenerator:
 
     def __call__(self, id2code, seed=1):
         """Generate batches of data.
+
+        Note: tf.data.Dataset.from_generator() seemed to be useful and maybe
+        could speed up the process little bit , but it seemed not to work
+        properly when __call__ takes arguments.
 
         :param id2code: dictionary mapping label ids to their codes
         :param seed: the generator seed
