@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
 import os
-import rasterio
 
 import numpy as np
 import tensorflow as tf
 
+from osgeo import gdal
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
     Activation, Dropout
 
@@ -36,7 +36,6 @@ def onehot_encode(orig_image, colormap):
     return encoded_image
 
 
-# TODO: get rid of the rasterio dependency
 def rasterio_generator(data_dir, rescale=False, batch_size=5, fit_memory=False):
     """Generate batches of images.
 
@@ -58,10 +57,21 @@ def rasterio_generator(data_dir, rescale=False, batch_size=5, fit_memory=False):
             (rescaling is a division by 255)
         :return: the transposed image as a numpy array
         """
-        image = rasterio.open(os.path.join(data_dir, image_name))
-        transposed = np.transpose(image.read(), (1, 2, 0))
+        image = gdal.Open(os.path.join(data_dir, image_name))
+        image_array = image.ReadAsArray()
+
+        # GDAL reads masks as having no third dimension
+        # (we want it to be equal to one)
+        if image_array.ndim == 2:
+            transposed = np.expand_dims(image_array, -1)
+        else:
+            # move the batch to be the last dimension
+            transposed = np.moveaxis(image.ReadAsArray(), 0, -1)
+
         if rescale:
             transposed = 1. / 255 * transposed
+
+        image = None
 
         return transposed
 
