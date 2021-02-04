@@ -120,7 +120,7 @@ class AugmentGenerator:
     def __init__(self, data_dir, batch_size=5, operation='train',
                  nr_bands=12, tensor_shape=(256, 256),
                  force_dataset_generation=False, fit_memory=False):
-        """
+        """Initialize the generator.
 
         :param data_dir: path to the directory containing images
         :param batch_size: the number of samples that will be propagated
