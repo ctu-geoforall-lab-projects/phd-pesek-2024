@@ -50,9 +50,9 @@ class AugmentGenerator:
             generate_dataset_structure(data_dir, nr_bands, tensor_shape)
 
         # create generators
-        self.image_generator = self.rasterio_generator(
+        self.image_generator = self.numpy_generator(
             images_dir, False, batch_size, fit_memory)
-        self.mask_generator = self.rasterio_generator(
+        self.mask_generator = self.numpy_generator(
             masks_dir, False, batch_size, fit_memory)
 
         # create variables holding number of samples
@@ -85,8 +85,8 @@ class AugmentGenerator:
 
             yield x1i, np.asarray(mask_encoded)
 
-    def rasterio_generator(self, data_dir, rescale=False, batch_size=5,
-                           fit_memory=False):
+    def numpy_generator(self, data_dir, rescale=False, batch_size=5,
+                        fit_memory=False):
         """Generate batches of images.
 
         :param data_dir: path to the directory containing images
