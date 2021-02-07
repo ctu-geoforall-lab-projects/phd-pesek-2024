@@ -6,6 +6,7 @@ import numpy as np
 import tensorflow as tf
 
 from osgeo import gdal
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
     Activation, Dropout
 
@@ -21,7 +22,8 @@ class AugmentGenerator:
 
     def __init__(self, data_dir, batch_size=5, operation='train',
                  nr_bands=12, tensor_shape=(256, 256),
-                 force_dataset_generation=False, fit_memory=False):
+                 force_dataset_generation=False, augment=False,
+                 fit_memory=False):
         """Initialize the generator.
 
         :param data_dir: path to the directory containing images
@@ -32,6 +34,7 @@ class AugmentGenerator:
         :param tensor_shape: shape of the first two dimensions of input tensors
         :param force_dataset_generation: boolean to force the dataset
             structure generation
+        :param augment: boolean saying whether to augment the dataset or not
         :param fit_memory: boolean to load the entire dataset into memory
             instead of opening new files with each request
         """
@@ -49,30 +52,49 @@ class AugmentGenerator:
         if force_dataset_generation or not all(do_exist):
             generate_dataset_structure(data_dir, nr_bands, tensor_shape)
 
-        # create generators
-        self.image_generator = self.numpy_generator(
-            images_dir, False, batch_size, fit_memory)
-        self.mask_generator = self.numpy_generator(
-            masks_dir, False, batch_size, fit_memory)
-
-        # create variables holding number of samples
+        # create variables useful throughout the entire class
         self.nr_samples = len(os.listdir(images_dir))
+        self.batch_size = batch_size
+        self.images_dir = images_dir
+        self.masks_dir = masks_dir
+        self.fit_memory = fit_memory
+        self.augment = augment
 
     def __call__(self, id2code, seed=1):
         """Generate batches of data.
+
+        :param id2code: dictionary mapping label ids to their codes
+        :param seed: the generator seed (unfortunately, the seed does not
+            work properly in tensorflow, therefore it does not do what is
+            expected when augment is set to True)
+        :return: yielded tuple of batch-sized np stacks of validation images and
+            masks
+        """
+        if self.augment is False:
+            return self.generate_numpy(id2code)
+        else:
+            return self.generate_augmented(id2code, seed)
+
+    def generate_numpy(self, id2code):
+        """Generate batches of data using our own numpy generator.
 
         Note: tf.data.Dataset.from_generator() seemed to be useful and maybe
         could speed up the process little bit , but it seemed not to work
         properly when __call__ takes arguments.
 
         :param id2code: dictionary mapping label ids to their codes
-        :param seed: the generator seed
         :return: yielded tuple of batch-sized np stacks of validation images and
             masks
         """
+        # create generators
+        image_generator = self.numpy_generator(
+            self.images_dir, False, self.batch_size, self.fit_memory)
+        mask_generator = self.numpy_generator(
+            self.masks_dir, False, self.batch_size, self.fit_memory)
+
         while True:
-            x1i = next(self.image_generator)
-            x2i = next(self.mask_generator)
+            x1i = next(image_generator)
+            x2i = next(mask_generator)
 
             # TODO: have seen the following somewhere - check
             # mask_encoded = [onehot_encode(x2i[0][x, :, :, :], id2code) for x in
@@ -84,6 +106,29 @@ class AugmentGenerator:
                 range(x2i.shape[0])]
 
             yield x1i, np.asarray(mask_encoded)
+
+    def generate_augmented(self, id2code, seed):
+        """Generate batches of data using TF Keras augmenting class.
+
+        :param id2code: dictionary mapping label ids to their codes
+        :param seed: the generator seed
+        :return: TF Keras ImageDataGenerator holding our data
+        """
+        images = np.stack(self.get_transposed_images(self.images_dir, False))
+        masks = np.stack(self.get_transposed_images(self.masks_dir, False))
+
+        # one hot encode masks
+        mask_encoded = [
+            self.onehot_encode(masks[x, :, :, :], id2code) for x in
+            range(masks.shape[0])]
+
+        datagen = ImageDataGenerator(rotation_range=180, shear_range=0.2,
+                                     horizontal_flip=True, vertical_flip=True)
+
+        datagen.fit(images, seed=seed, augment=True)
+
+        return datagen.flow(images, np.asarray(mask_encoded), seed=seed,
+                            batch_size=self.batch_size, shuffle=True)
 
     def numpy_generator(self, data_dir, rescale=False, batch_size=5,
                         fit_memory=False):
@@ -98,22 +143,15 @@ class AugmentGenerator:
             instead of opening new files with each request
         :return: yielded batch-sized np stack of images
         """
-        index = 1
-        batch = []
-
-        # list of files from which the batches will be created
-        files_list = sorted(os.listdir(data_dir))
-
         if fit_memory is True:
             # fit the dataset into memory
-            source_list = []
-            for file in files_list:
-                image = self.transpose_image(data_dir, file, rescale)
-
-                # add the image to the source list
-                source_list.append(image)
+            source_list = self.get_transposed_images(data_dir, rescale)
         else:
-            source_list = files_list
+            # list of files from which the batches will be created
+            source_list = sorted(os.listdir(data_dir))
+
+        index = 1
+        batch = []
 
         while True:
             for source in source_list:
@@ -131,6 +169,23 @@ class AugmentGenerator:
                     batch = []
 
                 index += 1
+
+    def get_transposed_images(self, data_dir, rescale):
+        """Get list of transposed images.
+
+        :param data_dir: path to the directory containing images
+        :param rescale: boolean saying whether to rescale images or not
+            (rescaling is a division by 255)
+        :return: list of transposed numpy matrices representing images in
+            the dataset
+        """
+        # list of files from which the dataset will be created
+        files_list = sorted(os.listdir(data_dir))
+
+        images_list = [self.transpose_image(data_dir, file, rescale) for file in
+                       files_list]
+
+        return images_list
 
     @staticmethod
     def transpose_image(data_dir, image_name, rescale):
@@ -184,7 +239,6 @@ class AugmentGenerator:
             encoded_image[:, :, i] = all_ax.reshape(shape[:2])
 
         return encoded_image
-
 
 
 def categorical_dice(ground_truth_onehot, predictions, weights=1):

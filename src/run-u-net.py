@@ -20,8 +20,8 @@ from visualization import write_stats, visualize_detections
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
          visualization_path, nr_epochs, initial_epoch, batch_size,
          loss_function, seed, patience, tensor_shape, monitored_value,
-         force_dataset_generation, fit_memory, tversky_alpha, tversky_beta,
-         dropout_rate_input, dropout_rate_hidden):
+         force_dataset_generation, fit_memory, augment, tversky_alpha,
+         tversky_beta, dropout_rate_input, dropout_rate_hidden):
     print_device_info()
 
     # get nr of bands
@@ -54,7 +54,8 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     if operation in ('train', 'fine-tune'):
         # Train or fine-tune model
         train_generator = AugmentGenerator(data_dir, batch_size, 'train',
-                                           fit_memory=fit_memory)
+                                           fit_memory=fit_memory,
+                                           augment=augment)
         train(model, train_generator, val_generator, id2code, batch_size,
               output_dir, visualization_path, model_fn, nr_epochs,
               initial_epoch, seed=seed, patience=patience,
@@ -198,7 +199,8 @@ def train(model, train_generator, val_generator, id2code, batch_size,
                        verbose=1, restore_best_weights=True)
     callbacks = [tb, mc, es]
 
-    # TODO: parameterize?
+    # steps per epoch not needed to be specified if the data are augmented, but
+    # not when they are not (our own generator is used)
     steps_per_epoch = np.ceil(train_generator.nr_samples / batch_size)
     validation_steps = np.ceil(val_generator.nr_samples / batch_size)
 
@@ -329,6 +331,10 @@ if __name__ == '__main__':
              'reduction of I/O operations and time, but could result in huge '
              'memory needs in case of a big dataset')
     parser.add_argument(
+        '--augment_training_dataset', type=_str2bool, default=False,
+        help='Boolean to augment the training dataset with rotations, '
+             'shear and flips')
+    parser.add_argument(
         '--tversky_alpha', type=float, default=None,
         help='ONLY FOR LOSS_FUNCTION == TVERSKY: Coefficient alpha')
     parser.add_argument(
@@ -372,5 +378,6 @@ if __name__ == '__main__':
          args.initial_epoch, args.batch_size, args.loss_function, args.seed,
          args.patience, (args.tensor_height, args.tensor_width),
          args.monitored_value, args.force_dataset_generation,
-         args.fit_dataset_in_memory, args.tversky_alpha, args.tversky_beta,
-         args.dropout_rate_input, args.dropout_rate_hidden)
+         args.fit_dataset_in_memory, args.augment_training_dataset,
+         args.tversky_alpha, args.tversky_beta, args.dropout_rate_input,
+         args.dropout_rate_hidden)
