@@ -12,104 +12,6 @@ from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
 from data_preparation import generate_dataset_structure
 
 
-def onehot_encode(orig_image, colormap):
-    """Encode input images into one hot ones.
-
-    Unfortunately, keras.utils.to_categorical cannot be used because our
-    classes are not consecutive.
-
-    :param orig_image: original image
-    :param colormap: dictionary mapping label ids to their codes
-    :return: One hot encoded image of dimensions (height x width x num_classes)
-    """
-    num_classes = len(colormap)
-    shape = orig_image.shape[:2] + (num_classes,)
-    encoded_image = np.empty(shape, dtype=np.uint8)
-
-    # reshape to the shape used inside the onehot matrix
-    reshaped = orig_image.reshape((-1, 1))
-
-    for i, cls in enumerate(colormap):
-        all_ax = np.all(reshaped == colormap[i], axis=1)
-        encoded_image[:, :, i] = all_ax.reshape(shape[:2])
-
-    return encoded_image
-
-
-def rasterio_generator(data_dir, rescale=False, batch_size=5, fit_memory=False):
-    """Generate batches of images.
-
-    :param data_dir: path to the directory containing images
-    :param rescale: boolean saying whether to rescale images or not
-        (rescaling is a division by 255)
-    :param batch_size: the number of samples that will be propagated through
-        the network at once
-    :param fit_memory: boolean to load the entire dataset into memory
-        instead of opening new files with each request
-    :return: yielded batch-sized np stack of images
-    """
-    def transpose_image(data_dir, image_name, rescale):
-        """Open an image and transpose it to (1, 2, 0).
-
-        :param data_dir: path to the directory containing images
-        :param image_name: name of the image file in the data dir
-        :param rescale: boolean saying whether to rescale images or not
-            (rescaling is a division by 255)
-        :return: the transposed image as a numpy array
-        """
-        image = gdal.Open(os.path.join(data_dir, image_name))
-        image_array = image.ReadAsArray()
-
-        # GDAL reads masks as having no third dimension
-        # (we want it to be equal to one)
-        if image_array.ndim == 2:
-            transposed = np.expand_dims(image_array, -1)
-        else:
-            # move the batch to be the last dimension
-            transposed = np.moveaxis(image.ReadAsArray(), 0, -1)
-
-        if rescale:
-            transposed = 1. / 255 * transposed
-
-        image = None
-
-        return transposed
-
-    index = 1
-    batch = []
-
-    # list of files from which the batches will be created
-    files_list = sorted(os.listdir(data_dir))
-
-    if fit_memory is True:
-        # fit the dataset into memory
-        source_list = []
-        for file in files_list:
-            image = transpose_image(data_dir, file, rescale)
-
-            # add the image to the source list
-            source_list.append(image)
-    else:
-        source_list = files_list
-
-    while True:
-        for source in source_list:
-            if fit_memory is True:
-                image = source
-            else:
-                image = transpose_image(data_dir, source, rescale)
-
-            # add the image to the batch
-            batch.append(image)
-
-            if index % batch_size == 0:
-                # batch created, return it
-                yield np.stack(batch)
-                batch = []
-
-            index += 1
-
-
 # TODO: check tf.keras.preprocessing.image.ImageDataGenerator
 # TODO: check keras.utils.Sequence
 # TODO: Does not really augment, does it?
@@ -148,9 +50,9 @@ class AugmentGenerator:
             generate_dataset_structure(data_dir, nr_bands, tensor_shape)
 
         # create generators
-        self.image_generator = rasterio_generator(
+        self.image_generator = self.rasterio_generator(
             images_dir, False, batch_size, fit_memory)
-        self.mask_generator = rasterio_generator(
+        self.mask_generator = self.rasterio_generator(
             masks_dir, False, batch_size, fit_memory)
 
         # create variables holding number of samples
@@ -177,10 +79,112 @@ class AugmentGenerator:
             #                 range(x2i[0].shape[0])]
 
             # one hot encode masks
-            mask_encoded = [onehot_encode(x2i[x, :, :, :], id2code) for x in
-                            range(x2i.shape[0])]
+            mask_encoded = [
+                self.onehot_encode(x2i[x, :, :, :], id2code) for x in
+                range(x2i.shape[0])]
 
             yield x1i, np.asarray(mask_encoded)
+
+    def rasterio_generator(self, data_dir, rescale=False, batch_size=5,
+                           fit_memory=False):
+        """Generate batches of images.
+
+        :param data_dir: path to the directory containing images
+        :param rescale: boolean saying whether to rescale images or not
+            (rescaling is a division by 255)
+        :param batch_size: the number of samples that will be propagated through
+            the network at once
+        :param fit_memory: boolean to load the entire dataset into memory
+            instead of opening new files with each request
+        :return: yielded batch-sized np stack of images
+        """
+        index = 1
+        batch = []
+
+        # list of files from which the batches will be created
+        files_list = sorted(os.listdir(data_dir))
+
+        if fit_memory is True:
+            # fit the dataset into memory
+            source_list = []
+            for file in files_list:
+                image = self.transpose_image(data_dir, file, rescale)
+
+                # add the image to the source list
+                source_list.append(image)
+        else:
+            source_list = files_list
+
+        while True:
+            for source in source_list:
+                if fit_memory is True:
+                    image = source
+                else:
+                    image = self.transpose_image(data_dir, source, rescale)
+
+                # add the image to the batch
+                batch.append(image)
+
+                if index % batch_size == 0:
+                    # batch created, return it
+                    yield np.stack(batch)
+                    batch = []
+
+                index += 1
+
+    @staticmethod
+    def transpose_image(data_dir, image_name, rescale):
+        """Open an image and transpose it to (1, 2, 0).
+
+        :param data_dir: path to the directory containing images
+        :param image_name: name of the image file in the data dir
+        :param rescale: boolean saying whether to rescale images or not
+            (rescaling is a division by 255)
+        :return: the transposed image as a numpy array
+        """
+        image = gdal.Open(os.path.join(data_dir, image_name))
+        image_array = image.ReadAsArray()
+
+        # GDAL reads masks as having no third dimension
+        # (we want it to be equal to one)
+        if image_array.ndim == 2:
+            transposed = np.expand_dims(image_array, -1)
+        else:
+            # move the batch to be the last dimension
+            transposed = np.moveaxis(image.ReadAsArray(), 0, -1)
+
+        if rescale:
+            transposed = 1. / 255 * transposed
+
+        image = None
+
+        return transposed
+
+    @staticmethod
+    def onehot_encode(orig_image, colormap):
+        """Encode input images into one hot ones.
+
+        Unfortunately, keras.utils.to_categorical cannot be used because our
+        classes are not consecutive.
+
+        :param orig_image: original image
+        :param colormap: dictionary mapping label ids to their codes
+        :return: One hot encoded image of dimensions
+            (height x width x num_classes)
+        """
+        num_classes = len(colormap)
+        shape = orig_image.shape[:2] + (num_classes,)
+        encoded_image = np.empty(shape, dtype=np.uint8)
+
+        # reshape to the shape used inside the onehot matrix
+        reshaped = orig_image.reshape((-1, 1))
+
+        for i, cls in enumerate(colormap):
+            all_ax = np.all(reshaped == colormap[i], axis=1)
+            encoded_image[:, :, i] = all_ax.reshape(shape[:2])
+
+        return encoded_image
+
 
 
 def categorical_dice(ground_truth_onehot, predictions, weights=1):
