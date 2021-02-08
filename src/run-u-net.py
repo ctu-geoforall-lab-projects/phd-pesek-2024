@@ -20,8 +20,8 @@ from visualization import write_stats, visualize_detections
 def main(operation, data_dir, output_dir, model_fn, in_model_path,
          visualization_path, nr_epochs, initial_epoch, batch_size,
          loss_function, seed, patience, tensor_shape, monitored_value,
-         force_dataset_generation, fit_memory, augment, tversky_alpha,
-         tversky_beta, dropout_rate_input, dropout_rate_hidden):
+         force_dataset_generation, fit_memory, augment, onehot_encode,
+         tversky_alpha, tversky_beta, dropout_rate_input, dropout_rate_hidden):
     print_device_info()
 
     # get nr of bands
@@ -45,7 +45,7 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(data_dir, batch_size, 'val', nr_bands,
                                      tensor_shape, force_dataset_generation,
-                                     fit_memory)
+                                     fit_memory, onehot_encode=onehot_encode)
 
     # load weights if the model is supposed to do so
     if operation in ('detect', 'fine-tune'):
@@ -53,9 +53,9 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
 
     if operation in ('train', 'fine-tune'):
         # Train or fine-tune model
-        train_generator = AugmentGenerator(data_dir, batch_size, 'train',
-                                           fit_memory=fit_memory,
-                                           augment=augment)
+        train_generator = AugmentGenerator(
+            data_dir, batch_size, 'train', fit_memory=fit_memory,
+            onehot_encode=onehot_encode, augment=augment)
         train(model, train_generator, val_generator, id2code, batch_size,
               output_dir, visualization_path, model_fn, nr_epochs,
               initial_epoch, seed=seed, patience=patience,
@@ -335,6 +335,10 @@ if __name__ == '__main__':
         help='Boolean to augment the training dataset with rotations, '
              'shear and flips')
     parser.add_argument(
+        '--onehot_encode_masks', type=_str2bool, default=True,
+        help='Boolean to onehot-encode masks during training - could result '
+             'in better accuracy')
+    parser.add_argument(
         '--tversky_alpha', type=float, default=None,
         help='ONLY FOR LOSS_FUNCTION == TVERSKY: Coefficient alpha')
     parser.add_argument(
@@ -383,5 +387,5 @@ if __name__ == '__main__':
          args.patience, (args.tensor_height, args.tensor_width),
          args.monitored_value, args.force_dataset_generation,
          args.fit_dataset_in_memory, args.augment_training_dataset,
-         args.tversky_alpha, args.tversky_beta, args.dropout_rate_input,
-         args.dropout_rate_hidden)
+         args.onehot_encode_masks, args.tversky_alpha, args.tversky_beta,
+         args.dropout_rate_input, args.dropout_rate_hidden)

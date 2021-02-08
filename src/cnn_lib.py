@@ -13,14 +13,13 @@ from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
 from data_preparation import generate_dataset_structure
 
 
-# TODO: support onehot_encode boolean parameter
 class AugmentGenerator:
     """Data generator."""
 
     def __init__(self, data_dir, batch_size=5, operation='train',
                  nr_bands=12, tensor_shape=(256, 256),
                  force_dataset_generation=False, fit_memory=False,
-                 augment=False):
+                 augment=False, onehot_encode=True):
         """Initialize the generator.
 
         :param data_dir: path to the directory containing images
@@ -34,6 +33,7 @@ class AugmentGenerator:
         :param fit_memory: boolean to load the entire dataset into memory
             instead of opening new files with each request
         :param augment: boolean saying whether to augment the dataset or not
+        :param onehot_encode: boolean to onehot-encode masks during training
         """
         if operation not in ('train', 'val'):
             raise AttributeError('Only values "train" and "val" supported as '
@@ -56,6 +56,7 @@ class AugmentGenerator:
         self.masks_dir = masks_dir
         self.fit_memory = fit_memory
         self.augment = augment
+        self.perform_onehot_encoding = onehot_encode
 
     def __call__(self, id2code, seed=1):
         """Generate batches of data.
@@ -97,12 +98,13 @@ class AugmentGenerator:
             # mask_encoded = [onehot_encode(x2i[0][x, :, :, :], id2code) for x in
             #                 range(x2i[0].shape[0])]
 
-            # one hot encode masks
-            mask_encoded = [
-                self.onehot_encode(x2i[x, :, :, :], id2code) for x in
-                range(x2i.shape[0])]
+            if self.perform_onehot_encoding is True:
+                # one hot encode masks
+                x2i = [
+                    self.onehot_encode(x2i[x, :, :, :], id2code) for x in
+                    range(x2i.shape[0])]
 
-            yield x1i, np.asarray(mask_encoded)
+            yield x1i, np.asarray(x2i)
 
     def generate_augmented(self, id2code, seed):
         """Generate batches of data using TF Keras augmenting class.
@@ -114,17 +116,18 @@ class AugmentGenerator:
         images = np.stack(self.get_transposed_images(self.images_dir, False))
         masks = np.stack(self.get_transposed_images(self.masks_dir, False))
 
-        # one hot encode masks
-        mask_encoded = [
-            self.onehot_encode(masks[x, :, :, :], id2code) for x in
-            range(masks.shape[0])]
+        if self.perform_onehot_encoding is True:
+            # one hot encode masks
+            masks = [
+                self.onehot_encode(masks[x, :, :, :], id2code) for x in
+                range(masks.shape[0])]
 
         datagen = ImageDataGenerator(rotation_range=180, shear_range=0.2,
                                      horizontal_flip=True, vertical_flip=True)
 
         datagen.fit(images, seed=seed, augment=True)
 
-        return datagen.flow(images, np.asarray(mask_encoded), seed=seed,
+        return datagen.flow(images, np.asarray(masks), seed=seed,
                             batch_size=self.batch_size, shuffle=True)
 
     def numpy_generator(self, data_dir, rescale=False, batch_size=5,
