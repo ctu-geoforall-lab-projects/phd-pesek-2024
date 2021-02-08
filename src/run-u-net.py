@@ -231,7 +231,6 @@ def detect(model, val_generator, id2code, batch_size,
     :param seed: the generator seed
     :param out_dir: directory where the output visualizations will be saved
     """
-    # TODO: Do not test on augmented data
     testing_gen = val_generator(id2code, seed)
 
     batch_img, batch_mask = next(testing_gen)
