@@ -192,7 +192,7 @@ class AugmentGenerator:
             (rescaling is a division by 255)
         :return: the transposed image as a numpy array
         """
-        image = gdal.Open(os.path.join(data_dir, image_name))
+        image = gdal.Open(os.path.join(data_dir, image_name), gdal.GA_ReadOnly)
         image_array = image.ReadAsArray()
 
         # GDAL reads masks as having no third dimension
