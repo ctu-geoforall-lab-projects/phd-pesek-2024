@@ -19,8 +19,8 @@ class AugmentGenerator:
 
     def __init__(self, data_dir, batch_size=5, operation='train',
                  nr_bands=12, tensor_shape=(256, 256),
-                 force_dataset_generation=False, augment=False,
-                 fit_memory=False):
+                 force_dataset_generation=False, fit_memory=False,
+                 augment=False):
         """Initialize the generator.
 
         :param data_dir: path to the directory containing images
@@ -31,9 +31,9 @@ class AugmentGenerator:
         :param tensor_shape: shape of the first two dimensions of input tensors
         :param force_dataset_generation: boolean to force the dataset
             structure generation
-        :param augment: boolean saying whether to augment the dataset or not
         :param fit_memory: boolean to load the entire dataset into memory
             instead of opening new files with each request
+        :param augment: boolean saying whether to augment the dataset or not
         """
         if operation not in ('train', 'val'):
             raise AttributeError('Only values "train" and "val" supported as '
