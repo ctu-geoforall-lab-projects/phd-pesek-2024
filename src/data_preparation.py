@@ -136,8 +136,7 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     :param verbose: verbosity (0=quiet, >0 verbose)
     """
     # Create folders to hold images and masks
-    dirs = ['train_images/train', 'train_masks/train', 'val_images/val',
-            'val_masks/val']
+    dirs = ['train_images', 'train_masks', 'val_images', 'val_masks']
 
     for directory in dirs:
         dir_full_path = os.path.join(data_dir, directory)
@@ -183,11 +182,10 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
             mask = np.transpose(mask, (2, 0, 1))
             # TODO: https://stackoverflow.com/questions/53776506/how-to-save-an-array-representing-an-image-with-40-band-to-a-tif-file
 
-            # TODO: the dir_name directory seems redundant
             image_path = os.path.join(data_dir, '{}_images'.format(dir_name),
-                                      dir_name, file[0])
+                                      file[0])
             mask_path = os.path.join(data_dir, '{}_masks'.format(dir_name),
-                                     dir_name, file[0])
+                                     file[0])
             with rasterio.open(image_path, 'w', **frame_profile) as dst:
                 dst.write(image)
             with rasterio.open(mask_path, 'w', **mask_profile) as dst:
@@ -207,11 +205,10 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
             image = np.transpose(image, (2, 0, 1))
             mask = np.transpose(mask, (2, 0, 1))
 
-            # TODO: the dir_name directory seems redundant
             image_path = os.path.join(data_dir, '{}_images'.format(dir_name),
-                                      dir_name, file[0])
+                                      file[0])
             mask_path = os.path.join(data_dir, '{}_masks'.format(dir_name),
-                                     dir_name, file[0])
+                                     file[0])
             with rasterio.open(image_path, 'w', **frame_profile) as dst:
                 dst.write(image)
             with rasterio.open(mask_path, 'w', **mask_profile) as dst:

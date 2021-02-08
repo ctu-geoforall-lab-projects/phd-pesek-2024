@@ -39,11 +39,10 @@ class AugmentGenerator:
             raise AttributeError('Only values "train" and "val" supported as '
                                  'operation. "{}" was given'.format(operation))
 
-        # TODO: the operation directory seems redundant
         images_dir = os.path.join(
-            data_dir, '{}_images'.format(operation), operation)
+            data_dir, '{}_images'.format(operation))
         masks_dir = os.path.join(
-            data_dir, '{}_masks'.format(operation), operation)
+            data_dir, '{}_masks'.format(operation))
         # generate the dataset structure if not generated
         do_exist = [os.path.isdir(i) is True for i in (images_dir, masks_dir)]
         if force_dataset_generation or not all(do_exist):
