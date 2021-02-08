@@ -13,9 +13,6 @@ from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
 from data_preparation import generate_dataset_structure
 
 
-# TODO: check tf.keras.preprocessing.image.ImageDataGenerator
-# TODO: check keras.utils.Sequence
-# TODO: Does not really augment, does it?
 # TODO: support onehot_encode boolean parameter
 class AugmentGenerator:
     """Data generator."""
