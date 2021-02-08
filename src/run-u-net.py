@@ -372,6 +372,10 @@ if __name__ == '__main__':
     if args.operation != 'train' and dropout_specified is True:
         raise parser.error(
             'Dropout can be specified only for operation == train')
+    if args.operation == 'detect' and args.augment_training_dataset is True:
+        raise parser.error(
+            'Argument augment_training_dataset is not allowed for operation == '
+            'detect as it does not make sense there')
 
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
          args.model_path, args.visualization_path, args.nr_epochs,
