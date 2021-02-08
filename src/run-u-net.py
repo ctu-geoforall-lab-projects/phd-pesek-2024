@@ -62,9 +62,8 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
               monitored_value=monitored_value)
     else:
         # detect
-        detect(model, val_generator, id2code, batch_size,
-               [i[0] for i in label_codes], label_names, seed,
-               visualization_path)
+        detect(model, val_generator, id2code, [i[0] for i in label_codes],
+               label_names, seed, visualization_path)
 
 
 def print_device_info():
@@ -217,15 +216,13 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     write_stats(result, os.path.join(visualization_path, 'accu.png'))
 
 
-def detect(model, val_generator, id2code, batch_size,
-           label_codes, label_names, seed=1, out_dir='/tmp'):
+def detect(model, val_generator, id2code, label_codes, label_names, seed=1,
+           out_dir='/tmp'):
     """Run detection.
 
     :param model: model to be used for the detection
     :param val_generator: validation data generator
     :param id2code: dictionary mapping label ids to their codes
-    :param batch_size: the number of samples that will be propagated through
-        the network at once
     :param label_codes: list with label codes
     :param label_names: list with label names
     :param seed: the generator seed
