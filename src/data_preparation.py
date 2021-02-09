@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 
 import os
-import rasterio
 
 import numpy as np
 import tensorflow as tf
+
+from osgeo import gdal
 
 
 def convert_to_tensor(fname, tensor_shape=(256, 256), normalize_data=False):
@@ -17,7 +18,7 @@ def convert_to_tensor(fname, tensor_shape=(256, 256), normalize_data=False):
     :return: a processed tensor
     """
     # TODO: experiment with the followings
-    #img_strings = tf.io.read_file(fname)
+    # img_strings = tf.io.read_file(fname)
     # imgs_decoded = tf.image.decode_jpeg(img_strings)
     # imgs_decoded = tfio.experimental.image.decode_tiff(img_strings)
     # a = rasterio.open(img_strings)
@@ -36,7 +37,6 @@ def convert_to_tensor(fname, tensor_shape=(256, 256), normalize_data=False):
     return output
 
 
-# TODO: get rid of the rasterio dependency
 def read_images(data_dir, tensor_shape=(256, 256), verbose=1):
     """Read images and return them as tensors and lists of filenames.
 
@@ -76,10 +76,11 @@ def read_images(data_dir, tensor_shape=(256, 256), verbose=1):
     # TODO: Check the possibility of moving the following to
     #       convert_to_tensor()
     # Create dataset of np arrays
-    images_arrays = [rasterio.open(i, 'r').read() for i in images_paths]
+    images_arrays = [gdal.Open(i, gdal.GA_ReadOnly).ReadAsArray() for i in images_paths]
     images_arrays = [np.transpose(i, (1, 2, 0)) for i in images_arrays]
-    masks_arrays = [rasterio.open(i, 'r').read() for i in masks_paths]
-    masks_arrays = [np.transpose(i, (1, 2, 0)) for i in masks_arrays]
+    masks_arrays = [gdal.Open(i, gdal.GA_ReadOnly).ReadAsArray() for i in masks_paths]
+    if masks_arrays[0].ndim == 2:
+        masks_arrays = [np.expand_dims(i, -1) for i in masks_arrays]
 
     # TODO: this step could exceed the free system memory and be slow
     # create tf dataset
@@ -122,7 +123,6 @@ def parse_label_code(line):
     return (int(a), ), b
 
 
-# TODO: get rid of the rasterio dependency
 def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
                                verbose=1):
     """Generate the expected dataset structure.
@@ -153,69 +153,73 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     frame_batches = tf.compat.v1.data.make_one_shot_iterator(images)
     mask_batches = tf.compat.v1.data.make_one_shot_iterator(masks)
 
-    # Iterate over the train images while saving the images and masks in appropriate folders
+    driver = gdal.GetDriverByName('GTiff')
+
+    # Iterate over the train images while saving the images and masks
+    # in appropriate folders
     dir_name = 'train'
-    # TODO: Experiment with uint16
-    # TODO: parameterize shape
-    # TODO: read crs automatically
-    frame_profile = {'driver': 'GTiff', 'nodata': None,
-                     'height': tensor_shape[0], 'width': tensor_shape[1],
-                     'count': nr_bands,
-                     'crs': rasterio.crs.CRS.from_epsg(32633), 'tiled': False,
-                     'interleave': 'pixel', 'dtype': 'uint8'}
-    mask_profile = {'driver': 'GTiff', 'nodata': None,
-                    'height': tensor_shape[0], 'width': tensor_shape[1],
-                    'count': 1,
-                    'crs': rasterio.crs.CRS.from_epsg(32633), 'tiled': False,
-                    'interleave': 'pixel', 'dtype': 'uint8'}
 
-    with rasterio.Env():
-        # TODO: make train-val division a parameter
-        for file in zip(images_filenames[:-round(0.2 * len(images_filenames))],
-                        masks_filenames[:-round(0.2 * len(masks_filenames))]):
-            # TODO: Experiment with uint16
-            # Convert tensors to numpy arrays
-            image = (frame_batches.next().numpy() / 255).astype(np.uint8)
-            mask = mask_batches.next().numpy().astype(np.uint8)
+    # TODO: make train-val division a parameter
+    for file in zip(images_filenames[:-round(0.2 * len(images_filenames))],
+                    masks_filenames[:-round(0.2 * len(masks_filenames))]):
+        # TODO: Experiment with uint16
+        # Convert tensors to numpy arrays
+        image = (frame_batches.next().numpy() / 255).astype(np.uint8)
+        mask = mask_batches.next().numpy().astype(np.uint8)
 
-            image = np.transpose(image, (2, 0, 1))
-            mask = np.transpose(mask, (2, 0, 1))
-            # TODO: https://stackoverflow.com/questions/53776506/how-to-save-an-array-representing-an-image-with-40-band-to-a-tif-file
+        image = np.transpose(image, (2, 0, 1))
+        mask = np.transpose(mask, (2, 0, 1))
+        # TODO: https://stackoverflow.com/questions/53776506/how-to-save-an-array-representing-an-image-with-40-band-to-a-tif-file
 
-            image_path = os.path.join(data_dir, '{}_images'.format(dir_name),
-                                      file[0])
-            mask_path = os.path.join(data_dir, '{}_masks'.format(dir_name),
-                                     file[0])
-            with rasterio.open(image_path, 'w', **frame_profile) as dst:
-                dst.write(image)
-            with rasterio.open(mask_path, 'w', **mask_profile) as dst:
-                dst.write(mask)
+        image_path = os.path.join(data_dir, '{}_images'.format(dir_name),
+                                  file[0])
+        mask_path = os.path.join(data_dir, '{}_masks'.format(dir_name),
+                                 file[0])
 
-        # TODO: Join train and val part into one chunk of code
-        # Iterate over the val images while saving the images and masks in appropriate folders
-        dir_name = 'val'
-        # TODO: make train-val division a parameter
-        for file in zip(images_filenames[-round(0.2 * len(images_filenames)):],
-                        masks_filenames[-round(0.2 * len(masks_filenames)):]):
-            # TODO: Experiment with uint16
-            # Convert tensors to numpy arrays
-            image = (frame_batches.next().numpy() / 255).astype(np.uint8)
-            mask = mask_batches.next().numpy().astype(np.uint8)
+        # write rasters
+        dout = driver.Create(image_path, tensor_shape[0],
+                             tensor_shape[1], nr_bands, gdal.GDT_UInt16)
+        for i in range(nr_bands):
+            dout.GetRasterBand(i + 1).WriteArray(image[i])
 
-            image = np.transpose(image, (2, 0, 1))
-            mask = np.transpose(mask, (2, 0, 1))
+        dout = driver.Create(mask_path, tensor_shape[0],
+                             tensor_shape[1], 1, gdal.GDT_UInt16)
+        for i in range(1):
+            dout.GetRasterBand(i + 1).WriteArray(mask[i])
 
-            image_path = os.path.join(data_dir, '{}_images'.format(dir_name),
-                                      file[0])
-            mask_path = os.path.join(data_dir, '{}_masks'.format(dir_name),
-                                     file[0])
-            with rasterio.open(image_path, 'w', **frame_profile) as dst:
-                dst.write(image)
-            with rasterio.open(mask_path, 'w', **mask_profile) as dst:
-                dst.write(mask)
+    # TODO: Join train and val part into one chunk of code
+    # Iterate over the val images while saving the images and masks
+    # in appropriate folders
+    dir_name = 'val'
+    # TODO: make train-val division a parameter
+    for file in zip(images_filenames[-round(0.2 * len(images_filenames)):],
+                    masks_filenames[-round(0.2 * len(masks_filenames)):]):
+        # TODO: Experiment with uint16
+        # Convert tensors to numpy arrays
+        image = (frame_batches.next().numpy() / 255).astype(np.uint8)
+        mask = mask_batches.next().numpy().astype(np.uint8)
 
-        if verbose > 0:
-            print("Saved {} images to directory {}".format(
-                len(images_filenames), data_dir))
-            print("Saved {} masks to directory {}".format(
-                len(masks_filenames), data_dir))
+        image = np.transpose(image, (2, 0, 1))
+        mask = np.transpose(mask, (2, 0, 1))
+
+        image_path = os.path.join(data_dir, '{}_images'.format(dir_name),
+                                  file[0])
+        mask_path = os.path.join(data_dir, '{}_masks'.format(dir_name),
+                                 file[0])
+
+        # write rasters
+        dout = driver.Create(image_path, tensor_shape[0],
+                             tensor_shape[1], nr_bands, gdal.GDT_UInt16)
+        for i in range(nr_bands):
+            dout.GetRasterBand(i + 1).WriteArray(image[i])
+
+        dout = driver.Create(mask_path, tensor_shape[0],
+                             tensor_shape[1], 1, gdal.GDT_UInt16)
+        for i in range(1):
+            dout.GetRasterBand(i + 1).WriteArray(mask[i])
+
+    if verbose > 0:
+        print("Saved {} images to directory {}".format(
+            len(images_filenames), data_dir))
+        print("Saved {} masks to directory {}".format(
+            len(masks_filenames), data_dir))
