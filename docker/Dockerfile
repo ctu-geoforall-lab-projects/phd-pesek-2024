@@ -118,11 +118,8 @@ RUN apt install -yq \
     libgsl-dev \
     libgsl0-dev \
     libfann-dev \
-#    libgeotiff-dev \
     libfftw3-dev \
-#    libproj-dev \
     libjsoncpp-dev \
-#    libgdal-dev \
     libssl-dev \
     swig \
     uthash-dev \
