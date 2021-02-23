@@ -70,7 +70,7 @@ RUN cd /tmp/src && \
     wget -q https://github.com/OSGeo/libgeotiff/releases/download/${LIBGEOTIFF_VERSION}/libgeotiff-${LIBGEOTIFF_VERSION}.tar.gz && \
     tar -xzf libgeotiff-${LIBGEOTIFF_VERSION}.tar.gz && \
     cd libgeotiff-${LIBGEOTIFF_VERSION} && \
-    ./configure --prefix=/usr/local && \
+    ./configure --prefix=/usr/local --with-libtiff=/usr/local && \
     make -j${CPU_NR} && \
     make install
 
