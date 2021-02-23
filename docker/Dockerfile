@@ -23,6 +23,8 @@ RUN apt-get install wget pkg-config bash-completion -y
 RUN apt-get install build-essential libtool m4 automake -y
 RUN apt-get install libz-dev openssl libssl-dev swig libcurl4-gnutls-dev -y
 
+ENV PYTHONPATH /usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages
+
 # install pip dependecies
 COPY requirements.txt /tmp/src/requirements.txt
 RUN pip install -r /tmp/src/requirements.txt
