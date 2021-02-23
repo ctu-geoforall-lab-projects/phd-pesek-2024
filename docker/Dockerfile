@@ -25,10 +25,6 @@ RUN apt-get install libz-dev openssl libssl-dev swig libcurl4-gnutls-dev -y
 
 ENV PYTHONPATH /usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages
 
-# install pip dependecies
-COPY requirements.txt /tmp/src/requirements.txt
-RUN pip install -r /tmp/src/requirements.txt
-
 # install sqlite
 RUN cd /tmp/src && \
     wget https://sqlite.org/${SQLITE_YEAR}/sqlite-autoconf-${SQLITE_VERSION}.tar.gz && \
@@ -114,6 +110,10 @@ RUN apt-get install -yq \
     uthash-dev \
     doxygen \
     libshp-dev
+
+# install pip dependecies
+COPY requirements.txt /tmp/src/requirements.txt
+RUN pip install -r /tmp/src/requirements.txt
 
 # install mialib
 RUN cd /tmp/src/jeodpp-packages/mia && \
