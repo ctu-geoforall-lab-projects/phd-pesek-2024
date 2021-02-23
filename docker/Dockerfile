@@ -13,13 +13,15 @@ ENV GEOS_VERSION 3.9.1
 ENV PROJ_VERSION 7.2.1
 ENV GDAL_VERSION 3.2.1
 
-RUN apt update
+RUN apt-get update
 
 RUN mkdir /tmp/src
 
 # install basic stuff
-RUN apt install wget pkg-config bash-completion -y
-RUN apt install libz-dev openssl libtool m4 automake doxygen -y
+RUN apt-get install apt-utils -y
+RUN apt-get install wget pkg-config bash-completion -y
+RUN apt-get install build-essential libtool m4 automake -y
+RUN apt-get install libz-dev openssl libssl-dev swig libcurl4-gnutls-dev -y
 
 # install pip dependecies
 COPY requirements.txt /tmp/src/requirements.txt
@@ -111,8 +113,7 @@ RUN cd /tmp/src && \
     git clone https://gitlab+deploy-token-285067:ygASxr_ATUQTT85YJTHN@gitlab.com/ctu-geoforall-lab/jeodpp-packages.git
 
 # install mialib dependencies
-RUN apt install -yq \
-    build-essential \
+RUN apt-get install -yq \
     libgsl-dev \
     libgsl0-dev \
     libfann-dev \
