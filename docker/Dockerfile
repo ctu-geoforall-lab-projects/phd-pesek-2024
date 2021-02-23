@@ -120,7 +120,7 @@ RUN cd /tmp/src/jeodpp-packages/mia && \
     make install
 
 # install jiplib dependencies
-RUN apt install cmake libboost-filesystem-dev libboost-serialization-dev python3-numpy -y
+RUN apt-get install cmake libboost-filesystem-dev libboost-serialization-dev python3-numpy -y
 
 # install jiplib
 RUN cd /tmp/src/jeodpp-packages/jiplib && \
