@@ -136,7 +136,10 @@ RUN cd /tmp/src && \
     make install
 
 # install pyJEO
-RUN cd /tmp/src/jeodpp-packages/pyjeo && \
+RUN cd /tmp/src && \
+    wget https://github.com/ec-jrc/jeolib-pyjeo/archive/${JEOLIB-VERSION}.tar.gz && \
+    tar -zxvf jeolib-pyjeo-${JEOLIB-VERSION}.tar.gz && \
+    cd jeolib-pyjeo-${JEOLIB-VERSION} && \
     python setup.py install
 
 # clean the mess
