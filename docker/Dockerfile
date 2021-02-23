@@ -104,8 +104,6 @@ RUN cd /tmp/src && \
     make install && \
     ldconfig
 
-RUN pip install gdal==${GDAL_VERSION}
-
 # git clone JEODPP packages
 RUN apt install git -y
 
