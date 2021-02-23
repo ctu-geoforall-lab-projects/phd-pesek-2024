@@ -11,6 +11,7 @@ ENV XERCES_VERSION 3.2.3
 ENV GEOS_VERSION 3.9.1
 ENV PROJ_VERSION 7.2.1
 ENV GDAL_VERSION 3.2.1
+ENV JEOLIB_VERSION 1.0.2
 
 RUN apt-get update
 
@@ -124,7 +125,10 @@ RUN cd /tmp/src/jeodpp-packages/mia && \
 RUN apt-get install cmake libboost-filesystem-dev libboost-serialization-dev python3-numpy -y
 
 # install jiplib
-RUN cd /tmp/src/jeodpp-packages/jiplib && \
+RUN cd /tmp/src/ && \
+    wget https://github.com/ec-jrc/jeolib-jiplib/archive/${JEOLIB-VERSION}.tar.gz && \
+    tar -zvxf jeolib-jiplib-${JEOLIB-VERSION}.tar.gz && \
+    cd jeolib-jiplib-${JEODPP-VERSION} && \
     mkdir build && \
     cd build && \
     cmake .. -DCMAKE_MODULE_PATH=/tmp/src/jeodpp-packages/jiplib/ && \
