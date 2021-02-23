@@ -125,7 +125,7 @@ RUN cd /tmp/src/jeodpp-packages/mia && \
 RUN apt-get install cmake libboost-filesystem-dev libboost-serialization-dev python3-numpy -y
 
 # install jiplib
-RUN cd /tmp/src/ && \
+RUN cd /tmp/src && \
     wget https://github.com/ec-jrc/jeolib-jiplib/archive/${JEOLIB-VERSION}.tar.gz && \
     tar -zvxf jeolib-jiplib-${JEOLIB-VERSION}.tar.gz && \
     cd jeolib-jiplib-${JEODPP-VERSION} && \
