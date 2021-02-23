@@ -128,7 +128,7 @@ RUN apt-get install cmake libboost-filesystem-dev libboost-serialization-dev pyt
 RUN cd /tmp/src && \
     wget https://github.com/ec-jrc/jeolib-jiplib/archive/${JEOLIB-VERSION}.tar.gz && \
     tar -zvxf jeolib-jiplib-${JEOLIB-VERSION}.tar.gz && \
-    cd jeolib-jiplib-${JEODPP-VERSION} && \
+    cd jeolib-jiplib-${JEOLIB-VERSION} && \
     mkdir build && \
     cd build && \
     cmake .. -DCMAKE_MODULE_PATH=/tmp/src/jeodpp-packages/jiplib/ && \
