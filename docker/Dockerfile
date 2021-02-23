@@ -116,7 +116,7 @@ RUN apt-get install -yq \
 
 # install mialib
 RUN cd /tmp/src/jeodpp-packages/mia && \
-    make && \
+    make build && \
     make install
 
 # install jiplib dependencies
