@@ -14,6 +14,7 @@ ENV GDAL_VERSION 3.2.1
 
 RUN apt-get update
 
+# create temporary dir for compilations
 RUN mkdir /tmp/src
 
 # install basic stuff
