@@ -5,7 +5,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV CPU_NR 8
 ENV SQLITE_VERSION 3340000
 ENV SQLITE_YEAR 2020
-ENV CURL_VERSION 7.75.0
 ENV LIBTIFF_VERSION 4.2.0
 ENV LIBGEOTIFF_VERSION 1.6.0
 ENV XERCES_VERSION 3.2.3
@@ -34,15 +33,6 @@ RUN cd /tmp/src && \
     wget https://sqlite.org/${SQLITE_YEAR}/sqlite-autoconf-${SQLITE_VERSION}.tar.gz && \
     tar -xzf sqlite-autoconf-${SQLITE_VERSION}.tar.gz && \
     cd sqlite-autoconf-${SQLITE_VERSION} && \
-    ./configure --prefix=/usr/local && \
-    make -j${CPU_NR} && \
-    make install
-
-# install curl
-RUN cd /tmp/src && \
-    wget https://curl.haxx.se/download/curl-${CURL_VERSION}.tar.gz && \
-    tar -xzf curl-${CURL_VERSION}.tar.gz && \
-    cd curl-${CURL_VERSION} && \
     ./configure --prefix=/usr/local && \
     make -j${CPU_NR} && \
     make install
@@ -99,11 +89,10 @@ RUN cd /tmp/src && \
     wget http://download.osgeo.org/gdal/${GDAL_VERSION}/gdal-${GDAL_VERSION}.tar.gz && \
     tar -zvxf gdal-${GDAL_VERSION}.tar.gz && \
     cd gdal-${GDAL_VERSION} && \
-    PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/local/lib/pkgconfig \
-    ./configure --with-threads --with-libtiff=/usr/local \
-    --with-geotiff=/usr/local --with-jpeg=internal \
-    --with-gif=internal --with-png=internal --with-libz=/usr --with-python \
-    --with-openjpeg --with-xerces --with-geos && \
+    ./configure --prefix=/usr/local --with-threads \
+    --with-libtiff=/usr/local --with-geotiff=/usr/local --with-jpeg=internal --with-sqlite3 \
+    --with-gif=internal --with-png=internal --with-libz=/usr --with-python -with-proj=/usr/local \
+    --with-xerces --with-geos --with-curl=/usr/bin/curl-config && \
     make -j${CPU_NR} && \
     make install && \
     ldconfig
@@ -121,12 +110,9 @@ RUN apt-get install -yq \
     libfann-dev \
     libfftw3-dev \
     libjsoncpp-dev \
-    libssl-dev \
-    swig \
     uthash-dev \
-    texlive \
-    libshp-dev \
-    texlive-latex-extra
+    doxygen \
+    libshp-dev
 
 # install mialib
 RUN cd /tmp/src/jeodpp-packages/mia && \
