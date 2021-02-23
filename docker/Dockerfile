@@ -55,8 +55,8 @@ RUN cd /tmp/src && \
 
 # install xerces
 RUN cd /tmp/src && \
-    wget https://github.com/apache/xerces-c/archive/v${XERCES_VERSION}.tar.gz && \
-    tar -zxvf v${XERCES_VERSION}.tar.gz && \
+    wget https://github.com/apache/xerces-c/archive/v${XERCES_VERSION}.tar.gz -O xerces-c-${XERCES_VERSION}.tar.gz && \
+    tar -zxvf xerces-c-${XERCES_VERSION}.tar.gz && \
     cd xerces-c-${XERCES_VERSION} && \
     ./reconf && \
     ./configure && \
@@ -126,7 +126,7 @@ RUN apt-get install cmake libboost-filesystem-dev libboost-serialization-dev pyt
 
 # install jiplib
 RUN cd /tmp/src && \
-    wget https://github.com/ec-jrc/jeolib-jiplib/archive/${JEOLIB_VERSION}.tar.gz && \
+    wget https://github.com/ec-jrc/jeolib-jiplib/archive/${JEOLIB_VERSION}.tar.gz -O jeolib-jiplib-${JEOLIB_VERSION}.tar.gz && \
     tar -zvxf jeolib-jiplib-${JEOLIB_VERSION}.tar.gz && \
     cd jeolib-jiplib-${JEOLIB_VERSION} && \
     mkdir build && \
@@ -137,7 +137,7 @@ RUN cd /tmp/src && \
 
 # install pyJEO
 RUN cd /tmp/src && \
-    wget https://github.com/ec-jrc/jeolib-pyjeo/archive/${JEOLIB_VERSION}.tar.gz && \
+    wget https://github.com/ec-jrc/jeolib-pyjeo/archive/${JEOLIB_VERSION}.tar.gz -O jeolib-pyjeo-${JEOLIB_VERSION}.tar.gz && \
     tar -zxvf jeolib-pyjeo-${JEOLIB_VERSION}.tar.gz && \
     cd jeolib-pyjeo-${JEOLIB_VERSION} && \
     python setup.py install
