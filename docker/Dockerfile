@@ -126,9 +126,9 @@ RUN apt-get install cmake libboost-filesystem-dev libboost-serialization-dev pyt
 
 # install jiplib
 RUN cd /tmp/src && \
-    wget https://github.com/ec-jrc/jeolib-jiplib/archive/${JEOLIB-VERSION}.tar.gz && \
-    tar -zvxf jeolib-jiplib-${JEOLIB-VERSION}.tar.gz && \
-    cd jeolib-jiplib-${JEOLIB-VERSION} && \
+    wget https://github.com/ec-jrc/jeolib-jiplib/archive/${JEOLIB_VERSION}.tar.gz && \
+    tar -zvxf jeolib-jiplib-${JEOLIB_VERSION}.tar.gz && \
+    cd jeolib-jiplib-${JEOLIB_VERSION} && \
     mkdir build && \
     cd build && \
     cmake .. -DCMAKE_MODULE_PATH=/tmp/src/jeodpp-packages/jiplib/ && \
@@ -137,9 +137,9 @@ RUN cd /tmp/src && \
 
 # install pyJEO
 RUN cd /tmp/src && \
-    wget https://github.com/ec-jrc/jeolib-pyjeo/archive/${JEOLIB-VERSION}.tar.gz && \
-    tar -zxvf jeolib-pyjeo-${JEOLIB-VERSION}.tar.gz && \
-    cd jeolib-pyjeo-${JEOLIB-VERSION} && \
+    wget https://github.com/ec-jrc/jeolib-pyjeo/archive/${JEOLIB_VERSION}.tar.gz && \
+    tar -zxvf jeolib-pyjeo-${JEOLIB_VERSION}.tar.gz && \
+    cd jeolib-pyjeo-${JEOLIB_VERSION} && \
     python setup.py install
 
 # clean the mess
