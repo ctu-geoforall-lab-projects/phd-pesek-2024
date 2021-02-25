@@ -95,11 +95,9 @@ RUN cd /tmp/src && \
     make install && \
     ldconfig
 
-# git clone JEODPP packages
-RUN apt install git -y
-
-RUN cd /tmp/src && \
-    git clone https://gitlab+deploy-token-285067:ygASxr_ATUQTT85YJTHN@gitlab.com/ctu-geoforall-lab/jeodpp-packages.git
+# install pip dependecies
+COPY requirements.txt /tmp/src/requirements.txt
+RUN pip install -r /tmp/src/requirements.txt
 
 # install mialib dependencies
 RUN apt-get install -yq \
@@ -112,14 +110,13 @@ RUN apt-get install -yq \
     doxygen \
     libshp-dev
 
-# install pip dependecies
-COPY requirements.txt /tmp/src/requirements.txt
-RUN pip install -r /tmp/src/requirements.txt
-
 # install mialib
-RUN cd /tmp/src/jeodpp-packages/mia && \
-    make build && \
-    make install
+RUN cd /tmp/src/ && \
+    git clone https://github.com/pesekon2/jeolib-miallib.git && \
+    cd jeolib-miallib && \
+    git checkout phd_necessary_changes && \
+    make generic && \
+    make install-generic
 
 # install jiplib dependencies
 RUN apt-get install cmake libboost-filesystem-dev libboost-serialization-dev python3-numpy -y
