@@ -17,13 +17,6 @@ def convert_to_tensor(fname, tensor_shape=(256, 256), normalize_data=False):
         normalized to range (-1, 1)
     :return: a processed tensor
     """
-    # TODO: experiment with the followings
-    # img_strings = tf.io.read_file(fname)
-    # imgs_decoded = tf.image.decode_jpeg(img_strings)
-    # imgs_decoded = tfio.experimental.image.decode_tiff(img_strings)
-    # a = rasterio.open(img_strings)
-    # imgs_decoded = a.read()
-
     # Resize the image
     output = tf.image.resize(fname, tensor_shape)
 
