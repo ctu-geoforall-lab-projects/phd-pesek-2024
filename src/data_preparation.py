@@ -47,9 +47,11 @@ def read_images(data_dir, tensor_shape=(256, 256), verbose=1):
     # TODO: Check the possibility of moving the following to
     #       convert_to_tensor()
     # Create dataset of np arrays
-    images_arrays = [gdal.Open(i, gdal.GA_ReadOnly).ReadAsArray() for i in images_paths]
+    images_arrays = [
+        gdal.Open(i, gdal.GA_ReadOnly).ReadAsArray() for i in images_paths]
     images_arrays = [np.transpose(i, (1, 2, 0)) for i in images_arrays]
-    masks_arrays = [gdal.Open(i, gdal.GA_ReadOnly).ReadAsArray() for i in masks_paths]
+    masks_arrays = [
+        gdal.Open(i, gdal.GA_ReadOnly).ReadAsArray() for i in masks_paths]
     if masks_arrays[0].ndim == 2:
         masks_arrays = [np.expand_dims(i, -1) for i in masks_arrays]
 
