@@ -8,28 +8,6 @@ import tensorflow as tf
 from osgeo import gdal
 
 
-def convert_to_tensor(fname, tensor_shape=(256, 256), normalize_data=False):
-    """Convert an ndarray to a tensor while resizing and normalizing it.
-
-    :param fname: ndarray with an image
-    :param tensor_shape: shape of the first two dimensions of output tensors
-    :param normalize_data: boolean saying whether or not should the data be
-        normalized to range (-1, 1)
-    :return: a processed tensor
-    """
-    # Resize the image
-    output = tf.image.resize(fname, tensor_shape)
-
-    # TODO: experiment with normalization
-    # TODO: does it really normalize to range (-1, 1)?
-    # TODO: should not be a hard-coded value
-    # Normalize if required
-    if normalize_data:
-        output = (output - 128) / 128
-
-    return output
-
-
 def read_images(data_dir, tensor_shape=(256, 256), verbose=1):
     """Read images and return them as tensors and lists of filenames.
 
@@ -80,10 +58,11 @@ def read_images(data_dir, tensor_shape=(256, 256), verbose=1):
     images_data = tf.data.Dataset.from_tensor_slices(images_arrays)
     masks_data = tf.data.Dataset.from_tensor_slices(masks_arrays)
 
+    # resize tensors to the specified shape
     image_tensors = images_data.map(
-        lambda x: convert_to_tensor(x, tensor_shape))
+        lambda x: tf.image.resize(x, tensor_shape))
     masks_tensors = masks_data.map(
-        lambda x: convert_to_tensor(x, tensor_shape))
+        lambda x: tf.image.resize(x, tensor_shape))
 
     # TODO: benchmark the way above with the following
     # Read images into the tensor dataset
