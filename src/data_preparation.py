@@ -44,8 +44,6 @@ def read_images(data_dir, tensor_shape=(256, 256), verbose=1):
     images_paths = [os.path.join(data_dir, fname) for fname in images_filenames]
     masks_paths = [os.path.join(data_dir, fname) for fname in masks_filenames]
 
-    # TODO: Check the possibility of moving the following to
-    #       convert_to_tensor()
     # Create dataset of np arrays
     images_arrays = [
         gdal.Open(i, gdal.GA_ReadOnly).ReadAsArray() for i in images_paths]
