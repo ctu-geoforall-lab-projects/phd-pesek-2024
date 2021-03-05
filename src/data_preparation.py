@@ -53,25 +53,15 @@ def read_images(data_dir, tensor_shape=(256, 256), verbose=1):
     if masks_arrays[0].ndim == 2:
         masks_arrays = [np.expand_dims(i, -1) for i in masks_arrays]
 
-    # TODO: this step could exceed the free system memory and be slow
-    # create tf dataset
-    images_data = tf.data.Dataset.from_tensor_slices(images_arrays)
-    masks_data = tf.data.Dataset.from_tensor_slices(masks_arrays)
-
     # resize tensors to the specified shape
-    image_tensors = images_data.map(
-        lambda x: tf.image.resize(x, tensor_shape))
-    masks_tensors = masks_data.map(
-        lambda x: tf.image.resize(x, tensor_shape))
+    image_tensors = map(lambda x: tf.image.resize(x, tensor_shape),
+                        images_arrays)
+    mask_tensors = map(lambda x: tf.image.resize(x, tensor_shape),
+                       masks_arrays)
 
-    # TODO: benchmark the way above with the following
-    # Read images into the tensor dataset
-    #frame_data = list(map(rasterio.open, images_paths))
-    #frame_data = [i.read() for i in frame_data]
-    #frame_tensors = tf.convert_to_tensor(frame_data)
-    #mask_data = list(map(rasterio.open, masks_paths))
-    #mask_data = [i.read() for i in mask_data]
-    #masks_tensors = tf.convert_to_tensor(mask_data)
+    # create TF datasets
+    images_dataset = tf.data.Dataset.from_tensor_slices(list(image_tensors))
+    masks_dataset = tf.data.Dataset.from_tensor_slices(list(mask_tensors))
 
     if verbose > 0:
         print('Completed importing {} images from the provided '
@@ -79,7 +69,7 @@ def read_images(data_dir, tensor_shape=(256, 256), verbose=1):
         print('Completed importing {} masks from the provided '
               'directory.'.format(len(masks_filenames)))
 
-    return image_tensors, masks_tensors, images_filenames, masks_filenames
+    return images_dataset, masks_dataset, images_filenames, masks_filenames
 
 
 def parse_label_code(line):
