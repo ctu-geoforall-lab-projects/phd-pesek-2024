@@ -62,7 +62,7 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
               monitored_value=monitored_value)
     else:
         # detect
-        detect(model, val_generator, id2code, [i[0] for i in label_codes],
+        detect(model, val_generator, id2code, [i for i in label_codes],
                label_names, seed, visualization_path)
 
 

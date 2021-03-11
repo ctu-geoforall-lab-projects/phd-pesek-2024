@@ -81,8 +81,7 @@ def parse_label_code(line):
     # TODO: do not use tabulators
     a, b = line.strip().split("\t")
 
-    # TODO: why am I returning a tuple?
-    return (int(a), ), b
+    return int(a), b
 
 
 def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),

@@ -88,7 +88,7 @@ def visualize_detections(images, ground_truths, detections, id2code,
     :param label_names: list with label names
     :param out_dir: directory where the output visualizations will be saved
     """
-    max_id = max(id2code.values())[0]
+    max_id = max(id2code.values())
     name_range = range(len(label_names))
 
     for i in range(0, np.shape(detections)[0]):
