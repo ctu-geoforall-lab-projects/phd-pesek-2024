@@ -78,9 +78,9 @@ def parse_label_code(line):
     :param line: line in the txt file
     :return: tuple with an integer label code, a string label name
     """
-    # TODO: do not use tabulators
-    a, b = line.strip().split("\t")
+    a, b = line.strip().split(',')
 
+    # format label_value, label_name
     return int(a), b
 
 
