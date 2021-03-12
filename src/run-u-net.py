@@ -21,7 +21,8 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
          visualization_path, nr_epochs, initial_epoch, batch_size,
          loss_function, seed, patience, tensor_shape, monitored_value,
          force_dataset_generation, fit_memory, augment, onehot_encode,
-         tversky_alpha, tversky_beta, dropout_rate_input, dropout_rate_hidden):
+         tversky_alpha, tversky_beta, dropout_rate_input, dropout_rate_hidden,
+         val_set_pct):
     print_device_info()
 
     # get nr of bands
@@ -45,7 +46,8 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(data_dir, batch_size, 'val', nr_bands,
                                      tensor_shape, force_dataset_generation,
-                                     fit_memory, onehot_encode=onehot_encode)
+                                     fit_memory, onehot_encode=onehot_encode,
+                                     val_set_pct=val_set_pct)
 
     # load weights if the model is supposed to do so
     if operation in ('detect', 'fine-tune'):
@@ -348,6 +350,10 @@ if __name__ == '__main__':
         '--dropout_rate_hidden', type=float, default=None,
         help='ONLY FOR OPERATION == TRAIN: Fraction of the input units of the '
              'hidden layers to drop')
+    parser.add_argument(
+        '--validation_set_percentage', type=float, default=0.2,
+        help='Percentage of the entire dataset to be used for the validation '
+             'or detection in the form of a decimal number')
 
     args = parser.parse_args()
 
@@ -376,6 +382,10 @@ if __name__ == '__main__':
         raise parser.error(
             'Argument augment_training_dataset is not allowed for operation == '
             'detect as it does not make sense there')
+    if not 0 <= args.validation_set_percentage < 1:
+        raise parser.error(
+            'Argument validation_set_percentage must be greater or equal to 0 '
+            'and smaller than 1')
 
     main(args.operation, args.data_dir, args.output_dir, args.model_fn,
          args.model_path, args.visualization_path, args.nr_epochs,
@@ -384,4 +394,5 @@ if __name__ == '__main__':
          args.monitored_value, args.force_dataset_generation,
          args.fit_dataset_in_memory, args.augment_training_dataset,
          args.onehot_encode_masks, args.tversky_alpha, args.tversky_beta,
-         args.dropout_rate_input, args.dropout_rate_hidden)
+         args.dropout_rate_input, args.dropout_rate_hidden,
+         args.validation_set_percentage)

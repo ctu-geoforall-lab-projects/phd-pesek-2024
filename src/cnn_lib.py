@@ -19,7 +19,7 @@ class AugmentGenerator:
     def __init__(self, data_dir, batch_size=5, operation='train',
                  nr_bands=12, tensor_shape=(256, 256),
                  force_dataset_generation=False, fit_memory=False,
-                 augment=False, onehot_encode=True):
+                 augment=False, onehot_encode=True, val_set_pct=0.2):
         """Initialize the generator.
 
         :param data_dir: path to the directory containing images
@@ -34,6 +34,7 @@ class AugmentGenerator:
             instead of opening new files with each request
         :param augment: boolean saying whether to augment the dataset or not
         :param onehot_encode: boolean to onehot-encode masks during training
+        :param val_set_pct: percentage of the validation images in the dataset
         """
         if operation not in ('train', 'val'):
             raise AttributeError('Only values "train" and "val" supported as '
@@ -45,8 +46,9 @@ class AugmentGenerator:
             data_dir, '{}_masks'.format(operation))
         # generate the dataset structure if not generated
         do_exist = [os.path.isdir(i) is True for i in (images_dir, masks_dir)]
-        if force_dataset_generation or not all(do_exist):
-            generate_dataset_structure(data_dir, nr_bands, tensor_shape)
+        if force_dataset_generation is True or all(do_exist) is False:
+            generate_dataset_structure(data_dir, nr_bands, tensor_shape,
+                                       val_set_pct)
 
         # create variables useful throughout the entire class
         self.nr_samples = len(os.listdir(images_dir))

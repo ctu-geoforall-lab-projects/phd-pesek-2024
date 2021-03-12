@@ -86,7 +86,7 @@ def parse_label_code(line):
 
 
 def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
-                               verbose=1):
+                               val_set_pct=0.2, verbose=1):
     """Generate the expected dataset structure.
 
     Will generate directories train_images, train_masks, val_images and
@@ -95,6 +95,7 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     :param data_dir: path to the directory containing images
     :param nr_bands: number of bands of intended input images
     :param tensor_shape: shape of the first two dimensions of input tensors
+    :param val_set_pct: percentage of the validation images in the dataset
     :param verbose: verbosity (0=quiet, >0 verbose)
     """
     # Create folders to hold images and masks
@@ -122,10 +123,9 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     # Iterate over the train images while saving the images and masks
     # in appropriate folders
     dir_name = 'train'
-
-    # TODO: make train-val division a parameter
-    for file in zip(images_filenames[:-round(0.2 * len(images_filenames))],
-                    masks_filenames[:-round(0.2 * len(masks_filenames))]):
+    files = zip(images_filenames[:-round(val_set_pct * len(images_filenames))],
+                masks_filenames[:-round(val_set_pct * len(masks_filenames))])
+    for file in files:
         # TODO: Experiment with uint16
         # Convert tensors to numpy arrays
         image = (frame_batches.next().numpy() / 255).astype(np.uint8)
@@ -155,9 +155,9 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     # Iterate over the val images while saving the images and masks
     # in appropriate folders
     dir_name = 'val'
-    # TODO: make train-val division a parameter
-    for file in zip(images_filenames[-round(0.2 * len(images_filenames)):],
-                    masks_filenames[-round(0.2 * len(masks_filenames)):]):
+    files = zip(images_filenames[-round(val_set_pct * len(images_filenames)):],
+                masks_filenames[-round(val_set_pct * len(masks_filenames)):])
+    for file in files:
         # TODO: Experiment with uint16
         # Convert tensors to numpy arrays
         image = (frame_batches.next().numpy() / 255).astype(np.uint8)
