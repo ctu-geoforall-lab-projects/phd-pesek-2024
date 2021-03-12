@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import shutil
 
 import numpy as np
 import tensorflow as tf
@@ -101,8 +102,10 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
 
     for directory in dirs:
         dir_full_path = os.path.join(data_dir, directory)
-        if not os.path.isdir(dir_full_path):
-            os.makedirs(dir_full_path)
+        if os.path.isdir(dir_full_path):
+            shutil.rmtree(dir_full_path)
+
+        os.makedirs(dir_full_path)
 
     images, masks, images_filenames, masks_filenames = read_images(
         data_dir, tensor_shape)
