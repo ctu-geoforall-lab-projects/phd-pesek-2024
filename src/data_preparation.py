@@ -120,12 +120,16 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
 
     driver = gdal.GetDriverByName('GTiff')
 
-    # Iterate over the train images while saving the images and masks
+
+    # create mappings with corresponding dirs (train/val)
+    val_im_nr = round(val_set_pct * len(images_filenames))
+    corresponding_dirs = ('train',) * (len(images_filenames) - val_im_nr)
+    corresponding_dirs += ('val',) * val_im_nr
+
+    # Iterate over the images while saving the images and masks
     # in appropriate folders
-    dir_name = 'train'
-    files = zip(images_filenames[:-round(val_set_pct * len(images_filenames))],
-                masks_filenames[:-round(val_set_pct * len(masks_filenames))])
-    for file in files:
+    files = zip(images_filenames, corresponding_dirs)
+    for file, dir_name in files:
         # TODO: Experiment with uint16
         # Convert tensors to numpy arrays
         image = (frame_batches.next().numpy() / 255).astype(np.uint8)
@@ -136,40 +140,9 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
         # TODO: https://stackoverflow.com/questions/53776506/how-to-save-an-array-representing-an-image-with-40-band-to-a-tif-file
 
         image_path = os.path.join(data_dir, '{}_images'.format(dir_name),
-                                  file[0])
+                                  file)
         mask_path = os.path.join(data_dir, '{}_masks'.format(dir_name),
-                                 file[0])
-
-        # write rasters
-        dout = driver.Create(image_path, tensor_shape[0],
-                             tensor_shape[1], nr_bands, gdal.GDT_UInt16)
-        for i in range(nr_bands):
-            dout.GetRasterBand(i + 1).WriteArray(image[i])
-
-        dout = driver.Create(mask_path, tensor_shape[0],
-                             tensor_shape[1], 1, gdal.GDT_UInt16)
-        for i in range(1):
-            dout.GetRasterBand(i + 1).WriteArray(mask[i])
-
-    # TODO: Join train and val part into one chunk of code
-    # Iterate over the val images while saving the images and masks
-    # in appropriate folders
-    dir_name = 'val'
-    files = zip(images_filenames[-round(val_set_pct * len(images_filenames)):],
-                masks_filenames[-round(val_set_pct * len(masks_filenames)):])
-    for file in files:
-        # TODO: Experiment with uint16
-        # Convert tensors to numpy arrays
-        image = (frame_batches.next().numpy() / 255).astype(np.uint8)
-        mask = mask_batches.next().numpy().astype(np.uint8)
-
-        image = np.transpose(image, (2, 0, 1))
-        mask = np.transpose(mask, (2, 0, 1))
-
-        image_path = os.path.join(data_dir, '{}_images'.format(dir_name),
-                                  file[0])
-        mask_path = os.path.join(data_dir, '{}_masks'.format(dir_name),
-                                 file[0])
+                                 file)
 
         # write rasters
         dout = driver.Create(image_path, tensor_shape[0],
