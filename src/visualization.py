@@ -36,7 +36,6 @@ def onehot_decode(onehot, colormap, nr_bands=3, enhance_colours=True):
     return np.uint8(output)
 
 
-# TODO: parameter smooth
 def write_stats(result, out_path='/tmp/accu.png'):
     """Write graphs with loss, val_loss, accuracy and val_accuracy.
 
