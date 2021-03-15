@@ -120,7 +120,6 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
 
     driver = gdal.GetDriverByName('GTiff')
 
-
     # create mappings with corresponding dirs (train/val)
     val_im_nr = round(val_set_pct * len(images_filenames))
     corresponding_dirs = ('train',) * (len(images_filenames) - val_im_nr)
