@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import glob
 import shutil
 
 import numpy as np
@@ -15,62 +16,28 @@ def read_images(data_dir, tensor_shape=(256, 256), verbose=1):
     :param data_dir: path to the directory containing images
     :param tensor_shape: shape of the first two dimensions of input tensors
     :param verbose: verbosity (0=quiet, >0 verbose)
-    :return: image_tensors, masks_tensors, images_filenames, masks_filenames
+    :return: image_tensors, masks_tensors
     """
-    # Get the file names list from provided directory
-    file_list = [f for f in os.listdir(data_dir) if
-                 os.path.isfile(os.path.join(data_dir, f))]
-    file_list = sorted(file_list)
+    images_arrays = []
+    masks_arrays = []
+    for i in glob.glob(os.path.join(data_dir, '*image.tif')):
+        tiled = tile(i, i.replace('image.tif', 'label.tif'), tensor_shape)
+        images_arrays.extend(tiled[0])
+        masks_arrays.extend(tiled[1])
 
-    # when sorted, images 1 to 10 are not followed by their labels
-    for i in [str(j) for j in range(1, 11)]:
-        string = 'image_{}.tif'.format(i)
-        string_L = 'image_{}_L.tif'.format(i)
-        file_list.remove(string_L)
-        file_list.insert(file_list.index(string) + 1, string_L)
-
-    # Separate frame and mask files lists, exclude unnecessary files
-    images_filenames = [file for file in file_list if
-                        ('_L' not in file) and ('txt' not in file)]
-    masks_filenames = [file for file in file_list if
-                       ('_L' in file) and ('txt' not in file)]
-
-    if verbose > 0:
-        print('{} image files found in the provided directory.'.format(
-            len(images_filenames)))
-        print('{} mask files found in the provided directory.'.format(
-            len(masks_filenames)))
-
-    # Create file paths from file names
-    images_paths = [os.path.join(data_dir, fname) for fname in images_filenames]
-    masks_paths = [os.path.join(data_dir, fname) for fname in masks_filenames]
-
-    # Create dataset of np arrays
-    images_arrays = [
-        gdal.Open(i, gdal.GA_ReadOnly).ReadAsArray() for i in images_paths]
-    images_arrays = [np.transpose(i, (1, 2, 0)) for i in images_arrays]
-    masks_arrays = [
-        gdal.Open(i, gdal.GA_ReadOnly).ReadAsArray() for i in masks_paths]
     if masks_arrays[0].ndim == 2:
         masks_arrays = [np.expand_dims(i, -1) for i in masks_arrays]
 
-    # resize tensors to the specified shape
-    image_tensors = map(lambda x: tf.image.resize(x, tensor_shape),
-                        images_arrays)
-    mask_tensors = map(lambda x: tf.image.resize(x, tensor_shape),
-                       masks_arrays)
-
     # create TF datasets
-    images_dataset = tf.data.Dataset.from_tensor_slices(list(image_tensors))
-    masks_dataset = tf.data.Dataset.from_tensor_slices(list(mask_tensors))
+    images_dataset = tf.data.Dataset.from_tensor_slices(images_arrays)
+    masks_dataset = tf.data.Dataset.from_tensor_slices(masks_arrays)
 
+    im_nr = len(images_arrays)
     if verbose > 0:
-        print('Completed importing {} images from the provided '
-              'directory.'.format(len(images_filenames)))
-        print('Completed importing {} masks from the provided '
-              'directory.'.format(len(masks_filenames)))
+        print('Created {} training samples from the provided '
+              'image.'.format(im_nr))
 
-    return images_dataset, masks_dataset, images_filenames, masks_filenames
+    return images_dataset, masks_dataset
 
 
 def parse_label_code(line):
@@ -98,6 +65,19 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     :param val_set_pct: percentage of the validation images in the dataset
     :param verbose: verbosity (0=quiet, >0 verbose)
     """
+    # function to be used while saving samples
+    def train_val_determination(val_set_pct):
+        """Return decision about the sample will be part of train or val set."""
+        pct = 0
+        while True:
+            pct += val_set_pct
+            print(pct)
+            if pct < 1:
+                yield 'train'
+            else:
+                pct -= 1
+                yield 'val'
+
     # Create folders to hold images and masks
     dirs = ['train_images', 'train_masks', 'val_images', 'val_masks']
 
@@ -108,8 +88,7 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
 
         os.makedirs(dir_full_path)
 
-    images, masks, images_filenames, masks_filenames = read_images(
-        data_dir, tensor_shape)
+    images, masks = read_images(data_dir, tensor_shape)
 
     # TODO: would be nice to avoid tf.compat.v1 (stay v2) (what about my
     #       generator?)
@@ -120,28 +99,28 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
 
     driver = gdal.GetDriverByName('GTiff')
 
-    # create mappings with corresponding dirs (train/val)
-    val_im_nr = round(val_set_pct * len(images_filenames))
-    corresponding_dirs = ('train',) * (len(images_filenames) - val_im_nr)
-    corresponding_dirs += ('val',) * val_im_nr
-
     # Iterate over the images while saving the images and masks
     # in appropriate folders
-    files = zip(images_filenames, corresponding_dirs)
-    for file, dir_name in files:
+    im_id = 0
+    dir_names = train_val_determination(val_set_pct)
+    for image, mask in zip(frame_batches, mask_batches):
         # TODO: Experiment with uint16
         # Convert tensors to numpy arrays
-        image = (frame_batches.next().numpy() / 255).astype(np.uint8)
-        mask = mask_batches.next().numpy().astype(np.uint8)
+        image = (image.numpy() / 255).astype(np.uint8)
+        mask = mask.numpy().astype(np.uint8)
 
+        # TODO: Avoid two transpositions
         image = np.transpose(image, (2, 0, 1))
         mask = np.transpose(mask, (2, 0, 1))
         # TODO: https://stackoverflow.com/questions/53776506/how-to-save-an-array-representing-an-image-with-40-band-to-a-tif-file
 
-        image_path = os.path.join(data_dir, '{}_images'.format(dir_name),
-                                  file)
-        mask_path = os.path.join(data_dir, '{}_masks'.format(dir_name),
-                                 file)
+        dir_name = next(dir_names)
+        image_path = os.path.join(data_dir,
+                                  '{}_images'.format(dir_name),
+                                  'image_{0:03d}.tif'.format(im_id + 1))
+        mask_path = os.path.join(data_dir,
+                                 '{}_masks'.format(dir_name),
+                                 'image_{0:03d}.tif'.format(im_id + 1))
 
         # write rasters
         dout = driver.Create(image_path, tensor_shape[0],
@@ -154,8 +133,53 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
         for i in range(1):
             dout.GetRasterBand(i + 1).WriteArray(mask[i])
 
+        im_id += 1
+
     if verbose > 0:
-        print("Saved {} images to directory {}".format(
-            len(images_filenames), data_dir))
-        print("Saved {} masks to directory {}".format(
-            len(masks_filenames), data_dir))
+        print("Saved {} images to directory {}".format(im_id, data_dir))
+
+
+def tile(scene_path, labels_path, tensor_shape):
+    import pyjeo as pj
+
+    scene_nps = []
+    labels_nps = []
+
+    # load images
+    scene = pj.Jim(scene_path)
+    labels = pj.Jim(labels_path)
+
+    nr_col = scene.properties.nrOfCol()
+    nr_row = scene.properties.nrOfRow()
+    cols_step = tensor_shape[0]
+    rows_step = tensor_shape[1]
+
+    for i in range(0, nr_col, cols_step):
+        for j in range(0, nr_row, rows_step):
+            # if reaching the end of the image, expand the window back to
+            # avoid pixels outside the image
+            if j + rows_step > nr_row:
+                j = nr_row - rows_step
+            if i + cols_step > nr_col:
+                i = nr_col - cols_step
+
+            # crop images
+            scene_cropped = pj.geometry.crop(scene, ulx=i, uly=j,
+                                             lrx=i + cols_step,
+                                             lry=j + rows_step,
+                                             nogeo=True)
+            labels_cropped = pj.geometry.crop(labels, ulx=i, uly=j,
+                                              lrx=i + cols_step,
+                                              lry=j + rows_step,
+                                              nogeo=True)
+
+            # stack bands
+            scene_np = np.stack([scene_cropped.np(i) for i in
+                                 range(scene_cropped.properties.nrOfBand())],
+                                axis=2)
+            labels_np = labels_cropped.np()
+
+            scene_nps.append(scene_np)
+            labels_nps.append(labels_np)
+
+    return scene_nps, labels_nps

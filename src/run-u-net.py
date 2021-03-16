@@ -26,8 +26,8 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     print_device_info()
 
     # get nr of bands
-    dataset = glob.glob(os.path.join(data_dir, '*[0-9].tif'))
-    dataset_image = gdal.Open(dataset[0], gdal.GA_ReadOnly)
+    images = glob.glob(os.path.join(data_dir, '*image.tif'))
+    dataset_image = gdal.Open(images[0], gdal.GA_ReadOnly)
     nr_bands = dataset_image.RasterCount
     dataset_image = None
 
