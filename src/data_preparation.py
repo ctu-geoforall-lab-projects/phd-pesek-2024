@@ -71,7 +71,6 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
         pct = 0
         while True:
             pct += val_set_pct
-            print(pct)
             if pct < 1:
                 yield 'train'
             else:
