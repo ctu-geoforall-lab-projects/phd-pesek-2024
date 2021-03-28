@@ -9,21 +9,32 @@ import tensorflow as tf
 
 from osgeo import gdal
 
+from cnn_exceptions import DatasetError
 
-def read_images(data_dir, tensor_shape=(256, 256), verbose=1):
+
+def read_images(data_dir, tensor_shape=(256, 256),
+                filter_by_class=None, verbose=1):
     """Read images and return them as tensors and lists of filenames.
 
     :param data_dir: path to the directory containing images
     :param tensor_shape: shape of the first two dimensions of input tensors
     :param verbose: verbosity (0=quiet, >0 verbose)
+    :param filter_by_class: classes of interest (if specified, only samples
+        containing at least one of them will be created)
     :return: image_tensors, masks_tensors
     """
     images_arrays = []
     masks_arrays = []
     for i in glob.glob(os.path.join(data_dir, '*image.tif')):
-        tiled = tile(i, i.replace('image.tif', 'label.tif'), tensor_shape)
+        tiled = tile(i, i.replace('image.tif', 'label.tif'),
+                     tensor_shape, filter_by_class)
         images_arrays.extend(tiled[0])
         masks_arrays.extend(tiled[1])
+
+    if len(images_arrays) == 0:
+        raise DatasetError('No training samples created. Check the size of '
+                           'the images in the data_dir or the appearance of '
+                           'the classes you are interested in in labels')
 
     if masks_arrays[0].ndim == 2:
         masks_arrays = [np.expand_dims(i, -1) for i in masks_arrays]
@@ -53,7 +64,8 @@ def parse_label_code(line):
 
 
 def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
-                               val_set_pct=0.2, verbose=1):
+                               val_set_pct=0.2, filter_by_class=None,
+                               verbose=1):
     """Generate the expected dataset structure.
 
     Will generate directories train_images, train_masks, val_images and
@@ -63,6 +75,8 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     :param nr_bands: number of bands of intended input images
     :param tensor_shape: shape of the first two dimensions of input tensors
     :param val_set_pct: percentage of the validation images in the dataset
+    :param filter_by_class: classes of interest (if specified, only samples
+        containing at least one of them will be created)
     :param verbose: verbosity (0=quiet, >0 verbose)
     """
     # function to be used while saving samples
@@ -87,7 +101,7 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
 
         os.makedirs(dir_full_path)
 
-    images, masks = read_images(data_dir, tensor_shape)
+    images, masks = read_images(data_dir, tensor_shape, filter_by_class)
 
     # TODO: would be nice to avoid tf.compat.v1 (stay v2) (what about my
     #       generator?)
@@ -138,8 +152,27 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
         print("Saved {} images to directory {}".format(im_id, data_dir))
 
 
-def tile(scene_path, labels_path, tensor_shape):
+def tile(scene_path, labels_path, tensor_shape, filter_by_class=None):
+    """Tile the big scene into smaller samples.
+
+    If filter_by_class is not None, only samples containing at least one of
+    these classes of interest will be returned.
+
+    :param scene_path: path to the image to be cut
+    :param labels_path: path to the image with labels to be cut
+    :param tensor_shape: shape of the first two dimensions of input tensors
+    :param filter_by_class: classes of interest (if specified, only samples
+        containing at least one of them will be returned)
+    :return:
+    """
     import pyjeo as pj
+
+    # do we filter by classes?
+    if filter_by_class is None:
+        filt = False
+    else:
+        filter_by_class = [int(i) for i in filter_by_class.split(',')]
+        filt = True
 
     scene_nps = []
     labels_nps = []
@@ -172,13 +205,16 @@ def tile(scene_path, labels_path, tensor_shape):
                                               lry=j + rows_step,
                                               nogeo=True)
 
-            # stack bands
-            scene_np = np.stack([scene_cropped.np(i) for i in
-                                 range(scene_cropped.properties.nrOfBand())],
-                                axis=2)
-            labels_np = labels_cropped.np()
+            if filt is False or \
+                    any(i in labels_cropped.np() for i in filter_by_class):
+                # stack bands
+                scene_np = np.stack(
+                    [scene_cropped.np(i) for i in
+                     range(scene_cropped.properties.nrOfBand())],
+                    axis=2)
+                labels_np = pj.jim2np(labels_cropped)
 
-            scene_nps.append(scene_np)
-            labels_nps.append(labels_np)
+                scene_nps.append(scene_np)
+                labels_nps.append(labels_np)
 
     return scene_nps, labels_nps

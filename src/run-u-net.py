@@ -22,7 +22,7 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
          loss_function, seed, patience, tensor_shape, monitored_value,
          force_dataset_generation, fit_memory, augment, onehot_encode,
          tversky_alpha, tversky_beta, dropout_rate_input, dropout_rate_hidden,
-         val_set_pct):
+         val_set_pct, filter_by_class):
     print_device_info()
 
     # get nr of bands
@@ -44,10 +44,10 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
         dropout_rate_hidden=dropout_rate_hidden)
 
     # val generator used for both the training and the detection
-    val_generator = AugmentGenerator(data_dir, batch_size, 'val', nr_bands,
-                                     tensor_shape, force_dataset_generation,
-                                     fit_memory, onehot_encode=onehot_encode,
-                                     val_set_pct=val_set_pct)
+    val_generator = AugmentGenerator(
+        data_dir, batch_size, 'val', nr_bands, tensor_shape,
+        force_dataset_generation, fit_memory, onehot_encode=onehot_encode,
+        val_set_pct=val_set_pct, filter_by_class=filter_by_class)
 
     # load weights if the model is supposed to do so
     if operation in ('detect', 'fine-tune'):
@@ -352,8 +352,15 @@ if __name__ == '__main__':
              'hidden layers to drop')
     parser.add_argument(
         '--validation_set_percentage', type=float, default=0.2,
-        help='Percentage of the entire dataset to be used for the validation '
-             'or detection in the form of a decimal number')
+        help='If generating the dataset - Percentage of the entire dataset to '
+             'be used for the validation or detection in the form of a decimal '
+             'number')
+    parser.add_argument(
+        '--filter_by_classes', type=str, default=None,
+        help='If generating the dataset - Classes of interest. If specified, '
+             'only samples containing at least one of them will be created. '
+             'If filtering by multiple classes, specify their values '
+             'comma-separated (e.g. "1,2,6" to filter by classes 1, 2 and 6)')
 
     args = parser.parse_args()
 
@@ -395,4 +402,4 @@ if __name__ == '__main__':
          args.fit_dataset_in_memory, args.augment_training_dataset,
          args.onehot_encode_masks, args.tversky_alpha, args.tversky_beta,
          args.dropout_rate_input, args.dropout_rate_hidden,
-         args.validation_set_percentage)
+         args.validation_set_percentage, args.filter_by_classes)
