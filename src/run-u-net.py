@@ -300,7 +300,8 @@ if __name__ == '__main__':
              'network at once')
     parser.add_argument(
         '--loss_function', type=str, default='dice',
-        choices=('dice', 'categorical_crossentropy', 'tversky'),
+        choices=('binary_crossentropy', 'categorical_crossentropy', 'dice',
+                 'tversky'),
         help='A function that maps the training onto a real number '
              'representing cost associated with the epoch')
     parser.add_argument(
