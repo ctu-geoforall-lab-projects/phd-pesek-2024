@@ -43,6 +43,12 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
             'the U-Net architecture, but they are {} and {} respectively '
             'instead'.format(tensor_shape[0], tensor_shape[1]))
 
+    # choose the activation function for the last layer
+    if nr_classes == 2:
+        activation_last = 'sigmoid'
+    else:
+        activation_last = 'softmax'
+
     concat_layers = []
 
     # create input layer from the input tensor
@@ -80,7 +86,7 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
     # softmax classifier head layer
     classes = Conv2D(nr_classes,
                      (1, 1),
-                     activation='softmax',
+                     activation=activation_last,
                      padding=padding,
                      dilation_rate=dilation_rate)(x)
 
