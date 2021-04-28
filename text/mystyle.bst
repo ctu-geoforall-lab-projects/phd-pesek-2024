@@ -771,7 +771,7 @@ FUNCTION {book}
       format.bvolume output
       format.number.series output
       new.sentence
-      address ": " * publisher *   % CHANGE mudrd8mz 2005-10-12 
+      address "" * publisher *   % CHANGE mudrd8mz 2005-10-12 
       "publisher" output.check      
     }
     { new.block
