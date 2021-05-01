@@ -164,8 +164,8 @@ The only article not filtered out was \cite{urban-green-unsupervised-aerial}. Th
 \subsection{Related work}
 \label{cloud-detection-situation}
 
-% TODO: Still not doing arid
-The term \textit{cloud detection} was used together with terms \textit{arid} and \textit{desert} in the search phrase for this use case. Also a search phrase with \textit{cloud detection} solely was used to maximize the grasp of the research. This research was done in April 2021.
+% TODO: Still not doing arid, still not doing Venus
+The term \textit{cloud detection} was used together with terms \textit{arid} and \textit{desert} in the search phrase for this use case. Also a search phrase with \textit{cloud detection} solely was used to maximize the grasp of the research. This research was done in May 2021.
 
 \subsubsection{Web of Science}
 \label{cloud-detection-wos}
@@ -178,3 +178,43 @@ The following restrictions were used for the first query in \zk{WoS}:
 	\item \verb|Open Access: DOAJ Gold|. To focus only on articles and papers from sources listed on the~Di\-rectory of Open Access Journals (\zk{DOAJ}).
 \end{itemize}
 
+\noindent The top results from the query, when ordered by the~attribute \verb|Cited by|, were the following:
+
+\begin{itemize}
+	\item Multilevel Cloud Detection for High-Resolution Remote Sensing Imagery Using Multiple Convolutional Neural Networks: 25 citations. \cite{multilevel-cloud-cnn}
+	\item CloudFCN: Accurate and Robust Cloud Detection for Satellite Imagery with Deep Learning: 9 citations. \cite{cloudfcn}
+	\item Utilizing Multilevel Features for Cloud Detection on Satellite Imagery: 9 citations. \cite{multilevel-features-cloud-cnn}
+	\item P\_Segnet and NP\_Segnet: New Neural Network Architectures for Cloud Recognition of Remote Sensing Images: 6 citations. \cite{p-segnet-cloud}
+	\item Compact Cloud Detection with Bidirectional Self-Attention Knowledge Distillation: 2 citations. \cite{bi-sad-cloud}
+\end{itemize}
+
+One result was filtered out. It was \cite{center-pivot-remote-sensing} with 6 citations and it was filtered out because it does not actually deal with cloud detection as a task, but only mentions it as a problem.
+
+
+% TODO: add michal's paper
+% notes:
+%
+%8000 training samples of 256 x 256
+%800 validation
+%RGB + NIR
+%multiclass (cloud, cloud shadow, clear)
+%manual dataset creation (RGB for clouds, false RGB for shadows)
+%problems with cirrus, especially cloud shadow overprediction
+%no snow, no desert
+%
+%acc - total hits / total pixels to classify (biased to clear)
+%probability of detection pod/hit rate - hits / (hits + misses) (per class)
+%omission error ome/miss rate - misses / total pixels to classify (per class)
+%false alarm ratio far/commission error - false detections / (hits + false detections)
+%critical success index csi - hits / (hits + false detections + misses)
+%
+%clouds - deeplab accuracyi wv2 94. s2 82, dann on source 98.8, dann on target 84 (78 the architecture without the dann branch)
+%clouds n shadows - deeplab accu wv2 92
+%
+%DANN
+% need to study more
+%page 9 - samples per class
+%why to generate new ones
+%During the training process, imagesfrom both WV-2 and S-2 are used as inputs, but only ground-truth labelsfor WV-2 are used in the minimization of the classification loss. Inparallel, the domain discriminator branch attempts to maximize the lossand forces a random discrimination between the two domains so thatduring test time (when the domain discriminator branch is not active),the network can perform interchangeably on inputs from either plat-form (the optimal accuracy of the domain discriminator branch shouldbe approximately 0.5)
+%how the loss - subtraction? one of them taken as "label"? were they from the same site/date?
+%is the dataset open?
