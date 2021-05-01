@@ -152,6 +152,15 @@ The only article not filtered out was \cite{urban-green-unsupervised-aerial}. Th
 \section{Cloud detection over arid regions}
 \label{cloud-detection}
 
+% need for cloud detection (to be checked): Zhu, Z., Woodcock, C.E., 2012. Object-based cloud and cloud shadow detection in Landsat imagery. Remote Sens. Environ. 118, 83–94. https://doi.org/10.1016/j.rse.2011.10.028.
+% why shadows are problems: Hughes, H.J., Hayes, D.J., 2014. Automated detection of cloud and cloud shadow in single-date Landsat imagery using neural networks and spatial post-processing. Remote Sens. 6, 4907–4926. https://doi.org/10.3390/rs6064907.
+
+% notes from michal's paper: fmask landsat 90 ppct, sentinel-2 80 pct, sen2cor problems over water, tmask time-series for landsat, maja ts for s2, hughes n hayes use nn with spatial info, 
+% michal's paper: vgg16 (not segmentation), then deepnet
+% cnn for cd: Zi, Y., Xie, F., Jiang, Z., 2018. A cloud detection method for Landsat 8 images based on PCANet. Remote Sens. 464, 877. https://doi.org/10.3390/rs10060877. 2018.
+% cnn for cd: Chen, L., Papandreou, G., Kokkinos, I., Murphy, K., Yuille, A.L., 2017. DeepLab: semantic image segmentation with deep convolutional nets, atrous convolution, and fully connected CRFs. In: IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. 40. pp. 834–848. https://doi.org/10.1109/TPAMI.2017.2699184. 4, 1 April 2018.
+% cnn for cd: Weiland, M., Li, Y., Martinis, S., 2019. Multi-sensor cloud and cloud shadow segmentation with a convolutional neural network. Remote Sens. Environ. 230 (1), 111203. https://doi.org/10.1016/j.rse.2019.05.022. September 2019.
+
 \subsection{Related work}
 \label{cloud-detection-situation}
 
