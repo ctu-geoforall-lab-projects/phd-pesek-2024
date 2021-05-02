@@ -123,7 +123,7 @@ class AugmentGenerator:
                 self.onehot_encode(masks[x, :, :, :], id2code) for x in
                 range(masks.shape[0])]
 
-        datagen = ImageDataGenerator(#rotation_range=180, shear_range=0.2,
+        datagen = ImageDataGenerator(rotation_range=180, shear_range=0.2,
                                      horizontal_flip=True, vertical_flip=True)
 
         datagen.fit(images, seed=seed, augment=True)
