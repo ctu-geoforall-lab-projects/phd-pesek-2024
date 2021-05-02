@@ -33,6 +33,7 @@ def onehot_decode(onehot, colormap, nr_bands=3, enhance_colours=True):
         enhancement_matrix = np.ones(out_shape) * np.array(multiply_vector,
                                                            dtype=np.uint8)
         output *= enhancement_matrix
+
     return np.uint8(output)
 
 
@@ -106,13 +107,13 @@ def visualize_detections(images, ground_truths, detections, id2code,
         ax3.set_title('Ground truth labels')
         gt_labels = ground_truths[i]
         gt_labels = onehot_decode(gt_labels, id2code)
-        ax3.imshow(gt_labels)
+        ax3.imshow(gt_labels * 4)
 
         # detections
         ax4 = fig.add_subplot(2, 2, 4)
         ax4.set_title('Predicted labels')
         pred_labels = onehot_decode(detections[i], id2code)
-        ax4.imshow(pred_labels)
+        ax4.imshow(pred_labels * 4)
 
         # confusion matrix
         ax2 = fig.add_subplot(2, 2, 2)
