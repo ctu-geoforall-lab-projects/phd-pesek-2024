@@ -230,6 +230,26 @@ Authors of \textit{P\_Segnet and NP\_Segnet: New Neural Network Architectures fo
 
 While most of the papers focus on the performance in terms of the overall accuracy of tthe classification, \textit{Compact Cloud Detection with Bidirectional Self-Attention Knowledge Distillation} concentrates mainly on the computational complexity. To reduce the resource needs while still improving tha accuracy, knowledge distillation \cite{knowledge-distillation} has been used. Knowledge  distillation  is  a  method  to  improve  the  performance  of  a  compact  model  by transferring knowledge from a well-trained cumbersome model. The introduced self-distillation method \cite{sad} utilizing backward boundaries distillation and forward inner distillation has been called bidirectional self-attention distillation (\zk{Bi-SAD}). This method has been implemented on top of a \zk{ResNet}-18 \cite{resnet} architecture with its number of layers being quartered and enhanced by bilinear upsampling to reach the original image size for the segmentation. The training has been split into two parts - first, only the backbone architecture without \zk{Bi-SAD} has been trained, then after some epochs \zk{Bi-SAD} has been turned on. The experiments have been performed on a Gaofen 1 dataset \cite{gf-1-cloud-dataset}, consisting of 108 \zk{RGB} + \zk{NIR} scenes of size $10000 \times 9000$ pixels and of spatial size of 16 m, covering various backgrounds including water, ice and snow, and barren land; the dataset has been augmented by flips and reduced to a binary task of cloud vs clear classification. Different directions of the distillations have been tested and compared with different self-attention distillation and teacher-student distillation methods \cite{t-s-distillation} showing better performance of the proposed approach. The entire architecture has been compared with other neural network models, namely with multilevel feature fused segmentation network (\zk{MFFSNet}) \cite{mffsnet}, cloud detection neural network (\zk{CDNet}) \cite{cdnet}, DeepLabV3+ \cite{deeplab-3}, \zk{ResNet}-18 without \zk{Bi-SAD}, and multiscale features-convolutional neural network (\zk{MF-CNN}) \cite{mf-cnn}. When it comes to the mean oversection over union (\zk{mIoU}), overall accuracy or F1-score, \zk{Bi-SAD} has been beaten by all the other architectures; however, when compared to \zk{MFFSNet} with the highest scores, the parameter size and the sum of floating-point operations (\zk{FLOP}s) have been reduced 100 times and 400 times, respectivelly. It has shown that a model can, by using \zk{Bi-SAD}, decrease its computational complexity very radically when compared to the decrease of accuracy (the overall accuracy of \zk{Bi-SAD} being 96.7 \%, while the overall accuracy of the best-performing architecture, \zk{MFFSNet}, being 98.2 \%). An experiment focusing on the \zk{Bi-SAD} application on one of these big architectures would be valuable.
 
+\subsubsection{Scopus}
+\label{cloud-detection-scopus}
+
+The following restrictions were used for the first query in Scopus:
+
+\begin{itemize}
+	\item \verb|Query string: "cloud detection" "convolutional neural network"|. To focus on\-ly on articles dealing with the cloud classification using \zk{CNN}s.
+	\item \verb|Search within: Article title, Abstract, Keywords|. To filter out papers that only mention cloud detection in their bodies.
+	\item \verb|Open Access: Gold|. To focus only on articles published in journals that are strictly open access.
+\end{itemize}
+
+\noindent The top results from the query, when ordered by the~attribute \verb|Cited by|, were the following:
+
+\begin{itemize}
+	\item Multilevel Cloud Detection in Remote Sensing Images Based on Deep Learning: 102 citations. \cite{multilevel-cloud-cnn-slic}
+	\item Cloud Detection of Remote Sensing Images by Deep Learning: 65 citations. \cite{cloud-detection-dl}
+	\item Deep Learning Based Cloud Detection for Medium and High Resolution Remote Sensing Images of Different Sensors: 60 citations. \cite{mscff}
+	\item Cloud Detection in Remote Sensing Images Based on Multiscale Features-Convolutional Neural Network: 53 citations. \cite{mf-cnn}
+	\item Cloud and Cloud Shadow Detection in Landsat Imagery Based on Deep Convolutional Neural Networks: 53 citations. \cite{cloud-detection-cnn-landsat}
+\end{itemize}
 
 % TODO: add michal's paper
 % notes:
