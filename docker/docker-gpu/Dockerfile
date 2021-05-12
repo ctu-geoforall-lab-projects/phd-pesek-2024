@@ -20,7 +20,7 @@ RUN mkdir /tmp/src
 
 # install basic stuff
 RUN apt-get install apt-utils -y
-RUN apt-get install wget pkg-config bash-completion -y
+RUN apt-get install git wget pkg-config bash-completion -y
 RUN apt-get install build-essential libtool m4 automake -y
 RUN apt-get install libz-dev openssl libssl-dev swig libcurl4-gnutls-dev -y
 
