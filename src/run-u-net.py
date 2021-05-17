@@ -243,7 +243,7 @@ def _str2bool(string_val):
     """Transform a string looking like a boolean value to a boolean value.
 
     This is needed because using type=bool in argparse actually parses strings.
-    Such an behaviour could result in --force_dataset_generation False being
+    Such an behaviour could result in `--force_dataset_generation False` being
     misinterpreted as True (bool('False') == True).
 
     :param string_val: a string looking like a boolean value
