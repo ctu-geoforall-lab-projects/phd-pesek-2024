@@ -108,7 +108,8 @@ RUN apt-get install -yq \
     libjsoncpp-dev \
     uthash-dev \
     doxygen \
-    libshp-dev
+    libshp-dev \
+    git  # no packages available, so git clone is needed
 
 # install mialib
 RUN cd /tmp/src/ && \
