@@ -2,7 +2,8 @@
 
 ## Title
 
-Possibilities of convolutional neural networks use for remote sensing image classification
+Possibilities of convolutional neural networks use for remote sensing image
+classification
 
 ## Description
 
