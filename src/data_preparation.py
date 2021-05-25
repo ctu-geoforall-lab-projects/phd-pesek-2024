@@ -16,6 +16,8 @@ def read_images(data_dir, tensor_shape=(256, 256),
                 filter_by_class=None, verbose=1):
     """Read images and return them as tensors and lists of filenames.
 
+    TODO: Rewrite into a form of a generator
+
     :param data_dir: path to the directory containing images
     :param tensor_shape: shape of the first two dimensions of input tensors
     :param verbose: verbosity (0=quiet, >0 verbose)
@@ -39,16 +41,12 @@ def read_images(data_dir, tensor_shape=(256, 256),
     if masks_arrays[0].ndim == 2:
         masks_arrays = [np.expand_dims(i, -1) for i in masks_arrays]
 
-    # create TF datasets
-    images_dataset = tf.data.Dataset.from_tensor_slices(images_arrays)
-    masks_dataset = tf.data.Dataset.from_tensor_slices(masks_arrays)
-
     im_nr = len(images_arrays)
     if verbose > 0:
         print('Created {} training samples from the provided '
               'image.'.format(im_nr))
 
-    return images_dataset, masks_dataset
+    return images_arrays, masks_arrays
 
 
 def parse_label_code(line):
@@ -103,24 +101,23 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
 
     images, masks = read_images(data_dir, tensor_shape, filter_by_class)
 
-    # TODO: would be nice to avoid tf.compat.v1 (stay v2) (what about my
-    #       generator?)
-    # Create iterators for images and masks
-    # outside of TF Eager, we would use make_one_shot_iterator
-    frame_batches = tf.compat.v1.data.make_one_shot_iterator(images)
-    mask_batches = tf.compat.v1.data.make_one_shot_iterator(masks)
-
     driver = gdal.GetDriverByName('GTiff')
+    desired_dtype = np.int16
+    desired_dtype_max = np.iinfo(desired_dtype).max
+    current_dtype_max = np.iinfo(images[0].dtype).max
 
     # Iterate over the images while saving the images and masks
     # in appropriate folders
     im_id = 0
     dir_names = train_val_determination(val_set_pct)
-    for image, mask in zip(frame_batches, mask_batches):
+    for image, mask in zip(images, masks):
         # TODO: Experiment with uint16
         # Convert tensors to numpy arrays
-        image = (image.numpy() / 255).astype(np.uint8)
-        mask = mask.numpy().astype(np.uint8)
+        # scale to 0-1
+        image = image / current_dtype_max
+        # scale and convert to the desired dtype
+        image = (image * desired_dtype_max).astype(desired_dtype)
+        mask = mask.astype(desired_dtype)
 
         # TODO: Avoid two transpositions
         image = np.transpose(image, (2, 0, 1))
