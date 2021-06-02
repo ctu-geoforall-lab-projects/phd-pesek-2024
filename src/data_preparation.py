@@ -192,11 +192,7 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None):
             if i + cols_step > nr_col:
                 i = nr_col - cols_step
 
-            # crop images
-            scene_cropped = pj.geometry.crop(scene, ulx=i, uly=j,
-                                             lrx=i + cols_step,
-                                             lry=j + rows_step,
-                                             nogeo=True)
+            # crop labels
             labels_cropped = pj.geometry.crop(labels, ulx=i, uly=j,
                                               lrx=i + cols_step,
                                               lry=j + rows_step,
@@ -204,6 +200,11 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None):
 
             if filt is False or \
                     any(i in labels_cropped.np() for i in filter_by_class):
+                # crop image
+                scene_cropped = pj.geometry.crop(scene, ulx=i, uly=j,
+                                                 lrx=i + cols_step,
+                                                 lry=j + rows_step,
+                                                 nogeo=True)
                 # stack bands
                 scene_np = np.stack(
                     [scene_cropped.np(i) for i in
