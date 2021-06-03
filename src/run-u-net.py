@@ -187,17 +187,23 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     if not os.path.exists(output_dir):
         os.mkdir(args.output_dir)
 
+    # get the correct early stop mode
+    if 'accuracy' in monitored_value:
+        early_stop_mode = 'max'
+    else:
+        early_stop_mode = 'min'
+
     # set up monitoring
     tb = TensorBoard(log_dir=log_dir, write_graph=True)
     mc = ModelCheckpoint(
-        mode='max', filepath=out_model_path,
+        mode=early_stop_mode, filepath=out_model_path,
         monitor=monitored_value, save_best_only='True',
         save_weights_only='True',
         verbose=1)
     # TODO: check custom earlystopping to monitor multiple metrics
     #       https://stackoverflow.com/questions/64556120/early-stopping-with-multiple-conditions
-    es = EarlyStopping(mode='max', monitor='val_accuracy', patience=patience,
-                       verbose=1, restore_best_weights=True)
+    es = EarlyStopping(mode=early_stop_mode, monitor=monitored_value,
+                       patience=patience, verbose=1, restore_best_weights=True)
     callbacks = [tb, mc, es]
 
     # steps per epoch not needed to be specified if the data are augmented, but
