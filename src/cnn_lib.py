@@ -341,9 +341,9 @@ class ConvBlock(Layer):
         # instantiate layers of the conv block
         self.conv_layer1 = Conv2D(nr_filters, kernel_size, padding=padding,
                                   dilation_rate=dilation_rate)
+        self.dropout1 = Dropout(rate=dropout_rate)
         self.activation1 = Activation(activation)
         self.batch_norm1 = BatchNormalization()
-        self.dropout1 = Dropout(rate=dropout_rate)
         self.conv_layer2 = Conv2D(nr_filters, kernel_size, padding=padding,
                                   dilation_rate=dilation_rate)
         self.dropout2 = Dropout(rate=dropout_rate)
