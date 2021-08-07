@@ -306,7 +306,7 @@ class ConvBlock(Layer):
 
     def __init__(self, nr_filters=64, kernel_size=(3, 3), activation='relu',
                  padding='same', dilation_rate=1, batch_norm=True,
-                 dropout_rate=None, **kwargs):
+                 dropout_rate=None, depth=2, **kwargs):
         """Create a block of two convolutional layers.
 
         Each of them could be followed by a batch normalization layer.
@@ -324,6 +324,8 @@ class ConvBlock(Layer):
             or not
         :param dropout_rate: float between 0 and 1. Fraction of the input
             units of convolutional layers to drop
+        :param depth: depth of the block, specifying the number of conv
+            layers in the block
         :param kwargs: supplementary kwargs for the parent __init__()
         """
         super(ConvBlock, self).__init__(**kwargs)
@@ -336,19 +338,21 @@ class ConvBlock(Layer):
         self.dilation_rate = dilation_rate
         self.batch_norm = batch_norm
         self.dropout_rate = dropout_rate
+        self.depth = depth
         self.kwargs = kwargs
 
         # instantiate layers of the conv block
-        self.conv_layer1 = Conv2D(nr_filters, kernel_size, padding=padding,
-                                  dilation_rate=dilation_rate)
-        self.dropout1 = Dropout(rate=dropout_rate)
-        self.activation1 = Activation(activation)
-        self.batch_norm1 = BatchNormalization()
-        self.conv_layer2 = Conv2D(nr_filters, kernel_size, padding=padding,
-                                  dilation_rate=dilation_rate)
-        self.dropout2 = Dropout(rate=dropout_rate)
-        self.activation2 = Activation(activation)
-        self.batch_norm2 = BatchNormalization()
+        self.conv_layers = []
+        self.dropouts = []
+        self.activations = []
+        self.batch_norms = []
+        for i in range(depth):
+            self.conv_layers.append(Conv2D(nr_filters, kernel_size,
+                                           padding=padding,
+                                           dilation_rate=dilation_rate))
+            self.dropouts.append(Dropout(rate=dropout_rate))
+            self.activations.append(Activation(activation))
+            self.batch_norms.append(BatchNormalization())
 
     def call(self, x, mask=None):
         """Perform the logic of applying the layer to the input tensors.
@@ -358,21 +362,14 @@ class ConvBlock(Layer):
             used in RNN layers (currently not used)
         :return: output layer of the convolutional block
         """
-        # the first layer of the block
-        x = self.conv_layer1(x)
-        if self.dropout_rate is not None:
-            x = self.dropout1(x)
-        x = self.activation1(x)
-        if self.batch_norm is True:
-            x = self.batch_norm1(x)
-
-        # the second layer of the block
-        x = self.conv_layer2(x)
-        if self.dropout_rate is not None:
-            x = self.dropout2(x)
-        x = self.activation2(x)
-        if self.batch_norm is True:
-            x = self.batch_norm2(x)
+        for i in range(self.depth):
+            # apply inner blocks inside the entire block
+            x = self.conv_layers[i](x)
+            if self.dropout_rate is not None:
+                x = self.dropouts[i](x)
+            x = self.activations[i](x)
+            if self.batch_norm is True:
+                x = self.batch_norms[i](x)
 
         return x
 

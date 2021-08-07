@@ -62,14 +62,15 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
     # downsampling
     for i in range(4):
         block = ConvBlock(nr_filters * (2 ** i), (3, 3), activation, padding,
-                          dilation_rate, dropout_rate=dropout_rate_hidden)
+                          dilation_rate, dropout_rate=dropout_rate_hidden,
+                          depth=2)
         x = block(x)
         concat_layers.append(x)
         x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2),
                          data_format='channels_last')(x)
 
     x = ConvBlock(nr_filters * (2 ** 4), (3, 3), activation, padding,
-                  dilation_rate, dropout_rate=dropout_rate_hidden)(x)
+                  dilation_rate, dropout_rate=dropout_rate_hidden, depth=2)(x)
 
     # upsampling
     for i in range(3, -1, -1):
@@ -80,7 +81,8 @@ def get_unet(nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
         # the contracting path
         x = Concatenate(axis=3)([conv2(x), concat_layers[i]])
         block = ConvBlock(nr_filters * (2 ** i), (3, 3), activation, padding,
-                          dilation_rate, dropout_rate=dropout_rate_hidden)
+                          dilation_rate, dropout_rate=dropout_rate_hidden,
+                          depth=2)
         x = block(x)
 
     # softmax classifier head layer
