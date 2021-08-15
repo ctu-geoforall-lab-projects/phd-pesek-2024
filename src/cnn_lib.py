@@ -391,6 +391,7 @@ class ConvBlock(Layer):
                       dilation_rate=self.dilation_rate,
                       batch_norm=self.batch_norm,
                       dropout_rate=self.dropout_rate,
+                      depth=self.depth,
                       **self.kwargs)
 
         return config
