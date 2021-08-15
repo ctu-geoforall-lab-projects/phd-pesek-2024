@@ -6,6 +6,7 @@ class ModelConfigError(Exception):
 
     pass
 
+
 class DatasetError(Exception):
     """Model to be raised in the case of problems with the dataset.
     """
