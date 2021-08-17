@@ -9,8 +9,10 @@ from osgeo import gdal
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
     Activation, Dropout
+from tensorflow.keras import backend as keras
 
 from data_preparation import generate_dataset_structure
+from cnn_exceptions import LayerDefinitionError
 
 
 class AugmentGenerator:
@@ -395,3 +397,167 @@ class ConvBlock(Layer):
                       **self.kwargs)
 
         return config
+
+
+class MyMaxPooling(Layer):
+    """Custom implementation of a 2D max-pooling layer.
+
+    Needed especially for SegNet to return also the pooling indices that are
+    to be shared during the decoder phase.
+    """
+
+    def __init__(self, pool_size=(2, 2), strides=None, padding='valid',
+                 data_format=None, **kwargs):
+        """Construct the object and keep important variables.
+
+        :param pool_size: Integer or tuple of 2 integers, window size over
+            which to take the maximum
+        :param strides: Integer, tuple of 2 integers, or None. Strides values
+        :param padding: One of "valid" or 'same' (case-insensitive). 'valid'
+            means no padding. "same" results in padding evenly distributed
+        :param data_format: A string, one of 'channels_last' (default) or
+            'channels_first'. The ordering of the dimensions in the inputs
+            (so far not used)
+        :param kwargs: TF Layer keyword arguments
+        """
+        self.pool_size = pool_size
+        self.strides = strides
+        self.padding = padding
+
+        super(MyMaxPooling, self).__init__(**kwargs)
+
+    def call(self, x, mask=None):
+        """Perform the logic of applying the layer to the input tensors.
+
+        :param x: input tensor
+        :param mask: boolean tensor encoding masked timesteps in the input,
+            used in RNN layers (currently not used)
+        :return: output layer of the convolutional block
+        """
+        ksize = (1, self.pool_size[0], self.pool_size[1], 1)
+        strides = (1, self.strides[0], self.strides[1], 1)
+        output, argmax = tf.nn.max_pool_with_argmax(
+            x, ksize=ksize, strides=self.strides, padding=self.padding.upper(),
+            include_batch_in_index=True)
+
+        argmax = tf.cast(argmax, tf.int32)
+
+        return output, argmax
+
+    def compute_output_shape(self, input_shape):
+        """Compute the output shape of the layer.
+
+        :param input_shape: Shape tuple (tuple of integers) or list of shape
+            tuples (one per output tensor of the layer)
+        :return: list describing the layer shape
+        """
+        ratio = (1, 2, 2, 1)
+        output_shape = [dim // ratio[idx] if dim is not None else None
+                        for idx, dim in enumerate(input_shape)]
+        output_shape = tuple(output_shape)
+        return output_shape, output_shape
+
+    def compute_mask(self, inputs, mask=None):
+        """Compute the output tensor mask.
+
+        :param inputs: Tensor or list of tensors
+        :param mask: Tensor or list of tensors
+        :return: Tensor with the mask
+        """
+        return 2 * [None]
+
+    def get_config(self):
+        """Return the configuration of the convolutional block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        layer class name.
+
+        :return: the configuration dictionary of the convolutional block
+        """
+        config = super(MyMaxPooling, self).get_config().copy()
+        config.update({'pool_size': self.pool_size,
+                       'padding': self.padding,
+                       'strides': self.strides,
+                       'data_format': self.data_format})
+
+        return config
+
+
+class MyMaxUnpooling(Layer):
+    """Custom implementation of a 2D max-unpooling layer.
+
+    Needed especially for SegNet to allow argmax-based unpooling with given
+    indices.
+    """
+
+    def __init__(self, pool_size=(2, 2), data_format=None, **kwargs):
+        """Construct the object and keep important variables.
+
+        :param pool_size: Integer or tuple of 2 integers, window size over
+            which to take the maximum
+        :param data_format: A string, one of 'channels_last' (default) or
+            'channels_first'. The ordering of the dimensions in the inputs
+            (so far not used)
+        :param kwargs: TF Layer keyword arguments
+        """
+        self.pool_size = pool_size
+
+        super(MyMaxUnpooling, self).__init__(**kwargs)
+
+    def call(self, x, indices=None):
+        """Perform the logic of applying the layer to the input tensors.
+
+        :param x: input tensor
+        :param indices: indices received from the corresponding max pooling
+            layer
+        :return: output layer of the upsampling block
+        """
+        if indices is None:
+            raise LayerDefinitionError('indices have to be specified')
+
+        input_shape = tf.shape(x, out_type='int32')
+        output_shape = (input_shape[0],
+                        input_shape[1] * self.pool_size[0],
+                        input_shape[2] * self.pool_size[1],
+                        input_shape[3])
+
+        # unpool
+        unpooled = tf.scatter_nd(keras.expand_dims(keras.flatten(indices)),
+                                 keras.flatten(x),
+                                 (keras.prod(output_shape), ))
+
+        # reshape
+        input_shape = x.shape
+        out_shape = (-1,
+                     input_shape[1] * self.pool_size[0],
+                     input_shape[2] * self.pool_size[1],
+                     input_shape[3])
+        unpooled = keras.reshape(unpooled, out_shape)
+
+        return unpooled
+
+    def get_config(self):
+        """Return the configuration of the convolutional block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        layer class name.
+
+        :return: the configuration dictionary of the convolutional block
+        """
+        config = super(MyMaxUnpooling, self).get_config().copy()
+        config.update({'pool_size': self.pool_size})
+
+        return config
+
+    def compute_output_shape(self, input_shape):
+        """Compute the output shape of the layer.
+
+        :param input_shape: Shape tuple (tuple of integers) or list of shape
+            tuples (one per output tensor of the layer)
+        :return: list describing the layer shape
+        """
+        mask_shape = input_shape[1]
+        return (mask_shape[0], mask_shape[1] * self.pool_size[0],
+                mask_shape[2] * self.pool_size[1], mask_shape[3])

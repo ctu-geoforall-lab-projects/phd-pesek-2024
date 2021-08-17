@@ -12,3 +12,10 @@ class DatasetError(Exception):
     """
 
     pass
+
+
+class LayerDefinitionError(Exception):
+    """Model to be raised in the case of problems with the layer definition.
+    """
+
+    pass
