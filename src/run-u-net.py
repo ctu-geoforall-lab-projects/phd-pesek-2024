@@ -13,7 +13,7 @@ from tensorflow.python.keras.callbacks import TensorBoard, ModelCheckpoint, \
 
 from data_preparation import parse_label_code
 from cnn_lib import AugmentGenerator, categorical_dice, categorical_tversky
-from architectures import get_unet
+from architectures import UNet, SegNet
 from visualization import write_stats, visualize_detections
 
 
@@ -130,10 +130,10 @@ def create_model(nr_classes, nr_bands, tensor_shape,
     if metrics is None:
         metrics = ['accuracy']
 
-    model = get_unet(nr_classes, nr_bands=nr_bands, nr_filters=nr_filters,
-                     tensor_shape=tensor_shape, activation=activation,
-                     padding=padding, dropout_rate_input=dropout_rate_input,
-                     dropout_rate_hidden=dropout_rate_hidden)
+    model = UNet(nr_classes, nr_bands=nr_bands, nr_filters=nr_filters,
+                 tensor_shape=tensor_shape, activation=activation,
+                 padding=padding, dropout_rate_input=dropout_rate_input,
+                 dropout_rate_hidden=dropout_rate_hidden)
 
     # get loss functions corresponding to non-TF losses
     if loss == 'dice':
@@ -142,6 +142,7 @@ def create_model(nr_classes, nr_bands, tensor_shape,
         loss = lambda gt, p: categorical_tversky(gt, p, alpha, beta)
 
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+    model.build(input_shape=(None, tensor_shape[0], tensor_shape[1], nr_bands))
 
     if verbose > 0:
         model.summary()

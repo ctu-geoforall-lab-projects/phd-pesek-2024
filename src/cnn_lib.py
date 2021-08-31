@@ -503,37 +503,38 @@ class MyMaxUnpooling(Layer):
         """
         self.pool_size = pool_size
 
+        # output shape should be created during the build() call
+        self.output_shape_ = (None, None, None, None)
+
         super(MyMaxUnpooling, self).__init__(**kwargs)
 
-    def call(self, x, indices=None):
+    def call(self, inputs, mask=None):
         """Perform the logic of applying the layer to the input tensors.
 
-        :param x: input tensor
-        :param indices: indices received from the corresponding max pooling
-            layer
+        :param inputs: data structure in form (layer input, indices received
+            from the corresponding max pooling layer)
+        :param mask: boolean tensor encoding masked timesteps in the input,
+            used in RNN layers (currently not used)
         :return: output layer of the upsampling block
         """
+        x = inputs[0]
+        indices = inputs[1]
         if indices is None:
             raise LayerDefinitionError('indices have to be specified')
 
         input_shape = tf.shape(x, out_type='int32')
-        output_shape = (input_shape[0],
-                        input_shape[1] * self.pool_size[0],
-                        input_shape[2] * self.pool_size[1],
-                        input_shape[3])
+        output_shape_complete = (input_shape[0],
+                                 self.output_shape_[1],
+                                 self.output_shape_[2],
+                                 self.output_shape_[3])
 
         # unpool
         unpooled = tf.scatter_nd(keras.expand_dims(keras.flatten(indices)),
                                  keras.flatten(x),
-                                 (keras.prod(output_shape), ))
+                                 (keras.prod(output_shape_complete), ))
 
         # reshape
-        input_shape = x.shape
-        out_shape = (-1,
-                     input_shape[1] * self.pool_size[0],
-                     input_shape[2] * self.pool_size[1],
-                     input_shape[3])
-        unpooled = keras.reshape(unpooled, out_shape)
+        unpooled = keras.reshape(unpooled, output_shape_complete)
 
         return unpooled
 
@@ -558,6 +559,18 @@ class MyMaxUnpooling(Layer):
             tuples (one per output tensor of the layer)
         :return: list describing the layer shape
         """
-        mask_shape = input_shape[1]
-        return (mask_shape[0], mask_shape[1] * self.pool_size[0],
-                mask_shape[2] * self.pool_size[1], mask_shape[3])
+        return (input_shape[0][0], self.output_shape_[1], self.output_shape_[2],
+                self.output_shape_[3])
+
+    def build(self, input_shape):
+        """Create the input_shape class variable and build the layer.
+
+        :param input_shape: Instance of TensorShape, or list of instances
+            of TensorShape if the layer expects a list of inputs
+        """
+        self.output_shape_ = (input_shape[0][0],
+                              input_shape[0][1] * self.pool_size[0],
+                              input_shape[0][2] * self.pool_size[1],
+                              input_shape[0][3])
+
+        super(MyMaxUnpooling, self).build(input_shape)
