@@ -17,7 +17,7 @@ from architectures import UNet, SegNet
 from visualization import write_stats, visualize_detections
 
 
-def main(operation, data_dir, output_dir, model_fn, in_model_path,
+def main(operation, data_dir, output_dir, model, model_fn, in_model_path,
          visualization_path, nr_epochs, initial_epoch, batch_size,
          loss_function, seed, patience, tensor_shape, monitored_value,
          force_dataset_generation, fit_memory, augment, onehot_encode,
@@ -38,7 +38,7 @@ def main(operation, data_dir, output_dir, model_fn, in_model_path,
     tf.random.set_seed(seed)
 
     model = create_model(
-        len(id2code), nr_bands, tensor_shape, loss=loss_function,
+        model, len(id2code), nr_bands, tensor_shape, loss=loss_function,
         alpha=tversky_alpha, beta=tversky_beta,
         dropout_rate_input=dropout_rate_input,
         dropout_rate_hidden=dropout_rate_hidden)
@@ -94,7 +94,7 @@ def get_codings(description_file):
     return label_codes, label_names, id2code
 
 
-def create_model(nr_classes, nr_bands, tensor_shape,
+def create_model(model, nr_classes, nr_bands, tensor_shape,
                  nr_filters=64, optimizer='adam', loss='dice', metrics=None,
                  activation='relu', padding='same', verbose=1, alpha=None,
                  beta=None, dropout_rate_input=None, dropout_rate_hidden=None):
@@ -102,6 +102,7 @@ def create_model(nr_classes, nr_bands, tensor_shape,
 
     So far it is only U-Net.
 
+    :param model: model architecture
     :param nr_classes: number of classes to be predicted
     :param nr_bands: number of bands of intended input images
     :param tensor_shape: shape of the first two dimensions of input tensors
@@ -127,13 +128,17 @@ def create_model(nr_classes, nr_bands, tensor_shape,
         units of the hidden layers to drop
     :return: compiled model
     """
+    model_classes = {'U-Net': UNet, 'SegNet': SegNet}
+
     if metrics is None:
         metrics = ['accuracy']
 
-    model = UNet(nr_classes, nr_bands=nr_bands, nr_filters=nr_filters,
-                 tensor_shape=tensor_shape, activation=activation,
-                 padding=padding, dropout_rate_input=dropout_rate_input,
-                 dropout_rate_hidden=dropout_rate_hidden)
+    model = model_classes[model](nr_classes, nr_bands=nr_bands,
+                                 nr_filters=nr_filters,
+                                 tensor_shape=tensor_shape,
+                                 activation=activation, padding=padding,
+                                 dropout_rate_input=dropout_rate_input,
+                                 dropout_rate_hidden=dropout_rate_hidden)
 
     # get loss functions corresponding to non-TF losses
     if loss == 'dice':
@@ -282,6 +287,10 @@ if __name__ == '__main__':
         '--output_dir', type=str, default=None,
         help='Path where logs and the model will be saved')
     parser.add_argument(
+        '--model', type=str, default='U-Net',
+        choices=('U-Net', 'SegNet'),
+        help='ONLY FOR OPERATION == TRAIN: Model architecture')
+    parser.add_argument(
         '--model_fn', type=str,
         help='ONLY FOR OPERATION == TRAIN: Output model filename')
     parser.add_argument(
@@ -402,12 +411,13 @@ if __name__ == '__main__':
             'Argument validation_set_percentage must be greater or equal to 0 '
             'and smaller than 1')
 
-    main(args.operation, args.data_dir, args.output_dir, args.model_fn,
-         args.model_path, args.visualization_path, args.nr_epochs,
-         args.initial_epoch, args.batch_size, args.loss_function, args.seed,
-         args.patience, (args.tensor_height, args.tensor_width),
-         args.monitored_value, args.force_dataset_generation,
-         args.fit_dataset_in_memory, args.augment_training_dataset,
-         args.onehot_encode_masks, args.tversky_alpha, args.tversky_beta,
-         args.dropout_rate_input, args.dropout_rate_hidden,
-         args.validation_set_percentage, args.filter_by_classes)
+    main(args.operation, args.data_dir, args.output_dir,
+         args.model, args.model_fn, args.model_path, args.visualization_path,
+         args.nr_epochs, args.initial_epoch, args.batch_size,
+         args.loss_function, args.seed, args.patience,
+         (args.tensor_height, args.tensor_width), args.monitored_value,
+         args.force_dataset_generation, args.fit_dataset_in_memory,
+         args.augment_training_dataset, args.onehot_encode_masks,
+         args.tversky_alpha, args.tversky_beta, args.dropout_rate_input,
+         args.dropout_rate_hidden, args.validation_set_percentage,
+         args.filter_by_classes)
