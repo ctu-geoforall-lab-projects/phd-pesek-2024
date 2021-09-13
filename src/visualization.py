@@ -147,5 +147,8 @@ def visualize_detections(images, ground_truths, detections, id2code,
                 ax2.text(row, col, cm_norm[col, row], color=colour,
                          horizontalalignment='center')
 
+        # save the image
+        if not os.path.isdir(out_dir):
+            os.makedirs(out_dir)
         plt.savefig(os.path.join(out_dir, str(i)))
         plt.close()
