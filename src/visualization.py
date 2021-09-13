@@ -68,6 +68,8 @@ def write_stats(result, out_path='/tmp/accu.png'):
     plt.xlabel("Epoch #")
     plt.ylabel("Loss/Accuracy")
     plt.legend(loc="lower left")
+    if not os.path.isdir(os.path.split(out_path)[0]):
+        os.makedirs(os.path.split(out_path)[0])
     plt.savefig(out_path)
 
     plt.close()
