@@ -187,7 +187,7 @@ if __name__ == '__main__':
         description='Run training or fine-tuning')
 
     parser.add_argument(
-        '--operation', type=str, required=True, default='train',
+        '--operation', type=str, default='train',
         choices=('train', 'fine-tune'),
         help='Choose either to train the model or to use a trained one for '
              'detection')
