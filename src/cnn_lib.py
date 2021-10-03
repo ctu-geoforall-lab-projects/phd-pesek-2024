@@ -244,6 +244,8 @@ class AugmentGenerator:
         return encoded_image
 
 
+# loss functions
+
 def categorical_dice(ground_truth_onehot, predictions, weights=1):
     """Compute the Sorensen-Dice loss.
 
@@ -302,6 +304,8 @@ def categorical_tversky(ground_truth_onehot, predictions, alpha=0.5,
 
     return loss
 
+
+# objects to be used in the architectures
 
 class ConvBlock(Layer):
     """TF Keras layer overriden to represent a convolutional block in U-Net."""

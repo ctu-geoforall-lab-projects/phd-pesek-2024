@@ -7,7 +7,8 @@ from tensorflow.keras.layers import MaxPooling2D, Conv2D, Input, UpSampling2D, \
     Concatenate, Dropout
 from tensorflow.keras.models import Model
 
-from cnn_lib import ConvBlock, MyMaxPooling, MyMaxUnpooling
+from cnn_lib import ConvBlock, MyMaxPooling, MyMaxUnpooling, \
+    categorical_dice, categorical_tversky
 from cnn_exceptions import ModelConfigError
 
 
@@ -479,3 +480,64 @@ class SegNet(_BaseModel):
                 x = self.us_blocks[2 * i + 1](x)
 
         return x
+
+
+def create_model(model, nr_classes, nr_bands, tensor_shape,
+                 nr_filters=64, optimizer='adam', loss='dice', metrics=None,
+                 activation='relu', padding='same', verbose=1, alpha=None,
+                 beta=None, dropout_rate_input=None, dropout_rate_hidden=None):
+    """Create intended model.
+
+    So far it is only U-Net.
+
+    :param model: model architecture
+    :param nr_classes: number of classes to be predicted
+    :param nr_bands: number of bands of intended input images
+    :param tensor_shape: shape of the first two dimensions of input tensors
+    :param nr_filters: base number of convolution filters (multiplied deeper
+        in the model)
+    :param optimizer: name of built-in optimizer or optimizer instance
+    :param loss: name of a built-in objective function,
+        objective function or tf.keras.losses.Loss instance
+    :param metrics: list of metrics to be evaluated by the model during
+        training and testing. Each of this can be a name of a built-in
+        function, function or a tf.keras.metrics.Metric instance
+    :param activation: activation function, such as tf.nn.relu, or string
+        name of built-in activation function, such as 'relu'
+    :param padding: 'valid' means no padding. 'same' results in padding
+        evenly to the left/right or up/down of the input such that output
+        has the same height/width dimension as the input
+    :param verbose: verbosity (0=quiet, >0 verbose)
+    :param alpha: magnitude of penalties for false positives for Tversky loss
+    :param beta: magnitude of penalties for false negatives for Tversky loss
+    :param dropout_rate_input: float between 0 and 1. Fraction of the input
+        units of the input layer to drop
+    :param dropout_rate_hidden: float between 0 and 1. Fraction of the input
+        units of the hidden layers to drop
+    :return: compiled model
+    """
+    model_classes = {'U-Net': UNet, 'SegNet': SegNet}
+
+    if metrics is None:
+        metrics = ['accuracy']
+
+    model = model_classes[model](nr_classes, nr_bands=nr_bands,
+                                 nr_filters=nr_filters,
+                                 tensor_shape=tensor_shape,
+                                 activation=activation, padding=padding,
+                                 dropout_rate_input=dropout_rate_input,
+                                 dropout_rate_hidden=dropout_rate_hidden)
+
+    # get loss functions corresponding to non-TF losses
+    if loss == 'dice':
+        loss = categorical_dice
+    elif loss == 'tversky':
+        loss = lambda gt, p: categorical_tversky(gt, p, alpha, beta)
+
+    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+    model.build(input_shape=(None, tensor_shape[0], tensor_shape[1], nr_bands))
+
+    if verbose > 0:
+        model.summary()
+
+    return model

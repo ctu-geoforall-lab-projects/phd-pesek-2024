@@ -12,16 +12,16 @@ from tensorflow.python.keras.callbacks import TensorBoard, ModelCheckpoint, \
     EarlyStopping
 
 from data_preparation import parse_label_code
-from cnn_lib import AugmentGenerator, categorical_dice, categorical_tversky
-from architectures import UNet, SegNet
-from visualization import write_stats, visualize_detections
+from cnn_lib import AugmentGenerator
+from architectures import create_model
+from visualization import write_stats
 
 
-def main(operation, data_dir, output_dir, model, model_fn, in_model_path,
+def main(operation, data_dir, output_dir, model, model_fn, in_weights_path,
          visualization_path, nr_epochs, initial_epoch, batch_size,
          loss_function, seed, patience, tensor_shape, monitored_value,
-         force_dataset_generation, fit_memory, augment, onehot_encode,
-         tversky_alpha, tversky_beta, dropout_rate_input, dropout_rate_hidden,
+         force_dataset_generation, fit_memory, augment, tversky_alpha,
+         tversky_beta, dropout_rate_input, dropout_rate_hidden,
          val_set_pct, filter_by_class):
     print_device_info()
 
@@ -46,26 +46,20 @@ def main(operation, data_dir, output_dir, model, model_fn, in_model_path,
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(
         data_dir, batch_size, 'val', nr_bands, tensor_shape,
-        force_dataset_generation, fit_memory, onehot_encode=onehot_encode,
-        val_set_pct=val_set_pct, filter_by_class=filter_by_class)
+        force_dataset_generation, fit_memory, val_set_pct=val_set_pct,
+        filter_by_class=filter_by_class)
 
     # load weights if the model is supposed to do so
-    if operation in ('detect', 'fine-tune'):
-        model.load_weights(in_model_path)
+    if operation == 'fine-tune':
+        model.load_weights(in_weights_path)
 
-    if operation in ('train', 'fine-tune'):
-        # Train or fine-tune model
-        train_generator = AugmentGenerator(
-            data_dir, batch_size, 'train', fit_memory=fit_memory,
-            onehot_encode=onehot_encode, augment=augment)
-        train(model, train_generator, val_generator, id2code, batch_size,
-              output_dir, visualization_path, model_fn, nr_epochs,
-              initial_epoch, seed=seed, patience=patience,
-              monitored_value=monitored_value)
-    else:
-        # detect
-        detect(model, val_generator, id2code, [i for i in label_codes],
-               label_names, seed, visualization_path)
+    train_generator = AugmentGenerator(
+        data_dir, batch_size, 'train', fit_memory=fit_memory,
+        augment=augment)
+    train(model, train_generator, val_generator, id2code, batch_size,
+          output_dir, visualization_path, model_fn, nr_epochs,
+          initial_epoch, seed=seed, patience=patience,
+          monitored_value=monitored_value)
 
 
 def print_device_info():
@@ -94,67 +88,6 @@ def get_codings(description_file):
     return label_codes, label_names, id2code
 
 
-def create_model(model, nr_classes, nr_bands, tensor_shape,
-                 nr_filters=64, optimizer='adam', loss='dice', metrics=None,
-                 activation='relu', padding='same', verbose=1, alpha=None,
-                 beta=None, dropout_rate_input=None, dropout_rate_hidden=None):
-    """Create intended model.
-
-    So far it is only U-Net.
-
-    :param model: model architecture
-    :param nr_classes: number of classes to be predicted
-    :param nr_bands: number of bands of intended input images
-    :param tensor_shape: shape of the first two dimensions of input tensors
-    :param nr_filters: base number of convolution filters (multiplied deeper
-        in the model)
-    :param optimizer: name of built-in optimizer or optimizer instance
-    :param loss: name of a built-in objective function,
-        objective function or tf.keras.losses.Loss instance
-    :param metrics: list of metrics to be evaluated by the model during
-        training and testing. Each of this can be a name of a built-in
-        function, function or a tf.keras.metrics.Metric instance
-    :param activation: activation function, such as tf.nn.relu, or string
-        name of built-in activation function, such as 'relu'
-    :param padding: 'valid' means no padding. 'same' results in padding
-        evenly to the left/right or up/down of the input such that output
-        has the same height/width dimension as the input
-    :param verbose: verbosity (0=quiet, >0 verbose)
-    :param alpha: magnitude of penalties for false positives for Tversky loss
-    :param beta: magnitude of penalties for false negatives for Tversky loss
-    :param dropout_rate_input: float between 0 and 1. Fraction of the input
-        units of the input layer to drop
-    :param dropout_rate_hidden: float between 0 and 1. Fraction of the input
-        units of the hidden layers to drop
-    :return: compiled model
-    """
-    model_classes = {'U-Net': UNet, 'SegNet': SegNet}
-
-    if metrics is None:
-        metrics = ['accuracy']
-
-    model = model_classes[model](nr_classes, nr_bands=nr_bands,
-                                 nr_filters=nr_filters,
-                                 tensor_shape=tensor_shape,
-                                 activation=activation, padding=padding,
-                                 dropout_rate_input=dropout_rate_input,
-                                 dropout_rate_hidden=dropout_rate_hidden)
-
-    # get loss functions corresponding to non-TF losses
-    if loss == 'dice':
-        loss = categorical_dice
-    elif loss == 'tversky':
-        loss = lambda gt, p: categorical_tversky(gt, p, alpha, beta)
-
-    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-    model.build(input_shape=(None, tensor_shape[0], tensor_shape[1], nr_bands))
-
-    if verbose > 0:
-        model.summary()
-
-    return model
-
-
 def train(model, train_generator, val_generator, id2code, batch_size,
           output_dir, visualization_path, model_fn, nr_epochs,
           initial_epoch=0, seed=1, patience=100,
@@ -180,9 +113,8 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     """
     # set up model_path
     if model_fn is None:
-        model_fn = 'lc_ep{}_bs{}.h5'.format(args.nr_epochs, args.batch_size)
-    else:
-        model_fn = args.model_fn
+        model_fn = '{}_ep{}_pat{}.h5'.format(model.lower(), nr_epochs,
+                                             patience)
 
     out_model_path = os.path.join(output_dir, model_fn)
 
@@ -191,7 +123,7 @@ def train(model, train_generator, val_generator, id2code, batch_size,
 
     # create output_dir if it does not exist
     if not os.path.exists(output_dir):
-        os.mkdir(args.output_dir)
+        os.mkdir(output_dir)
 
     # get the correct early stop mode
     if 'accuracy' in monitored_value:
@@ -230,27 +162,6 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     write_stats(result, os.path.join(visualization_path, 'accu.png'))
 
 
-def detect(model, val_generator, id2code, label_codes, label_names, seed=1,
-           out_dir='/tmp'):
-    """Run detection.
-
-    :param model: model to be used for the detection
-    :param val_generator: validation data generator
-    :param id2code: dictionary mapping label ids to their codes
-    :param label_codes: list with label codes
-    :param label_names: list with label names
-    :param seed: the generator seed
-    :param out_dir: directory where the output visualizations will be saved
-    """
-    testing_gen = val_generator(id2code, seed)
-
-    batch_img, batch_mask = next(testing_gen)
-    pred_all = model.predict(batch_img)
-
-    visualize_detections(batch_img, batch_mask, pred_all, id2code,
-                         label_codes, label_names, out_dir)
-
-
 def _str2bool(string_val):
     """Transform a string looking like a boolean value to a boolean value.
 
@@ -273,39 +184,38 @@ def _str2bool(string_val):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Run U-Net training and detection')
+        description='Run training or fine-tuning')
 
     parser.add_argument(
-        '--operation', type=str, required=True,
-        choices=('train', 'detect', 'fine-tune'),
+        '--operation', type=str, required=True, default='train',
+        choices=('train', 'fine-tune'),
         help='Choose either to train the model or to use a trained one for '
              'detection')
     parser.add_argument(
         '--data_dir', type=str, required=True,
         help='Path to the directory containing images and labels')
     parser.add_argument(
-        '--output_dir', type=str, default=None,
+        '--output_dir', type=str, required=True, default=None,
         help='Path where logs and the model will be saved')
     parser.add_argument(
         '--model', type=str, default='U-Net',
         choices=('U-Net', 'SegNet'),
-        help='ONLY FOR OPERATION == TRAIN: Model architecture')
+        help='Model architecture')
     parser.add_argument(
         '--model_fn', type=str,
-        help='ONLY FOR OPERATION == TRAIN: Output model filename')
+        help='Output model filename')
     parser.add_argument(
-        '--model_path', type=str, default=None,
-        help='ONLY FOR OPERATION IN (DETECT, FINE-TUNE): Input model path')
+        '--weights_path', type=str, default=None,
+        help='ONLY FOR OPERATION == FINE-TUNE: Input weights path')
     parser.add_argument(
         '--visualization_path', type=str, default='/tmp',
         help='Path to a directory where the accuracy visualization '
-             '(operation == train) or detection visualizations '
-             '(operation == detect) will be saved')
+             'will be saved')
     parser.add_argument(
         '--nr_epochs', type=int, default=1,
-        help='ONLY FOR OPERATION == TRAIN: Number of epochs to train '
-             'the model. Note that in conjunction with initial_epoch, '
-             'epochs is to be understood as the final epoch')
+        help='Number of epochs to train the model. Note that in conjunction '
+             'with initial_epoch, epochs is to be understood as the final '
+             'epoch')
     parser.add_argument(
         '--initial_epoch', type=int, default=0,
         help='ONLY FOR OPERATION == FINE-TUNE: Epoch at which to start '
@@ -325,8 +235,8 @@ if __name__ == '__main__':
         help='Generator random seed')
     parser.add_argument(
         '--patience', type=int, default=100,
-        help='ONLY FOR OPERATION == TRAIN: Number of epochs with no '
-             'improvement after which training will be stopped')
+        help='Number of epochs with no improvement after which training will '
+             'be stopped')
     parser.add_argument(
         '--tensor_height', type=int, default=256,
         help='Height of the tensor representing the image')
@@ -335,7 +245,7 @@ if __name__ == '__main__':
         help='Width of the tensor representing the image')
     parser.add_argument(
         '--monitored_value', type=str, default='val_accuracy',
-        help='ONLY FOR OPERATION == TRAIN: Metric name to be monitored')
+        help='Metric name to be monitored')
     parser.add_argument(
         '--force_dataset_generation', type=_str2bool, default=False,
         help='Boolean to force the dataset structure generation')
@@ -350,10 +260,6 @@ if __name__ == '__main__':
         help='Boolean to augment the training dataset with rotations, '
              'shear and flips')
     parser.add_argument(
-        '--onehot_encode_masks', type=_str2bool, default=True,
-        help='Boolean to onehot-encode masks during training - could result '
-             'in better accuracy')
-    parser.add_argument(
         '--tversky_alpha', type=float, default=None,
         help='ONLY FOR LOSS_FUNCTION == TVERSKY: Coefficient alpha')
     parser.add_argument(
@@ -361,12 +267,10 @@ if __name__ == '__main__':
         help='ONLY FOR LOSS_FUNCTION == TVERSKY: Coefficient beta')
     parser.add_argument(
         '--dropout_rate_input', type=float, default=None,
-        help='ONLY FOR OPERATION == TRAIN: Fraction of the input units of the '
-             'input layer to drop')
+        help='Fraction of the input units of the  input layer to drop')
     parser.add_argument(
         '--dropout_rate_hidden', type=float, default=None,
-        help='ONLY FOR OPERATION == TRAIN: Fraction of the input units of the '
-             'hidden layers to drop')
+        help='Fraction of the input units of the hidden layers to drop')
     parser.add_argument(
         '--validation_set_percentage', type=float, default=0.2,
         help='If generating the dataset - Percentage of the entire dataset to '
@@ -382,13 +286,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # check required arguments by individual operations
-    if args.operation == 'train' and args.output_dir is None:
+    if args.operation == 'fine-tune' and args.model_path is None:
         raise parser.error(
-            'Argument output_dir required for operation == train')
-    if args.operation in ('detect', 'fine-tune') and args.model_path is None:
-        raise parser.error(
-            'Argument model_path required for operation in '
-            '(detect, fine-tune)')
+            'Argument model_path required for operation == fine-tune')
     if args.operation == 'train' and args.initial_epoch != 0:
         raise parser.error(
             'Argument initial_epoch must be 0 for operation == train')
@@ -399,25 +299,18 @@ if __name__ == '__main__':
             'loss_function == tversky')
     dropout_specified = args.dropout_rate_input is not None or \
                         args.dropout_rate_hidden is not None
-    if args.operation != 'train' and dropout_specified is True:
-        raise parser.error(
-            'Dropout can be specified only for operation == train')
-    if args.operation == 'detect' and args.augment_training_dataset is True:
-        raise parser.error(
-            'Argument augment_training_dataset is not allowed for operation == '
-            'detect as it does not make sense there')
     if not 0 <= args.validation_set_percentage < 1:
         raise parser.error(
             'Argument validation_set_percentage must be greater or equal to 0 '
             'and smaller than 1')
 
     main(args.operation, args.data_dir, args.output_dir,
-         args.model, args.model_fn, args.model_path, args.visualization_path,
+         args.model, args.model_fn, args.weights_path, args.visualization_path,
          args.nr_epochs, args.initial_epoch, args.batch_size,
          args.loss_function, args.seed, args.patience,
          (args.tensor_height, args.tensor_width), args.monitored_value,
          args.force_dataset_generation, args.fit_dataset_in_memory,
-         args.augment_training_dataset, args.onehot_encode_masks,
-         args.tversky_alpha, args.tversky_beta, args.dropout_rate_input,
+         args.augment_training_dataset, args.tversky_alpha,
+         args.tversky_beta, args.dropout_rate_input,
          args.dropout_rate_hidden, args.validation_set_percentage,
          args.filter_by_classes)
