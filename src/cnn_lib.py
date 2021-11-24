@@ -312,7 +312,8 @@ class ConvBlock(Layer):
 
     def __init__(self, nr_filters=64, kernel_size=(3, 3), activation='relu',
                  padding='same', dilation_rate=1, batch_norm=True,
-                 dropout_rate=None, depth=2, **kwargs):
+                 dropout_rate=None, depth=2,
+                 kernel_initializer='glorot_uniform', **kwargs):
         """Create a block of two convolutional layers.
 
         Each of them could be followed by a batch normalization layer.
@@ -332,6 +333,7 @@ class ConvBlock(Layer):
             units of convolutional layers to drop
         :param depth: depth of the block, specifying the number of conv
             layers in the block
+        :param kernel_initializer: initializer for the kernel weights matrix
         :param kwargs: supplementary kwargs for the parent __init__()
         """
         super(ConvBlock, self).__init__(**kwargs)
@@ -353,9 +355,10 @@ class ConvBlock(Layer):
         self.activations = []
         self.batch_norms = []
         for i in range(depth):
-            self.conv_layers.append(Conv2D(nr_filters, kernel_size,
-                                           padding=padding,
-                                           dilation_rate=dilation_rate))
+            self.conv_layers.append(
+                Conv2D(nr_filters, kernel_size, padding=padding,
+                       dilation_rate=dilation_rate,
+                       kernel_initializer=kernel_initializer))
             self.dropouts.append(Dropout(rate=dropout_rate))
             self.activations.append(Activation(activation))
             self.batch_norms.append(BatchNormalization())
