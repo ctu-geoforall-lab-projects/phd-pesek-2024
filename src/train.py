@@ -199,7 +199,7 @@ if __name__ == '__main__':
         help='Path where logs and the model will be saved')
     parser.add_argument(
         '--model', type=str, default='U-Net',
-        choices=('U-Net', 'SegNet'),
+        choices=('U-Net', 'SegNet', 'DeepLab'),
         help='Model architecture')
     parser.add_argument(
         '--model_fn', type=str,
