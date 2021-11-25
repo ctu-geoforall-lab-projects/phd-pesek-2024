@@ -539,8 +539,8 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
     model.build(input_shape=(None, tensor_shape[0], tensor_shape[1], nr_bands))
 
-    # if verbose > 0:
-    #     model.summary()
+    if verbose > 0:
+        model.summary()
 
     return model
 
