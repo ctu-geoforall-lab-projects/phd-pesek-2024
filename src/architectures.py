@@ -891,10 +891,6 @@ def identity_block(input_tensor, kernel_size, filters, stage, block):
     """
     filters1, filters2, filters3 = filters
     bn_axis = 3
-    # if backend.image_data_format() == 'channels_last':
-    #     bn_axis = 3
-    # else:
-    #     bn_axis = 1
     conv_name_base = 'res' + str(stage) + block + '_branch'
     bn_name_base = 'bn' + str(stage) + block + '_branch'
 
