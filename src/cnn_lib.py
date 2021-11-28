@@ -364,9 +364,11 @@ class ConvBlock(Layer):
                 Conv2D(filters[i], kernel_size, padding=padding,
                        dilation_rate=dilation_rate,
                        kernel_initializer=kernel_initializer))
-            self.dropouts.append(Dropout(rate=dropout_rate))
+            if dropout_rate is not None:
+                self.dropouts.append(Dropout(rate=dropout_rate))
             self.activations.append(Activation(activation))
-            self.batch_norms.append(BatchNormalization())
+            if self.batch_norm is True:
+                self.batch_norms.append(BatchNormalization())
 
     def call(self, x, mask=None):
         """Perform the logic of applying the layer to the input tensors.
