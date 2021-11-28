@@ -216,7 +216,7 @@ class UNet(_BaseModel):
         ds_blocks = []
         ds_pools = []
         for i in range(4):
-            ds_blocks.append(ConvBlock(self.nr_filters * (2 ** i),
+            ds_blocks.append(ConvBlock((self.nr_filters * (2 ** i), ),
                                        (3, 3),
                                        self.activation,
                                        self.padding,
@@ -231,7 +231,7 @@ class UNet(_BaseModel):
         ds_ret = (ds_blocks, ds_pools)
 
         # middle conv block
-        m_block = ConvBlock(self.nr_filters * (2 ** 4), (3, 3),
+        m_block = ConvBlock((self.nr_filters * (2 ** 4), ), (3, 3),
                             self.activation, self.padding, self.dilation_rate,
                             dropout_rate=self.dropout_rate_hidden, depth=2,
                             name='middle_block')
@@ -251,7 +251,7 @@ class UNet(_BaseModel):
             # concatenate the upsampled weights with the corresponding ones
             # from the contracting path
             us_concats.append(Concatenate(axis=3, name=f'upsampling_concat{i}'))
-            us_blocks.append(ConvBlock(self.nr_filters * (2 ** i),
+            us_blocks.append(ConvBlock((self.nr_filters * (2 ** i), ),
                                        (3, 3),
                                        self.activation,
                                        self.padding,
@@ -371,7 +371,7 @@ class SegNet(_BaseModel):
         ds_pools = []
         for i in range(2):
             # blocks of the depth 2
-            ds_blocks.append(ConvBlock(self.nr_filters * (2 ** i),
+            ds_blocks.append(ConvBlock((self.nr_filters * (2 ** i), ),
                                        (3, 3),
                                        self.activation, self.padding,
                                        self.dilation_rate,
@@ -383,7 +383,7 @@ class SegNet(_BaseModel):
 
         for i in range(2, 5):
             # blocks of the depth 3
-            ds_blocks.append(ConvBlock(self.nr_filters * (2 ** i),
+            ds_blocks.append(ConvBlock((self.nr_filters * (2 ** i), ),
                                        (3, 3),
                                        self.activation,
                                        self.padding,
@@ -403,14 +403,14 @@ class SegNet(_BaseModel):
             # blocks of the depth 3
             # upsampling with shared indices
             us_samples.append(MyMaxUnpooling(pool_size=(2, 2)))
-            us_blocks.append(ConvBlock(self.nr_filters * (2 ** i),
+            us_blocks.append(ConvBlock((self.nr_filters * (2 ** i), ),
                                        (3, 3),
                                        self.activation,
                                        self.padding,
                                        self.dilation_rate,
                                        dropout_rate=self.dropout_rate_hidden,
                                        depth=2))
-            us_blocks.append(ConvBlock(self.nr_filters * (2 ** (i - 1)),
+            us_blocks.append(ConvBlock((self.nr_filters * (2 ** (i - 1)), ),
                                        (3, 3),
                                        self.activation,
                                        self.padding,
@@ -420,7 +420,7 @@ class SegNet(_BaseModel):
 
         # a block of the depth 2
         us_samples.append(MyMaxUnpooling(pool_size=(2, 2)))
-        us_blocks.append(ConvBlock(self.nr_filters * (2 ** 1),
+        us_blocks.append(ConvBlock((self.nr_filters * (2 ** 1), ),
                                    (3, 3),
                                    self.activation,
                                    self.padding,
@@ -439,7 +439,7 @@ class SegNet(_BaseModel):
         # the paper states depth two and then softmax, but I believe that this
         # should do the same trick
         us_samples.append(MyMaxUnpooling(pool_size=(2, 2)))
-        us_blocks.append(ConvBlock(self.nr_filters * (2 ** 0),
+        us_blocks.append(ConvBlock((self.nr_filters * (2 ** 0), ),
                                    (3, 3),
                                    self.activation,
                                    self.padding,
