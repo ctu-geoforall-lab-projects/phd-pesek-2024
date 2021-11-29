@@ -1190,6 +1190,7 @@ _KERAS_UTILS = tensorflow.keras.utils
 
 # def DeepLabV3Plus(img_height, img_width, nclasses=66):
 def DeepLabV3Plus(nclasses, img_height=512, img_width=512, **kwargs):
+    """<https://arxiv.org/pdf/1802.02611.pdf>"""
     print('*** Building DeepLabv3Plus Network ***')
 
     base_model = ResNet50(input_shape=(
