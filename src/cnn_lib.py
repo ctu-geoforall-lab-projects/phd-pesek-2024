@@ -311,7 +311,7 @@ class ConvBlock(Layer):
     """TF Keras layer overriden to represent a convolutional block."""
 
     def __init__(self, filters=(64, ), kernel_sizes=((3, 3), ),
-                 activation='relu', paddings=('same', ), dilation_rate=1,
+                 activations=('relu', ), paddings=('same', ), dilation_rate=1,
                  batch_norm=True, dropout_rate=None, depth=2,
                  strides=((1, 1), ), kernel_initializer='glorot_uniform',
                  name='conv_block', **kwargs):
@@ -325,12 +325,14 @@ class ConvBlock(Layer):
             specifying the height and width of the 2D convolution window. If
             len(kernel_sizes) == 1, the same kernel is used for every conv
             layer
-        :param activation: activation function, such as tf.nn.relu, or string
-            name of built-in activation function, such as 'relu'
+        :param activations: set of activation functions, such as tf.nn.relu,
+            or string names of built-in activation function, such as 'relu'. If
+            len(activations) == 1, the same activation function is used for
+            every conv layer
         :param paddings: set of paddings for each conv layer. 'valid' means no
             padding. 'same' results in padding evenly to the left/right or
             up/down of the input such that output has the same height/width
-            dimension as the input. If len(padding) == 1, the same padding is
+            dimension as the input. If len(paddings) == 1, the same padding is
             used for every conv layer
         :param dilation_rate: convolution dilation rate
         :param batch_norm: boolean saying whether to use batch normalization
@@ -340,7 +342,8 @@ class ConvBlock(Layer):
         :param depth: depth of the block, specifying the number of conv
             layers in the block
         :param strides: An integer or tuple/list of 2 integers, specifying
-            the strides of the convolution along the height and width
+            the strides of the convolution along the height and width. If
+            len(strides) == 1, the same stride is used for every conv layer
         :param kernel_initializer: initializer for the kernel weights matrix
         :param name: string base name of the layer
         :param kwargs: supplementary kwargs for the parent __init__()
@@ -350,7 +353,7 @@ class ConvBlock(Layer):
         # set init parameters to member variables
         self.filters = filters
         self.kernel_sizes = kernel_sizes
-        self.activation = activation
+        self.activations = activations
         self.paddings = paddings
         self.dilation_rate = dilation_rate
         self.batch_norm = batch_norm
@@ -365,17 +368,19 @@ class ConvBlock(Layer):
         # variable ones
         if len(filters) == 1:
             filters = depth * filters
-        if len(paddings) == 1:
-            paddings = depth * paddings
         if len(kernel_sizes) == 1:
             kernel_sizes = depth * kernel_sizes
+        if len(activations) == 1:
+            activations = depth * activations
+        if len(paddings) == 1:
+            paddings = depth * paddings
         if len(strides) == 1:
             strides = depth * strides
 
         # instantiate layers of the conv block
         self.conv_layers = []
         self.dropouts = []
-        self.activations = []
+        self.activation_layers = []
         self.batch_norms = []
         for i in range(depth):
             self.conv_layers.append(
@@ -385,7 +390,7 @@ class ConvBlock(Layer):
                        name='{}_conv{}'.format(name, i)))
             if dropout_rate is not None:
                 self.dropouts.append(Dropout(rate=dropout_rate))
-            self.activations.append(Activation(activation))
+            self.activation_layers.append(Activation(activations[i]))
             if self.batch_norm is True:
                 self.batch_norms.append(
                     BatchNormalization(name='{}_bn{}'.format(name, i)))
@@ -403,7 +408,7 @@ class ConvBlock(Layer):
             x = self.conv_layers[i](x)
             if self.dropout_rate is not None:
                 x = self.dropouts[i](x)
-            x = self.activations[i](x)
+            x = self.activation_layers[i](x)
             if self.batch_norm is True:
                 x = self.batch_norms[i](x)
 

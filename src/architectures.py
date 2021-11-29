@@ -218,7 +218,7 @@ class UNet(_BaseModel):
         for i in range(4):
             ds_blocks.append(ConvBlock((self.nr_filters * (2 ** i), ),
                                        ((3, 3), ),
-                                       self.activation,
+                                       (self.activation, ),
                                        (self.padding, ),
                                        self.dilation_rate,
                                        dropout_rate=self.dropout_rate_hidden,
@@ -232,7 +232,8 @@ class UNet(_BaseModel):
 
         # middle conv block
         m_block = ConvBlock((self.nr_filters * (2 ** 4), ), ((3, 3), ),
-                            self.activation, (self.padding, ), self.dilation_rate,
+                            (self.activation, ), (self.padding, ),
+                            self.dilation_rate,
                             dropout_rate=self.dropout_rate_hidden, depth=2,
                             name='middle_block')
 
@@ -253,7 +254,7 @@ class UNet(_BaseModel):
             us_concats.append(Concatenate(axis=3, name=f'upsampling_concat{i}'))
             us_blocks.append(ConvBlock((self.nr_filters * (2 ** i), ),
                                        ((3, 3), ),
-                                       self.activation,
+                                       (self.activation, ),
                                        (self.padding, ),
                                        self.dilation_rate,
                                        dropout_rate=self.dropout_rate_hidden,
@@ -373,7 +374,7 @@ class SegNet(_BaseModel):
             # blocks of the depth 2
             ds_blocks.append(ConvBlock((self.nr_filters * (2 ** i), ),
                                        ((3, 3), ),
-                                       self.activation, (self.padding, ),
+                                       (self.activation, ), (self.padding, ),
                                        self.dilation_rate,
                                        dropout_rate=self.dropout_rate_hidden,
                                        depth=2))
@@ -385,7 +386,7 @@ class SegNet(_BaseModel):
             # blocks of the depth 3
             ds_blocks.append(ConvBlock((self.nr_filters * (2 ** i), ),
                                        ((3, 3), ),
-                                       self.activation,
+                                       (self.activation, ),
                                        (self.padding, ),
                                        self.dilation_rate,
                                        dropout_rate=self.dropout_rate_hidden,
@@ -405,14 +406,14 @@ class SegNet(_BaseModel):
             us_samples.append(MyMaxUnpooling(pool_size=(2, 2)))
             us_blocks.append(ConvBlock((self.nr_filters * (2 ** i), ),
                                        ((3, 3), ),
-                                       self.activation,
+                                       (self.activation, ),
                                        (self.padding, ),
                                        self.dilation_rate,
                                        dropout_rate=self.dropout_rate_hidden,
                                        depth=2))
             us_blocks.append(ConvBlock((self.nr_filters * (2 ** (i - 1)), ),
                                        ((3, 3), ),
-                                       self.activation,
+                                       (self.activation, ),
                                        (self.padding, ),
                                        self.dilation_rate,
                                        dropout_rate=self.dropout_rate_hidden,
@@ -422,14 +423,14 @@ class SegNet(_BaseModel):
         us_samples.append(MyMaxUnpooling(pool_size=(2, 2)))
         us_blocks.append(ConvBlock((self.nr_filters * (2 ** 1), ),
                                    ((3, 3), ),
-                                   self.activation,
+                                   (self.activation, ),
                                    (self.padding, ),
                                    self.dilation_rate,
                                    dropout_rate=self.dropout_rate_hidden,
                                    depth=1))
         us_blocks.append(ConvBlock(self.nr_filters * (2 ** 0),
                                    ((3, 3), ),
-                                   self.activation,
+                                   (self.activation, ),
                                    (self.padding, ),
                                    self.dilation_rate,
                                    dropout_rate=self.dropout_rate_hidden,
@@ -441,7 +442,7 @@ class SegNet(_BaseModel):
         us_samples.append(MyMaxUnpooling(pool_size=(2, 2)))
         us_blocks.append(ConvBlock((self.nr_filters * (2 ** 0), ),
                                    ((3, 3), ),
-                                   self.activation,
+                                   (self.activation, ),
                                    (self.padding, ),
                                    self.dilation_rate,
                                    dropout_rate=self.dropout_rate_hidden,
