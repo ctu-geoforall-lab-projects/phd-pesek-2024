@@ -10,7 +10,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras import backend as K
 
 from cnn_lib import ConvBlock, MyMaxPooling, MyMaxUnpooling, \
-    categorical_dice, categorical_tversky
+    categorical_dice, categorical_tversky, ResBlock
 from cnn_exceptions import ModelConfigError
 
 
@@ -491,8 +491,6 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
                  beta=None, dropout_rate_input=None, dropout_rate_hidden=None):
     """Create intended model.
 
-    So far it is only U-Net.
-
     :param model: model architecture
     :param nr_classes: number of classes to be predicted
     :param nr_bands: number of bands of intended input images
@@ -918,64 +916,6 @@ def identity_block(input_tensor, kernel_size, filters, stage, block):
     return x
 
 
-def conv_block(input_tensor,
-               kernel_size,
-               filters,
-               stage,
-               block,
-               strides=(2, 2)):
-    """A block that has a conv layer at shortcut.
-    # Arguments
-        input_tensor: input tensor
-        kernel_size: default 3, the kernel size of
-            middle conv layer at main path
-        filters: list of integers, the filters of 3 conv layer at main path
-        stage: integer, current stage label, used for generating layer names
-        block: 'a','b'..., current block label, used for generating layer names
-        strides: Strides for the first conv layer in the block.
-    # Returns
-        Output tensor for the block.
-    Note that from stage 3,
-    the first conv layer at main path is with strides=(2, 2)
-    And the shortcut should have strides=(2, 2) as well
-    """
-    # x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
-    filters1, filters2, filters3 = filters
-    bn_axis = 3
-    conv_name_base = 'res' + str(stage) + block + '_branch'
-    bn_name_base = 'bn' + str(stage) + block + '_branch'
-
-    x = Conv2D(filters1, (1, 1), strides=strides,
-                      kernel_initializer='he_normal',
-                      name=conv_name_base + '2a')(input_tensor)
-    x = Activation('relu')(x)
-    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2a')(x)
-    # x = Activation('relu')(x)
-    # 0.21989
-
-    x = Conv2D(filters2, kernel_size, padding='same',
-                      kernel_initializer='he_normal',
-                      name=conv_name_base + '2b')(x)
-    x = Activation('relu')(x)
-    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2b')(x)
-    # x = Activation('relu')(x)
-
-    x = Conv2D(filters3, (1, 1),
-                      kernel_initializer='he_normal',
-                      name=conv_name_base + '2c')(x)
-    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(x)
-
-    shortcut = Conv2D(filters3, (1, 1), strides=strides,
-                             kernel_initializer='he_normal',
-                             name=conv_name_base + '1')(input_tensor)
-    shortcut = BatchNormalization(
-        axis=bn_axis, name=bn_name_base + '1')(shortcut)
-
-    x = add([x, shortcut])
-    x = Activation('relu')(x)
-    return x
-
-
 def ResNet50(include_top=True,
              # weights='imagenet',
              weights=None,
@@ -1046,23 +986,24 @@ def ResNet50(include_top=True,
     x = ZeroPadding2D(padding=(1, 1), name='pool1_pad')(x)
     x = MaxPooling2D((3, 3), strides=(2, 2))(x)
 
-    x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
+    x = ResBlock(kernel_size=3, filters=(64, 64, 256), stage=2, block='a',
+                 strides=(1, 1))(x)
     x = identity_block(x, 3, [64, 64, 256], stage=2, block='b')
     x = identity_block(x, 3, [64, 64, 256], stage=2, block='c')
 
-    x = conv_block(x, 3, [128, 128, 512], stage=3, block='a')
+    x = ResBlock(kernel_size=3, filters=(128, 128, 512), stage=3, block='a')(x)
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='b')
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='c')
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='d')
 
-    x = conv_block(x, 3, [256, 256, 1024], stage=4, block='a')
+    x = ResBlock(kernel_size=3, filters=(256, 256, 1024), stage=4, block='a')(x)
     x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
     x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
     x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
     x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
     x = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
 
-    x = conv_block(x, 3, [512, 512, 2048], stage=5, block='a')
+    x = ResBlock(kernel_size=3, filters=(512, 512, 2048), stage=5, block='a')(x)
     x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
     x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
 

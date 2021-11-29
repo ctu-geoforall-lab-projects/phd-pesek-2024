@@ -8,7 +8,7 @@ import tensorflow as tf
 from osgeo import gdal
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
-    Activation, Dropout
+    Activation, Dropout, Add
 from tensorflow.keras import backend as keras
 
 from data_preparation import generate_dataset_structure
@@ -341,9 +341,10 @@ class ConvBlock(Layer):
             units of convolutional layers to drop
         :param depth: depth of the block, specifying the number of conv
             layers in the block
-        :param strides: An integer or tuple/list of 2 integers, specifying
-            the strides of the convolution along the height and width. If
-            len(strides) == 1, the same stride is used for every conv layer
+        :param strides: Set of integers or tuples/lists of 2 integers,
+            specifying the strides of the convolution along the height and
+            width. If len(strides) == 1, the same stride is used for every
+            conv layer
         :param kernel_initializer: initializer for the kernel weights matrix
         :param name: string base name of the layer
         :param kwargs: supplementary kwargs for the parent __init__()
@@ -430,14 +431,129 @@ class ConvBlock(Layer):
         """
         config = super(ConvBlock, self).get_config()
 
-        config.update(nr_filters=self.nr_filters,
-                      kernel_size=self.kernel_size,
-                      activation=self.activation,
-                      padding=self.padding,
+        config.update(filters=self.filters,
+                      kernel_sizes=self.kernel_sizes,
+                      activations=self.activations,
+                      paddings=self.paddings,
                       dilation_rate=self.dilation_rate,
                       batch_norm=self.batch_norm,
                       dropout_rate=self.dropout_rate,
                       depth=self.depth,
+                      strides=self.strides,
+                      kernel_initializer=self.kernel_initializer,
+                      name=self.base_name,
+                      **self.kwargs)
+
+        return config
+
+
+class ResBlock(Layer):
+    """TF Keras layer overriden to represent a residual block in ResNet.
+
+    Following the definition of residual blocks for ResNet-50 and deeper from
+    the original paper: <https://arxiv.org/pdf/1512.03385.pdf>. The original
+    design was enhanced by the option to perform dropout.
+    """
+
+    def __init__(self, filters=(64, 64, 256), kernel_size=(3, 3),
+                 activation='relu', batch_norm=True, dropout_rate=None,
+                 strides=(2, 2), stage=1, block='a', **kwargs):
+        """Create a residual block.
+
+        Each block could be followed by a batch normalization layer.
+
+        :param filters: set of numbers of filters for each conv layer
+        :param kernel_size: an integer or tuple/list of 2 integers, specifying
+            the height and width of the 2D convolution window in the central
+            convolutional layer in the bottleneck block
+        :param activation: activation function, such as tf.nn.relu, or string
+            name of built-in activation function, such as 'relu'
+        :param batch_norm: boolean saying whether to use batch normalization
+            or not
+        :param dropout_rate: float between 0 and 1. Fraction of the input
+            units of convolutional layers to drop
+        :param strides: integer or tuple/list of 2 integers, specifying
+            the strides of the convolution along the height and width
+        :param stage: stage identifier used for the layer naming
+        :param block: block identifier used for the layer naming
+        :param kwargs: supplementary kwargs for the parent __init__()
+        """
+        super(ResBlock, self).__init__(**kwargs)
+
+        # set init parameters to member variables
+        self.filters = filters
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.batch_norm = batch_norm
+        self.dropout_rate = dropout_rate
+        self.strides = strides
+        self.stage = stage
+        self.block = block
+        self.kwargs = kwargs
+        # TODO: name
+
+        # create base name for blocks
+        base_name = 'res' + str(stage) + block
+
+        self.bottleneck = ConvBlock(filters=filters,
+                                    kernel_sizes=((1, 1), kernel_size, (1, 1)),
+                                    activations=(activation, activation, None),
+                                    paddings=('valid', 'same', 'valid'),
+                                    batch_norm=batch_norm,
+                                    dropout_rate=dropout_rate,
+                                    depth=3,
+                                    strides=(strides, (1, 1), (1, 1)),
+                                    kernel_initializer='he_normal',
+                                    name=base_name + '_bottleneck')
+
+        self.shortcut = ConvBlock(filters=(filters[-1], ),
+                                  kernel_sizes=((1, 1), ),
+                                  activations=(None, ),
+                                  paddings=('valid', ),
+                                  batch_norm=batch_norm,
+                                  dropout_rate=dropout_rate,
+                                  depth=1,
+                                  strides=(strides, ),
+                                  kernel_initializer='he_normal',
+                                  name=base_name + '_shortcut')
+
+        self.add = Add()
+        self.activation = Activation(activation)
+
+    def call(self, input, mask=None):
+        """Perform the logic of applying the layer to the input tensors.
+
+        :param x: input tensor
+        :param mask: boolean tensor encoding masked timesteps in the input,
+            used in RNN layers (currently not used)
+        :return: output layer of the convolutional block
+        """
+        x = self.bottleneck(input)
+        s = self.shortcut(input)
+        x = self.add([x, s])
+        x = self.activation(x)
+
+        return x
+
+    def get_config(self):
+        """Return the configuration of the convolutional block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        layer class name.
+
+        :return: the configuration dictionary of the convolutional block
+        """
+        config = super(ResBlock, self).get_config()
+
+        config.update(filters=self.filters,
+                      kernel_size=self.kernel_size,
+                      activation=self.activation,
+                      batch_norm=self.batch_norm,
+                      dropout_rate=self.dropout_rate,
+                      strides=self.strides,
+                      stage=self.stage,
+                      block=self.block,
                       **self.kwargs)
 
         return config
