@@ -312,9 +312,9 @@ class ConvBlock(Layer):
 
     def __init__(self, filters=(64, ), kernel_sizes=((3, 3), ),
                  activation='relu', paddings=('same', ), dilation_rate=1,
-                 batch_norm=True, dropout_rate=None, depth=2, strides=(1, 1),
-                 kernel_initializer='glorot_uniform', name='conv_block',
-                 **kwargs):
+                 batch_norm=True, dropout_rate=None, depth=2,
+                 strides=((1, 1), ), kernel_initializer='glorot_uniform',
+                 name='conv_block', **kwargs):
         """Create a block of two convolutional layers.
 
         Each of them could be followed by a batch normalization layer.
@@ -361,13 +361,16 @@ class ConvBlock(Layer):
         self.base_name = name
         self.kwargs = kwargs
 
-        # solve the case of the same filter for each conv_layer
+        # solve the case of the same parameter for each conv_layer for the
+        # variable ones
         if len(filters) == 1:
             filters = depth * filters
         if len(paddings) == 1:
             paddings = depth * paddings
         if len(kernel_sizes) == 1:
             kernel_sizes = depth * kernel_sizes
+        if len(strides) == 1:
+            strides = depth * strides
 
         # instantiate layers of the conv block
         self.conv_layers = []
@@ -377,7 +380,7 @@ class ConvBlock(Layer):
         for i in range(depth):
             self.conv_layers.append(
                 Conv2D(filters[i], kernel_sizes[i], padding=paddings[i],
-                       dilation_rate=dilation_rate, strides=strides,
+                       dilation_rate=dilation_rate, strides=strides[i],
                        kernel_initializer=kernel_initializer,
                        name='{}_conv{}'.format(name, i)))
             if dropout_rate is not None:
