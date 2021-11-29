@@ -310,9 +310,9 @@ def categorical_tversky(ground_truth_onehot, predictions, alpha=0.5,
 class ConvBlock(Layer):
     """TF Keras layer overriden to represent a convolutional block."""
 
-    def __init__(self, filters=(64, ), kernel_size=(3, 3), activation='relu',
-                 paddings=('same', ), dilation_rate=1, batch_norm=True,
-                 dropout_rate=None, depth=2, strides=(1, 1),
+    def __init__(self, filters=(64, ), kernel_sizes=((3, 3), ),
+                 activation='relu', paddings=('same', ), dilation_rate=1,
+                 batch_norm=True, dropout_rate=None, depth=2, strides=(1, 1),
                  kernel_initializer='glorot_uniform', name='conv_block',
                  **kwargs):
         """Create a block of two convolutional layers.
@@ -321,8 +321,10 @@ class ConvBlock(Layer):
 
         :param filters: set of numbers of filters for each conv layer. If
             len(filters) == 1, the same number is used for every conv layer
-        :param kernel_size: an integer or tuple/list of 2 integers, specifying
-            the height and width of the 2D convolution window
+        :param kernel_sizes: set of integers or tuples/lists of 2 integers,
+            specifying the height and width of the 2D convolution window. If
+            len(kernel_sizes) == 1, the same kernel is used for every conv
+            layer
         :param activation: activation function, such as tf.nn.relu, or string
             name of built-in activation function, such as 'relu'
         :param paddings: set of paddings for each conv layer. 'valid' means no
@@ -347,7 +349,7 @@ class ConvBlock(Layer):
 
         # set init parameters to member variables
         self.filters = filters
-        self.kernel_size = kernel_size
+        self.kernel_sizes = kernel_sizes
         self.activation = activation
         self.paddings = paddings
         self.dilation_rate = dilation_rate
@@ -364,6 +366,8 @@ class ConvBlock(Layer):
             filters = depth * filters
         if len(paddings) == 1:
             paddings = depth * paddings
+        if len(kernel_sizes) == 1:
+            kernel_sizes = depth * kernel_sizes
 
         # instantiate layers of the conv block
         self.conv_layers = []
@@ -372,7 +376,7 @@ class ConvBlock(Layer):
         self.batch_norms = []
         for i in range(depth):
             self.conv_layers.append(
-                Conv2D(filters[i], kernel_size, padding=paddings[i],
+                Conv2D(filters[i], kernel_sizes[i], padding=paddings[i],
                        dilation_rate=dilation_rate, strides=strides,
                        kernel_initializer=kernel_initializer,
                        name='{}_conv{}'.format(name, i)))
