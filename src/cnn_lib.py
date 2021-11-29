@@ -376,7 +376,8 @@ class ConvBlock(Layer):
                 self.dropouts.append(Dropout(rate=dropout_rate))
             self.activations.append(Activation(activation))
             if self.batch_norm is True:
-                self.batch_norms.append(BatchNormalization())
+                self.batch_norms.append(
+                    BatchNormalization(name='{}_bn{}'.format(name, i)))
 
     def call(self, x, mask=None):
         """Perform the logic of applying the layer to the input tensors.
