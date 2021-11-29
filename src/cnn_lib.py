@@ -311,7 +311,7 @@ class ConvBlock(Layer):
     """TF Keras layer overriden to represent a convolutional block."""
 
     def __init__(self, filters=(64, ), kernel_size=(3, 3), activation='relu',
-                 padding='same', dilation_rate=1, batch_norm=True,
+                 paddings=('same', ), dilation_rate=1, batch_norm=True,
                  dropout_rate=None, depth=2, strides=(1, 1),
                  kernel_initializer='glorot_uniform', name='conv_block',
                  **kwargs):
@@ -319,15 +319,17 @@ class ConvBlock(Layer):
 
         Each of them could be followed by a batch normalization layer.
 
-        :param filters: set of numbers of filters for each conv layer - if
+        :param filters: set of numbers of filters for each conv layer. If
             len(filters) == 1, the same number is used for every conv layer
         :param kernel_size: an integer or tuple/list of 2 integers, specifying
             the height and width of the 2D convolution window
         :param activation: activation function, such as tf.nn.relu, or string
             name of built-in activation function, such as 'relu'
-        :param padding: 'valid' means no padding. 'same' results in padding
-            evenly to the left/right or up/down of the input such that output
-            has the same height/width dimension as the input
+        :param paddings: set of paddings for each conv layer. 'valid' means no
+            padding. 'same' results in padding evenly to the left/right or
+            up/down of the input such that output has the same height/width
+            dimension as the input. If len(padding) == 1, the same padding is
+            used for every conv layer
         :param dilation_rate: convolution dilation rate
         :param batch_norm: boolean saying whether to use batch normalization
             or not
@@ -347,7 +349,7 @@ class ConvBlock(Layer):
         self.filters = filters
         self.kernel_size = kernel_size
         self.activation = activation
-        self.padding = padding
+        self.paddings = paddings
         self.dilation_rate = dilation_rate
         self.batch_norm = batch_norm
         self.dropout_rate = dropout_rate
@@ -360,6 +362,8 @@ class ConvBlock(Layer):
         # solve the case of the same filter for each conv_layer
         if len(filters) == 1:
             filters = depth * filters
+        if len(paddings) == 1:
+            paddings = depth * paddings
 
         # instantiate layers of the conv block
         self.conv_layers = []
@@ -368,7 +372,7 @@ class ConvBlock(Layer):
         self.batch_norms = []
         for i in range(depth):
             self.conv_layers.append(
-                Conv2D(filters[i], kernel_size, padding=padding,
+                Conv2D(filters[i], kernel_size, padding=paddings[i],
                        dilation_rate=dilation_rate, strides=strides,
                        kernel_initializer=kernel_initializer,
                        name='{}_conv{}'.format(name, i)))
