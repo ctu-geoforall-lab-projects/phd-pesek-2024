@@ -308,12 +308,13 @@ def categorical_tversky(ground_truth_onehot, predictions, alpha=0.5,
 # objects to be used in the architectures
 
 class ConvBlock(Layer):
-    """TF Keras layer overriden to represent a convolutional block in U-Net."""
+    """TF Keras layer overriden to represent a convolutional block."""
 
     def __init__(self, filters=(64, ), kernel_size=(3, 3), activation='relu',
                  padding='same', dilation_rate=1, batch_norm=True,
-                 dropout_rate=None, depth=2,
-                 kernel_initializer='glorot_uniform', **kwargs):
+                 dropout_rate=None, depth=2, strides=(1, 1),
+                 kernel_initializer='glorot_uniform', name='conv_block',
+                 **kwargs):
         """Create a block of two convolutional layers.
 
         Each of them could be followed by a batch normalization layer.
@@ -334,10 +335,13 @@ class ConvBlock(Layer):
             units of convolutional layers to drop
         :param depth: depth of the block, specifying the number of conv
             layers in the block
+        :param strides: An integer or tuple/list of 2 integers, specifying
+            the strides of the convolution along the height and width
         :param kernel_initializer: initializer for the kernel weights matrix
+        :param name: string base name of the layer
         :param kwargs: supplementary kwargs for the parent __init__()
         """
-        super(ConvBlock, self).__init__(**kwargs)
+        super(ConvBlock, self).__init__(name=name, **kwargs)
 
         # set init parameters to member variables
         self.filters = filters
@@ -348,6 +352,9 @@ class ConvBlock(Layer):
         self.batch_norm = batch_norm
         self.dropout_rate = dropout_rate
         self.depth = depth
+        self.strides = strides
+        self.kernel_initializer = kernel_initializer
+        self.base_name = name
         self.kwargs = kwargs
 
         # solve the case of the same filter for each conv_layer
@@ -362,8 +369,9 @@ class ConvBlock(Layer):
         for i in range(depth):
             self.conv_layers.append(
                 Conv2D(filters[i], kernel_size, padding=padding,
-                       dilation_rate=dilation_rate,
-                       kernel_initializer=kernel_initializer))
+                       dilation_rate=dilation_rate, strides=strides,
+                       kernel_initializer=kernel_initializer,
+                       name='{}_conv{}'.format(name, i)))
             if dropout_rate is not None:
                 self.dropouts.append(Dropout(rate=dropout_rate))
             self.activations.append(Activation(activation))
