@@ -367,15 +367,15 @@ class ConvBlock(Layer):
         # solve the case of the same parameter for each conv_layer for the
         # variable ones
         if len(filters) == 1:
-            filters = depth * filters
+            self.filters = depth * filters
         if len(kernel_sizes) == 1:
-            kernel_sizes = depth * kernel_sizes
+            self.kernel_sizes = depth * kernel_sizes
         if len(activations) == 1:
-            activations = depth * activations
+            self.activations = depth * activations
         if len(paddings) == 1:
-            paddings = depth * paddings
+            self.paddings = depth * paddings
         if len(strides) == 1:
-            strides = depth * strides
+            self.strides = depth * strides
 
         # instantiate layers of the conv block
         self.conv_layers = []
@@ -384,16 +384,20 @@ class ConvBlock(Layer):
         self.batch_norms = []
         for i in range(depth):
             self.conv_layers.append(
-                Conv2D(filters[i], kernel_sizes[i], padding=paddings[i],
-                       dilation_rate=dilation_rate, strides=strides[i],
-                       kernel_initializer=kernel_initializer,
-                       name='{}_conv{}'.format(name, i)))
+                Conv2D(self.filters[i], self.kernel_sizes[i],
+                       padding=self.paddings[i],
+                       dilation_rate=self.dilation_rate,
+                       strides=self.strides[i],
+                       kernel_initializer=self.kernel_initializer,
+                       name='{}_conv{}'.format(self.base_name, i)))
             if dropout_rate is not None:
-                self.dropouts.append(Dropout(rate=dropout_rate))
-            self.activation_layers.append(Activation(activations[i]))
+                self.dropouts.append(Dropout(rate=self.dropout_rate))
+            if self.activations[i] is not None:
+                self.activation_layers.append(Activation(self.activations[i]))
             if self.batch_norm is True:
                 self.batch_norms.append(
-                    BatchNormalization(name='{}_bn{}'.format(name, i)))
+                    BatchNormalization(
+                        name='{}_bn{}'.format(self.base_name, i)))
 
     def call(self, x, mask=None):
         """Perform the logic of applying the layer to the input tensors.
@@ -408,7 +412,8 @@ class ConvBlock(Layer):
             x = self.conv_layers[i](x)
             if self.dropout_rate is not None:
                 x = self.dropouts[i](x)
-            x = self.activation_layers[i](x)
+            if self.activations[i] is not None:
+                x = self.activation_layers[i](x)
             if self.batch_norm is True:
                 x = self.batch_norms[i](x)
 
