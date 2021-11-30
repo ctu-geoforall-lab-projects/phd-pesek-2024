@@ -1241,15 +1241,3 @@ def DeepLabV3Plus(nclasses, img_height=512, img_width=512, **kwargs):
     model = Model(inputs=base_model.input, outputs=x, name='DeepLabV3_Plus')
     print(f'*** Output_Shape => {model.output_shape} ***')
     return model
-
-class DeepLabV3PlusA(_BaseModel):
-
-    def __init__(self, nclasses, img_height=512, img_width=512, **kwargs):
-        super(DeepLabV3Plus, self).__init__(nclasses, **kwargs)
-
-    def instantiate_layers(self):
-
-        pass
-
-    def call(self, inputs, training=None, mask=None):
-        pass
