@@ -411,8 +411,6 @@ class ConvBlock(Layer):
 
         TODO: Maybe the layers could be put defined as class variables instead
               of returned values?
-
-        :return: this thing unfortunately differs
         """
         for i in range(self.depth):
             self.conv_layers.append(
@@ -529,8 +527,6 @@ class ResBlock(Layer):
 
         TODO: Maybe the layers could be put defined as class variables instead
               of returned values?
-
-        :return: this thing unfortunately differs
         """
         self.bottleneck = ConvBlock(filters=self.filters,
                                     kernel_sizes=((1, 1),
