@@ -315,9 +315,10 @@ class ConvBlock(Layer):
                  batch_norm=True, dropout_rate=None, depth=2,
                  strides=((1, 1), ), kernel_initializer='glorot_uniform',
                  name='conv_block', **kwargs):
-        """Create a block of two convolutional layers.
+        """Create a block of convolutional layers.
 
-        Each of them could be followed by a batch normalization layer.
+        Each of them could be followed by a dropout layer, activation
+        function, and/or batch normalization layer.
 
         :param filters: set of numbers of filters for each conv layer. If
             len(filters) == 1, the same number is used for every conv layer
@@ -346,7 +347,7 @@ class ConvBlock(Layer):
             width. If len(strides) == 1, the same stride is used for every
             conv layer
         :param kernel_initializer: initializer for the kernel weights matrix
-        :param name: string base name of the layer
+        :param name: string base name of the block
         :param kwargs: supplementary kwargs for the parent __init__()
         """
         super(ConvBlock, self).__init__(name=name, **kwargs)
@@ -453,14 +454,16 @@ class ResBlock(Layer):
     Following the definition of residual blocks for ResNet-50 and deeper from
     the original paper: <https://arxiv.org/pdf/1512.03385.pdf>. The original
     design was enhanced by the option to perform dropout.
+
+    Represents only the better performing/more widely used version with 1x1
+    shortcut convolution from the paper. The version with zero padding not
+    implemented as I have never seen it anywhere in use.
     """
 
     def __init__(self, filters=(64, 64, 256), kernel_size=(3, 3),
                  activation='relu', batch_norm=True, dropout_rate=None,
                  strides=(2, 2), name='res_block', **kwargs):
         """Create a residual block.
-
-        Each block could be followed by a batch normalization layer.
 
         :param filters: set of numbers of filters for each conv layer
         :param kernel_size: an integer or tuple/list of 2 integers, specifying
@@ -474,8 +477,7 @@ class ResBlock(Layer):
             units of convolutional layers to drop
         :param strides: integer or tuple/list of 2 integers, specifying
             the strides of the convolution along the height and width
-        :param stage: stage identifier used for the layer naming
-        :param block: block identifier used for the layer naming
+        :param name: string base name of the block
         :param kwargs: supplementary kwargs for the parent __init__()
         """
         super(ResBlock, self).__init__(name=name, **kwargs)
