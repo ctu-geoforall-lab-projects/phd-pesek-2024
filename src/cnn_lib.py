@@ -457,7 +457,7 @@ class ResBlock(Layer):
 
     def __init__(self, filters=(64, 64, 256), kernel_size=(3, 3),
                  activation='relu', batch_norm=True, dropout_rate=None,
-                 strides=(2, 2), stage=1, block='a', **kwargs):
+                 strides=(2, 2), name='res_block', **kwargs):
         """Create a residual block.
 
         Each block could be followed by a batch normalization layer.
@@ -478,7 +478,7 @@ class ResBlock(Layer):
         :param block: block identifier used for the layer naming
         :param kwargs: supplementary kwargs for the parent __init__()
         """
-        super(ResBlock, self).__init__(**kwargs)
+        super(ResBlock, self).__init__(name=name, **kwargs)
 
         # set init parameters to member variables
         self.filters = filters
@@ -487,13 +487,8 @@ class ResBlock(Layer):
         self.batch_norm = batch_norm
         self.dropout_rate = dropout_rate
         self.strides = strides
-        self.stage = stage
-        self.block = block
+        self.base_name=name
         self.kwargs = kwargs
-        # TODO: name
-
-        # create base name for blocks
-        base_name = 'res' + str(stage) + block
 
         self.bottleneck = ConvBlock(filters=filters,
                                     kernel_sizes=((1, 1), kernel_size, (1, 1)),
@@ -504,7 +499,7 @@ class ResBlock(Layer):
                                     depth=3,
                                     strides=(strides, (1, 1), (1, 1)),
                                     kernel_initializer='he_normal',
-                                    name=base_name + '_bottleneck')
+                                    name=self.base_name + '_bottleneck')
 
         self.shortcut = ConvBlock(filters=(filters[-1], ),
                                   kernel_sizes=((1, 1), ),
@@ -515,7 +510,7 @@ class ResBlock(Layer):
                                   depth=1,
                                   strides=(strides, ),
                                   kernel_initializer='he_normal',
-                                  name=base_name + '_shortcut')
+                                  name=self.base_name + '_shortcut')
 
         self.add = Add()
         self.activation = Activation(activation)
@@ -552,8 +547,7 @@ class ResBlock(Layer):
                       batch_norm=self.batch_norm,
                       dropout_rate=self.dropout_rate,
                       strides=self.strides,
-                      stage=self.stage,
-                      block=self.block,
+                      name=self.name,
                       **self.kwargs)
 
         return config
