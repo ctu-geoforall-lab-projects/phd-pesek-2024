@@ -212,7 +212,7 @@ class AugmentGenerator:
             transposed = np.moveaxis(image.ReadAsArray(), 0, -1)
 
         if rescale:
-            transposed = 1. / 255 * transposed
+            transposed *= 1. / 255
 
         image = None
 
@@ -384,22 +384,7 @@ class ConvBlock(Layer):
         self.dropouts = []
         self.activation_layers = []
         self.batch_norms = []
-        for i in range(depth):
-            self.conv_layers.append(
-                Conv2D(self.filters[i], self.kernel_sizes[i],
-                       padding=self.paddings[i],
-                       dilation_rate=self.dilation_rate,
-                       strides=self.strides[i],
-                       kernel_initializer=self.kernel_initializer,
-                       name='{}_conv{}'.format(self.base_name, i)))
-            if dropout_rate is not None:
-                self.dropouts.append(Dropout(rate=self.dropout_rate))
-            if self.activations[i] is not None:
-                self.activation_layers.append(Activation(self.activations[i]))
-            if self.batch_norm is True:
-                self.batch_norms.append(
-                    BatchNormalization(
-                        name='{}_bn{}'.format(self.base_name, i)))
+        self.instantiate_layers()
 
     def call(self, x, mask=None):
         """Perform the logic of applying the layer to the input tensors.
@@ -420,6 +405,31 @@ class ConvBlock(Layer):
                 x = self.batch_norms[i](x)
 
         return x
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the classifier.
+
+        TODO: Maybe the layers could be put defined as class variables instead
+              of returned values?
+
+        :return: this thing unfortunately differs
+        """
+        for i in range(self.depth):
+            self.conv_layers.append(
+                Conv2D(self.filters[i], self.kernel_sizes[i],
+                       padding=self.paddings[i],
+                       dilation_rate=self.dilation_rate,
+                       strides=self.strides[i],
+                       kernel_initializer=self.kernel_initializer,
+                       name='{}_conv{}'.format(self.base_name, i)))
+            if self.dropout_rate is not None:
+                self.dropouts.append(Dropout(rate=self.dropout_rate))
+            if self.activations[i] is not None:
+                self.activation_layers.append(Activation(self.activations[i]))
+            if self.batch_norm is True:
+                self.batch_norms.append(
+                    BatchNormalization(
+                        name='{}_bn{}'.format(self.base_name, i)))
 
     def get_config(self):
         """Return the configuration of the convolutional block.
@@ -489,57 +499,80 @@ class ResBlock(Layer):
         self.batch_norm = batch_norm
         self.dropout_rate = dropout_rate
         self.strides = strides
-        self.base_name=name
+        self.base_name = name
         self.kwargs = kwargs
 
-        self.bottleneck = ConvBlock(filters=filters,
-                                    kernel_sizes=((1, 1), kernel_size, (1, 1)),
-                                    activations=(activation, activation, None),
-                                    paddings=('valid', 'same', 'valid'),
-                                    batch_norm=batch_norm,
-                                    dropout_rate=dropout_rate,
+        # instantiate layers
+        self.bottleneck = None
+        self.shortcut = None
+        self.add = None
+        self.activation_layer = None
+        self.instantiate_layers()
+
+    def call(self, inputs, mask=None):
+        """Perform the logic of applying the layer to the input tensors.
+
+        :param inputs: Input tensor, or dict/list/tuple of input tensors
+        :param mask: boolean tensor encoding masked timesteps in the input,
+            used in RNN layers (currently not used)
+        :return: output layer of the residual block
+        """
+        x = self.bottleneck(inputs)
+        s = self.shortcut(inputs)
+        x = self.add([x, s])
+        x = self.activation_layer(x)
+
+        return x
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the output.
+
+        TODO: Maybe the layers could be put defined as class variables instead
+              of returned values?
+
+        :return: this thing unfortunately differs
+        """
+        self.bottleneck = ConvBlock(filters=self.filters,
+                                    kernel_sizes=((1, 1),
+                                                  self.kernel_size,
+                                                  (1, 1)),
+                                    activations=(self.activation,
+                                                 self.activation,
+                                                 None),
+                                    paddings=('valid',
+                                              'same',
+                                              'valid'),
+                                    batch_norm=self.batch_norm,
+                                    dropout_rate=self.dropout_rate,
                                     depth=3,
-                                    strides=(strides, (1, 1), (1, 1)),
+                                    strides=(self.strides,
+                                             (1, 1),
+                                             (1, 1)),
                                     kernel_initializer='he_normal',
                                     name=self.base_name + '_bottleneck')
 
-        self.shortcut = ConvBlock(filters=(filters[-1], ),
+        self.shortcut = ConvBlock(filters=(self.filters[-1], ),
                                   kernel_sizes=((1, 1), ),
                                   activations=(None, ),
                                   paddings=('valid', ),
-                                  batch_norm=batch_norm,
-                                  dropout_rate=dropout_rate,
+                                  batch_norm=self.batch_norm,
+                                  dropout_rate=self.dropout_rate,
                                   depth=1,
-                                  strides=(strides, ),
+                                  strides=(self.strides, ),
                                   kernel_initializer='he_normal',
                                   name=self.base_name + '_shortcut')
 
         self.add = Add()
-        self.activation = Activation(activation)
-
-    def call(self, input, mask=None):
-        """Perform the logic of applying the layer to the input tensors.
-
-        :param x: input tensor
-        :param mask: boolean tensor encoding masked timesteps in the input,
-            used in RNN layers (currently not used)
-        :return: output layer of the convolutional block
-        """
-        x = self.bottleneck(input)
-        s = self.shortcut(input)
-        x = self.add([x, s])
-        x = self.activation(x)
-
-        return x
+        self.activation_layer = Activation(self.activation)
 
     def get_config(self):
-        """Return the configuration of the convolutional block.
+        """Return the configuration of the residual block.
 
         Allows later reinstantiation (without its trained weights) from this
         configuration. It does not include connectivity information, nor the
         layer class name.
 
-        :return: the configuration dictionary of the convolutional block
+        :return: the configuration dictionary of the residual block
         """
         config = super(ResBlock, self).get_config()
 
@@ -576,11 +609,14 @@ class MyMaxPooling(Layer):
             (so far not used)
         :param kwargs: TF Layer keyword arguments
         """
+        super(MyMaxPooling, self).__init__(**kwargs)
+
         self.pool_size = pool_size
         self.strides = strides
         self.padding = padding
+        self.data_format = data_format
 
-        super(MyMaxPooling, self).__init__(**kwargs)
+        # TODO: self.instantiate_layers()
 
     def call(self, x, mask=None):
         """Perform the logic of applying the layer to the input tensors.
@@ -591,6 +627,7 @@ class MyMaxPooling(Layer):
         :return: output layer of the convolutional block
         """
         ksize = (1, self.pool_size[0], self.pool_size[1], 1)
+        # TODO: Why don't I use the following strides?
         strides = (1, self.strides[0], self.strides[1], 1)
         output, argmax = tf.nn.max_pool_with_argmax(
             x, ksize=ksize, strides=self.strides, padding=self.padding.upper(),
@@ -631,11 +668,12 @@ class MyMaxPooling(Layer):
 
         :return: the configuration dictionary of the convolutional block
         """
-        config = super(MyMaxPooling, self).get_config().copy()
-        config.update({'pool_size': self.pool_size,
-                       'padding': self.padding,
-                       'strides': self.strides,
-                       'data_format': self.data_format})
+        config = super(MyMaxPooling, self).get_config()
+
+        config.update(pool_size=self.pool_size,
+                      padding=self.padding,
+                      strides=self.strides,
+                      data_format=self.data_format)
 
         return config
 
@@ -657,12 +695,15 @@ class MyMaxUnpooling(Layer):
             (so far not used)
         :param kwargs: TF Layer keyword arguments
         """
+        super(MyMaxUnpooling, self).__init__(**kwargs)
+
         self.pool_size = pool_size
+        self.data_format = data_format
 
         # output shape should be created during the build() call
         self.output_shape_ = (None, None, None, None)
 
-        super(MyMaxUnpooling, self).__init__(**kwargs)
+        # TODO: self.instantiate_layers()
 
     def call(self, inputs, mask=None):
         """Perform the logic of applying the layer to the input tensors.
@@ -703,8 +744,10 @@ class MyMaxUnpooling(Layer):
 
         :return: the configuration dictionary of the convolutional block
         """
-        config = super(MyMaxUnpooling, self).get_config().copy()
-        config.update({'pool_size': self.pool_size})
+        config = super(MyMaxUnpooling, self).get_config()
+
+        config.update(pool_size=self.pool_size,
+                      data_format=self.data_format)
 
         return config
 

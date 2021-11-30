@@ -377,7 +377,8 @@ class SegNet(_BaseModel):
                                        (self.activation, ), (self.padding, ),
                                        self.dilation_rate,
                                        dropout_rate=self.dropout_rate_hidden,
-                                       depth=2))
+                                       depth=2,
+                                       name=f'downsampling_block{i}'))
             ds_pools.append(MyMaxPooling(pool_size=(2, 2),
                                          strides=(2, 2),
                                          data_format='channels_last'))
@@ -390,7 +391,8 @@ class SegNet(_BaseModel):
                                        (self.padding, ),
                                        self.dilation_rate,
                                        dropout_rate=self.dropout_rate_hidden,
-                                       depth=3))
+                                       depth=3,
+                                       name=f'downsampling_block{i}'))
             ds_pools.append(MyMaxPooling(pool_size=(2, 2),
                                          strides=(2, 2),
                                          data_format='channels_last'))
@@ -410,14 +412,16 @@ class SegNet(_BaseModel):
                                        (self.padding, ),
                                        self.dilation_rate,
                                        dropout_rate=self.dropout_rate_hidden,
-                                       depth=2))
+                                       depth=2,
+                                       name=f'upsampling_block{i}_2'))
             us_blocks.append(ConvBlock((self.nr_filters * (2 ** (i - 1)), ),
                                        ((3, 3), ),
                                        (self.activation, ),
                                        (self.padding, ),
                                        self.dilation_rate,
                                        dropout_rate=self.dropout_rate_hidden,
-                                       depth=1))
+                                       depth=1,
+                                       name=f'upsampling_block{i}_1'))
 
         # a block of the depth 2
         us_samples.append(MyMaxUnpooling(pool_size=(2, 2)))
@@ -427,14 +431,16 @@ class SegNet(_BaseModel):
                                    (self.padding, ),
                                    self.dilation_rate,
                                    dropout_rate=self.dropout_rate_hidden,
-                                   depth=1))
-        us_blocks.append(ConvBlock(self.nr_filters * (2 ** 0),
+                                   depth=1,
+                                   name=f'upsampling_block1_2'))
+        us_blocks.append(ConvBlock((self.nr_filters * (2 ** 0), ),
                                    ((3, 3), ),
                                    (self.activation, ),
                                    (self.padding, ),
                                    self.dilation_rate,
                                    dropout_rate=self.dropout_rate_hidden,
-                                   depth=1))
+                                   depth=1,
+                                   name=f'upsampling_block1_1'))
 
         # a block of the depth 1
         # the paper states depth two and then softmax, but I believe that this
@@ -446,7 +452,8 @@ class SegNet(_BaseModel):
                                    (self.padding, ),
                                    self.dilation_rate,
                                    dropout_rate=self.dropout_rate_hidden,
-                                   depth=1))
+                                   depth=1,
+                                   name=f'upsampling_block0'))
 
         us_ret = (us_samples, us_blocks)
 
