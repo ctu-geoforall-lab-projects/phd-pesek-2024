@@ -5,7 +5,7 @@ import tensorflow as tf
 from abc import ABC, abstractmethod
 from tensorflow.keras.layers import MaxPooling2D, Conv2D, Input, UpSampling2D, \
     Concatenate, Dropout, ZeroPadding2D, BatchNormalization, Activation, \
-    GlobalAveragePooling2D, GlobalMaxPooling2D, Dense, add, AveragePooling2D, concatenate
+    GlobalAveragePooling2D, GlobalMaxPooling2D, Dense, AveragePooling2D, concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras import backend as K
 
@@ -1191,7 +1191,7 @@ def ASPP(tensor):
     y = Activation('relu', name=f'relu_final')(y)
     return y
 
-import tensorflow.keras.layers, tensorflow.keras.models, tensorflow.keras.utils
+import tensorflow.keras.utils
 _KERAS_BACKEND = K
 _KERAS_LAYERS = tensorflow.keras.layers
 _KERAS_MODELS = tensorflow.keras.models
@@ -1201,7 +1201,6 @@ _KERAS_UTILS = tensorflow.keras.utils
 # def DeepLabV3Plus(img_height, img_width, nclasses=66):
 def DeepLabV3Plus(nclasses, img_height=512, img_width=512, **kwargs):
     """<https://arxiv.org/pdf/1802.02611.pdf>"""
-    print('*** Building DeepLabv3Plus Network ***')
 
     base_model = ResNet50(input_shape=(
         # img_height, img_width, 3), weights='imagenet', include_top=False)

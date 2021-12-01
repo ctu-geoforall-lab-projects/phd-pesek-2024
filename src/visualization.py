@@ -17,6 +17,8 @@ def onehot_decode(onehot, colormap, nr_bands=3, enhance_colours=True):
         num_classes)
     :param colormap: dictionary mapping label ids to their codes
     :param nr_bands: number of bands of intended input images
+    :param enhance_colours: Enhance the contrast between colours
+        (pseudorandom multiplication of the colour value)
     :return: decoded RGB image (height x width x 3)
     """
     # create 2D matrix with label ids (so you do not have to loop)

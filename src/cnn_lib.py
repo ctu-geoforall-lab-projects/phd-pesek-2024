@@ -633,7 +633,8 @@ class MyMaxPooling(Layer):
 
         return output, argmax
 
-    def compute_output_shape(self, input_shape):
+    @staticmethod
+    def compute_output_shape(input_shape):
         """Compute the output shape of the layer.
 
         :param input_shape: Shape tuple (tuple of integers) or list of shape
@@ -646,7 +647,8 @@ class MyMaxPooling(Layer):
         output_shape = tuple(output_shape)
         return output_shape, output_shape
 
-    def compute_mask(self, inputs, mask=None):
+    @staticmethod
+    def compute_mask(inputs, mask=None):
         """Compute the output tensor mask.
 
         :param inputs: Tensor or list of tensors
