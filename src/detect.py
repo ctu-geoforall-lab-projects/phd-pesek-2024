@@ -1,14 +1,13 @@
 #!/usr/bin/python3
 
 import os
-import glob
 import argparse
 
 import tensorflow as tf
 
-from osgeo import gdal
+# imports from this package
+import utils
 
-from data_preparation import parse_label_code
 from cnn_lib import AugmentGenerator
 from architectures import create_model
 from visualization import visualize_detections
@@ -17,15 +16,12 @@ from visualization import visualize_detections
 def main(data_dir, model, in_weights_path, visualization_path, batch_size,
          seed, tensor_shape, force_dataset_generation, fit_memory, val_set_pct,
          filter_by_class):
-    print_device_info()
+    utils.print_device_info()
 
     # get nr of bands
-    images = glob.glob(os.path.join(data_dir, '*image.tif'))
-    dataset_image = gdal.Open(images[0], gdal.GA_ReadOnly)
-    nr_bands = dataset_image.RasterCount
-    dataset_image = None
+    nr_bands = utils.get_nr_of_bands(data_dir)
 
-    label_codes, label_names, id2code = get_codings(
+    label_codes, label_names, id2code = utils.get_codings(
         os.path.join(data_dir, 'label_colors.txt'))
 
     # set TensorFlow seed
@@ -44,32 +40,6 @@ def main(data_dir, model, in_weights_path, visualization_path, batch_size,
 
     detect(model, val_generator, id2code, [i for i in label_codes],
            label_names, seed, visualization_path)
-
-
-def print_device_info():
-    """Print info about used GPUs."""
-    print('Available GPUs:')
-    print(tf.config.list_physical_devices('GPU'))
-
-    print('Device name:')
-    print(tf.random.uniform((1, 1)).device)
-
-    print('TF executing eagerly:')
-    print(tf.executing_eagerly())
-
-
-def get_codings(description_file):
-    """Get lists of label codes and names and a an id-name mapping dictionary.
-
-    :param description_file: path to the txt file with labels and their names
-    :return: list of label codes, list of label names, id2code dictionary
-    """
-    label_codes, label_names = zip(
-        *[parse_label_code(i) for i in open(description_file)])
-    label_codes, label_names = list(label_codes), list(label_names)
-    id2code = {i: j for i, j in enumerate(label_codes)}
-
-    return label_codes, label_names, id2code
 
 
 def detect(model, val_generator, id2code, label_codes, label_names, seed=1,
@@ -91,26 +61,6 @@ def detect(model, val_generator, id2code, label_codes, label_names, seed=1,
 
     visualize_detections(batch_img, batch_mask, pred_all, id2code,
                          label_codes, label_names, out_dir)
-
-
-def _str2bool(string_val):
-    """Transform a string looking like a boolean value to a boolean value.
-
-    This is needed because using type=bool in argparse actually parses strings.
-    Such an behaviour could result in `--force_dataset_generation False` being
-    misinterpreted as True (bool('False') == True).
-
-    :param string_val: a string looking like a boolean value
-    :return: the corresponding boolean value
-    """
-    if isinstance(string_val, bool):
-        return string_val
-    elif string_val.lower() in ('true', 'yes', 't', 'y', '1'):
-        return True
-    elif string_val.lower() in ('false', 'no', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 if __name__ == '__main__':
@@ -144,10 +94,10 @@ if __name__ == '__main__':
         '--tensor_width', type=int, default=256,
         help='Width of the tensor representing the image')
     parser.add_argument(
-        '--force_dataset_generation', type=_str2bool, default=False,
+        '--force_dataset_generation', type=utils.str2bool, default=False,
         help='Boolean to force the dataset structure generation')
     parser.add_argument(
-        '--fit_dataset_in_memory', type=_str2bool, default=False,
+        '--fit_dataset_in_memory', type=utils.str2bool, default=False,
         help='Boolean to load the entire dataset into memory instead '
              'of opening new files with each request - results in the '
              'reduction of I/O operations and time, but could result in huge '

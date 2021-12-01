@@ -5,7 +5,6 @@ import glob
 import shutil
 
 import numpy as np
-import tensorflow as tf
 
 from osgeo import gdal
 
@@ -49,18 +48,6 @@ def read_images(data_dir, tensor_shape=(256, 256),
     return images_arrays, masks_arrays
 
 
-def parse_label_code(line):
-    """Parse lines in a text file into a label code and a label name.
-
-    :param line: line in the txt file
-    :return: tuple with an integer label code, a string label name
-    """
-    a, b = line.strip().split(',')
-
-    # format label_value, label_name
-    return int(a), b
-
-
 def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
                                val_set_pct=0.2, filter_by_class=None,
                                verbose=1):
@@ -78,15 +65,15 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     :param verbose: verbosity (0=quiet, >0 verbose)
     """
     # function to be used while saving samples
-    def train_val_determination(val_set_pct):
+    def train_val_determination(pct):
         """Return decision about the sample will be part of train or val set."""
-        pct = 0
+        cur_pct = 0
         while True:
-            pct += val_set_pct
-            if pct < 1:
+            cur_pct += pct
+            if cur_pct < 1:
                 yield 'train'
             else:
-                pct -= 1
+                cur_pct -= 1
                 yield 'val'
 
     # Create folders to hold images and masks
@@ -111,7 +98,6 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     im_id = 0
     dir_names = train_val_determination(val_set_pct)
     for image, mask in zip(images, masks):
-        # TODO: Experiment with uint16
         # Convert tensors to numpy arrays
         # scale to 0-1
         image = image / current_dtype_max

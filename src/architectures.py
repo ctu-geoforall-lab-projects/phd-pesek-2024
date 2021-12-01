@@ -1029,9 +1029,9 @@ def ResNet50(include_top=True,
     # Create model.
     model = Model(inputs, x, name='resnet50')
 
-    # Load weights.
-    if weights is not None:
-        model.load_weights(weights)
+    # # Load weights.
+    # if weights is not None:
+    #     model.load_weights(weights)
 
     return model
 
