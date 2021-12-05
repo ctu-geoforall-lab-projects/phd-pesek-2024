@@ -584,6 +584,117 @@ class ResBlock(Layer):
         return config
 
 
+class IdentityBlock(Layer):
+    """TF Keras layer overriden to represent an identity block in ResNet.
+
+    Following the definition of residual blocks for ResNet-50 and deeper from
+    the original paper: <https://arxiv.org/pdf/1512.03385.pdf>. The original
+    design was enhanced by the option to perform dropout.
+    """
+
+    def __init__(self, filters=(64, 64, 256), kernel_size=(3, 3),
+                 activation='relu', batch_norm=True, dropout_rate=None,
+                 strides=(2, 2), name='res_block', **kwargs):
+        """Create a residual block.
+
+        :param filters: set of numbers of filters for each conv layer
+        :param kernel_size: an integer or tuple/list of 2 integers, specifying
+            the height and width of the 2D convolution window in the central
+            convolutional layer in the bottleneck block
+        :param activation: activation function, such as tf.nn.relu, or string
+            name of built-in activation function, such as 'relu'
+        :param batch_norm: boolean saying whether to use batch normalization
+            or not
+        :param dropout_rate: float between 0 and 1. Fraction of the input
+            units of convolutional layers to drop
+        :param strides: integer or tuple/list of 2 integers, specifying
+            the strides of the convolution along the height and width
+        :param name: string base name of the block
+        :param kwargs: supplementary kwargs for the parent __init__()
+        """
+        super(IdentityBlock, self).__init__(name=name, **kwargs)
+
+        # set init parameters to member variables
+        self.filters = filters
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.batch_norm = batch_norm
+        self.dropout_rate = dropout_rate
+        self.strides = strides
+        self.base_name = name
+        self.kwargs = kwargs
+
+        # instantiate layers
+        self.bottleneck = None
+        self.add = None
+        self.activation_layer = None
+        self.instantiate_layers()
+
+    def call(self, inputs, mask=None):
+        """Perform the logic of applying the layer to the input tensors.
+
+        :param inputs: Input tensor, or dict/list/tuple of input tensors
+        :param mask: boolean tensor encoding masked timesteps in the input,
+            used in RNN layers (currently not used)
+        :return: output layer of the residual block
+        """
+        x = self.bottleneck(inputs)
+        x = self.add([x, inputs])
+        x = self.activation_layer(x)
+
+        return x
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the output.
+
+        TODO: Maybe the layers could be put defined as class variables instead
+              of returned values?
+        """
+        self.bottleneck = ConvBlock(filters=self.filters,
+                                    kernel_sizes=((1, 1),
+                                                  self.kernel_size,
+                                                  (1, 1)),
+                                    activations=(self.activation,
+                                                 self.activation,
+                                                 None),
+                                    paddings=('valid',
+                                              'same',
+                                              'valid'),
+                                    batch_norm=self.batch_norm,
+                                    dropout_rate=self.dropout_rate,
+                                    depth=3,
+                                    strides=((1, 1),
+                                             (1, 1),
+                                             (1, 1)),
+                                    kernel_initializer='he_normal',
+                                    name=self.base_name + '_bottleneck')
+
+        self.add = Add()
+        self.activation_layer = Activation(self.activation)
+
+    def get_config(self):
+        """Return the configuration of the residual block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        layer class name.
+
+        :return: the configuration dictionary of the residual block
+        """
+        config = super(IdentityBlock, self).get_config()
+
+        config.update(filters=self.filters,
+                      kernel_size=self.kernel_size,
+                      activation=self.activation,
+                      batch_norm=self.batch_norm,
+                      dropout_rate=self.dropout_rate,
+                      strides=self.strides,
+                      name=self.name,
+                      **self.kwargs)
+
+        return config
+
+
 class MyMaxPooling(Layer):
     """Custom implementation of a 2D max-pooling layer.
 

@@ -5,12 +5,13 @@ import tensorflow as tf
 from abc import ABC, abstractmethod
 from tensorflow.keras.layers import MaxPooling2D, Conv2D, Input, UpSampling2D, \
     Concatenate, Dropout, ZeroPadding2D, BatchNormalization, Activation, \
-    GlobalAveragePooling2D, GlobalMaxPooling2D, Dense, AveragePooling2D, concatenate
+    GlobalAveragePooling2D, GlobalMaxPooling2D, Dense, AveragePooling2D, \
+    concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras import backend as K
 
 from cnn_lib import ConvBlock, MyMaxPooling, MyMaxUnpooling, \
-    categorical_dice, categorical_tversky, ResBlock
+    categorical_dice, categorical_tversky, ResBlock, IdentityBlock
 from cnn_exceptions import ModelConfigError
 
 
@@ -882,47 +883,6 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
 
 
 
-
-def identity_block(input_tensor, kernel_size, filters, stage, block):
-    """The identity block is the block that has no conv layer at shortcut.
-    # Arguments
-        input_tensor: input tensor
-        kernel_size: default 3, the kernel size of
-            middle conv layer at main path
-        filters: list of integers, the filters of 3 conv layer at main path
-        stage: integer, current stage label, used for generating layer names
-        block: 'a','b'..., current block label, used for generating layer names
-    # Returns
-        Output tensor for the block.
-    """
-    filters1, filters2, filters3 = filters
-    bn_axis = 3
-    conv_name_base = 'res' + str(stage) + block + '_branch'
-    bn_name_base = 'bn' + str(stage) + block + '_branch'
-
-    x = Conv2D(filters1, (1, 1),
-                      kernel_initializer='he_normal',
-                      name=conv_name_base + '2a')(input_tensor)
-    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2a')(x)
-    x = Activation('relu')(x)
-
-    x = Conv2D(filters2, kernel_size,
-                      padding='same',
-                      kernel_initializer='he_normal',
-                      name=conv_name_base + '2b')(x)
-    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2b')(x)
-    x = Activation('relu')(x)
-
-    x = Conv2D(filters3, (1, 1),
-                      kernel_initializer='he_normal',
-                      name=conv_name_base + '2c')(x)
-    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(x)
-
-    x = add([x, input_tensor])
-    x = Activation('relu')(x)
-    return x
-
-
 def ResNet50(include_top=True,
              # weights='imagenet',
              weights=None,
@@ -931,6 +891,7 @@ def ResNet50(include_top=True,
              # pooling=None,
              pooling='avg',
              classes=1000,
+             depth=50,
              **kwargs):
     """Instantiates the ResNet50 architecture.
     Optionally loads weights pre-trained on ImageNet.
@@ -979,59 +940,80 @@ def ResNet50(include_top=True,
         ValueError: in case of invalid argument for `weights`,
             or invalid input shape.
     """
-    inputs = Input(shape=input_shape)
-    bn_axis = 3
+    # get stage depths for different ResNet variants
+    if depth not in (50, 101, 152):
+        raise ModelConfigError(
+            f'ResNet variant of depth {depth} not supported. Supported depths '
+            f'are 50, 101, and 152')
+    stage_2_depth = 3
+    if depth == 50:
+        stage_3_depth = 4
+        stage_4_depth = 6
+    elif depth == 101:
+        stage_3_depth = 4
+        stage_4_depth = 23
+    else:
+        # depth == 152
+        stage_3_depth = 8
+        stage_4_depth = 36
+    stage_5_depth = 3
 
+    inputs = Input(shape=input_shape)
+
+    # TODO: Why zero padding?
     x = ZeroPadding2D(padding=(3, 3), name='conv1_pad')(inputs)
-    x = Conv2D(64, (7, 7),
-                      strides=(2, 2),
-                      padding='valid',
-                      kernel_initializer='he_normal',
-                      name='conv1')(x)
-    x = Activation('relu')(x)
-    x = BatchNormalization(axis=bn_axis, name='bn_conv1')(x)
+    x = ConvBlock(filters=(64, ),
+                  kernel_sizes=((7, 7), ),
+                  activations=('relu', ),
+                  paddings=('valid', ),
+                  depth=1,
+                  strides=((2, 2), ),
+                  kernel_initializer='he_normal',
+                  name='conv_block_1')(x)
+    # TODO: Why zero padding?
     x = ZeroPadding2D(padding=(1, 1), name='pool1_pad')(x)
     x = MaxPooling2D((3, 3), strides=(2, 2))(x)
 
+    # stage 2
     x = ResBlock(kernel_size=3, filters=(64, 64, 256), strides=(1, 1),
-                 name='res_block_2_a')(x)
-    x = identity_block(x, 3, [64, 64, 256], stage=2, block='b')
-    x = identity_block(x, 3, [64, 64, 256], stage=2, block='c')
+                 name='res_block_2_1')(x)
+    for i in range(2, stage_2_depth + 1):
+        x = IdentityBlock(kernel_size=3, filters=(64, 64, 256),
+                          name=f'id_block_2_{i}')(x)
 
+    # stage 3
     x = ResBlock(kernel_size=3, filters=(128, 128, 512),
-                 name='res_block_3_a')(x)
-    x = identity_block(x, 3, [128, 128, 512], stage=3, block='b')
-    x = identity_block(x, 3, [128, 128, 512], stage=3, block='c')
-    x = identity_block(x, 3, [128, 128, 512], stage=3, block='d')
+                 name='res_block_3_1')(x)
+    for i in range(2, stage_3_depth + 1):
+        x = IdentityBlock(kernel_size=3, filters=(128, 128, 512),
+                          name=f'id_block_3_{i}')(x)
 
+    # stage 4
     x = ResBlock(kernel_size=3, filters=(256, 256, 1024),
-                 name='res_block_4_a')(x)
-    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
-    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
-    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
-    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
-    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+                 name='res_block_4_1')(x)
+    for i in range(2, stage_4_depth + 1):
+        x = IdentityBlock(kernel_size=3, filters=(256, 256, 1024),
+                          name=f'id_block_4_{i}')(x)
 
+    # stage 5
     x = ResBlock(kernel_size=3, filters=(512, 512, 2048),
-                 name='res_block_5_a')(x)
-    x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
-    x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
+                 name='res_block_5_1')(x)
+    for i in range(2, stage_5_depth + 1):
+        x = IdentityBlock(kernel_size=3, filters=(512, 512, 2048),
+                          name=f'id_block_5_{i}')(x)
 
-    if include_top:
-        x = GlobalAveragePooling2D(name='avg_pool')(x)
+    # pooling layer before the classifier
+    if pooling == 'avg':
+        x = GlobalAveragePooling2D()(x)
+    elif pooling == 'max':
+        x = GlobalMaxPooling2D()(x)
+
+    # classifier if not used as a backbone
+    if include_top is True:
         x = Dense(classes, activation='softmax', name='fc1000')(x)
-    else:
-        if pooling == 'avg':
-            x = GlobalAveragePooling2D()(x)
-        elif pooling == 'max':
-            x = GlobalMaxPooling2D()(x)
 
     # Create model.
     model = Model(inputs, x, name='resnet50')
-
-    # # Load weights.
-    # if weights is not None:
-    #     model.load_weights(weights)
 
     return model
 
@@ -1199,21 +1181,23 @@ _KERAS_UTILS = tensorflow.keras.utils
 
 
 # def DeepLabV3Plus(img_height, img_width, nclasses=66):
-def DeepLabV3Plus(nclasses, img_height=512, img_width=512, **kwargs):
+def DeepLabV3Plus(nr_classes, img_height=512, img_width=512,
+                  resnet_depth=50, **kwargs):
     """<https://arxiv.org/pdf/1802.02611.pdf>"""
 
-    base_model = ResNet50(input_shape=(
-        # img_height, img_width, 3), weights='imagenet', include_top=False)
-        img_height, img_width, kwargs['nr_bands']), weights=None,
-        include_top=False)
+    base_model = ResNet50(
+        input_shape=(img_height, img_width, kwargs['nr_bands']), weights=None,
+        include_top=False, depth=resnet_depth)
 
-    image_features = base_model.get_layer('activation_39').output
+    image_features = base_model.get_layer('id_block_5_3').output
+    # image_features = base_model.get_layer('activation_39').output
     x_a = ASPP(image_features)
     x_a = UpSampling2D(size=[img_height // 4 // x_a.shape[1],
                              img_width // 4 // x_a.shape[2]],
                        interpolation='bilinear')(x_a)
 
-    x_b = base_model.get_layer('activation_9').output
+    # x_b = base_model.get_layer('activation_9').output
+    x_b = base_model.get_layer('id_block_2_3').output
     x_b = Conv2D(filters=48, kernel_size=1, padding='same',
                  kernel_initializer='he_normal', name='low_level_projection',
                  use_bias=False)(x_b)
@@ -1236,7 +1220,7 @@ def DeepLabV3Plus(nclasses, img_height=512, img_width=512, **kwargs):
     x = UpSampling2D(size=[img_height // x.shape[1], img_width // x.shape[2]],
                      interpolation='bilinear')(x)
 
-    x = Conv2D(nclasses, (1, 1), name='output_layer')(x)
+    x = Conv2D(nr_classes, (1, 1), name='output_layer')(x)
     '''
     x = Activation('softmax')(x) 
     tf.losses.SparseCategoricalCrossentropy(from_logits=True)
