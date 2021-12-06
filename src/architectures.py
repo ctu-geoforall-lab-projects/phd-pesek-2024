@@ -21,7 +21,7 @@ class _BaseModel(Model, ABC):
     def __init__(self, nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
                  dilation_rate=1, tensor_shape=(256, 256), activation='relu',
                  padding='same', dropout_rate_input=None,
-                 dropout_rate_hidden=None):
+                 dropout_rate_hidden=None, **kwargs):
         """Model constructor.
 
         :param nr_classes: number of classes to be predicted
@@ -1171,6 +1171,7 @@ def ASPP(tensor):
                use_bias=False)(y)
     y = BatchNormalization(name=f'bn_final')(y)
     y = Activation('relu', name=f'relu_final')(y)
+
     return y
 
 import tensorflow.keras.utils

@@ -314,7 +314,7 @@ class ConvBlock(Layer):
                  activations=('relu', ), paddings=('same', ), dilation_rate=1,
                  batch_norm=True, dropout_rate=None, depth=2,
                  strides=((1, 1), ), kernel_initializer='glorot_uniform',
-                 name='conv_block', **kwargs):
+                 use_bias=True, name='conv_block', **kwargs):
         """Create a block of convolutional layers.
 
         Each of them could be followed by a dropout layer, activation
@@ -347,6 +347,8 @@ class ConvBlock(Layer):
             width. If len(strides) == 1, the same stride is used for every
             conv layer
         :param kernel_initializer: initializer for the kernel weights matrix
+        :param use_bias: boolean saying whether the conv layers use a bias
+            vector or not
         :param name: string base name of the block
         :param kwargs: supplementary kwargs for the parent __init__()
         """
@@ -363,6 +365,7 @@ class ConvBlock(Layer):
         self.depth = depth
         self.strides = strides
         self.kernel_initializer = kernel_initializer
+        self.use_bias = use_bias
         self.base_name = name
         self.kwargs = kwargs
 
@@ -419,6 +422,7 @@ class ConvBlock(Layer):
                        dilation_rate=self.dilation_rate,
                        strides=self.strides[i],
                        kernel_initializer=self.kernel_initializer,
+                       use_bias=self.use_bias,
                        name='{}_conv{}'.format(self.base_name, i)))
             if self.dropout_rate is not None:
                 self.dropouts.append(Dropout(rate=self.dropout_rate))
