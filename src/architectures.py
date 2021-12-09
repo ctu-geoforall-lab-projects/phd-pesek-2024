@@ -11,7 +11,8 @@ from tensorflow.keras.models import Model
 from tensorflow.keras import backend as K
 
 from cnn_lib import ConvBlock, MyMaxPooling, MyMaxUnpooling, \
-    categorical_dice, categorical_tversky, ResBlock, IdentityBlock
+    categorical_dice, categorical_tversky, ResBlock, IdentityBlock, ASPP as \
+    MyASPP
 from cnn_exceptions import ModelConfigError
 
 
@@ -493,6 +494,321 @@ class SegNet(_BaseModel):
         return x
 
 
+class ResNet(_BaseModel):
+    """ResNet architecture.
+
+    For the original paper, see <https://arxiv.org/pdf/1512.03385.pdf>.
+    The original architecture was enhanced by the option to perform dropout.
+    Another change is the fact that the batch normalization is used after
+    activation functions, not before them - to see motivation for this step,
+    see the following links:
+    <https://www.reddit.com/r/MachineLearning/comments/67gonq/d_batch_normalization_before_or_after_relu/>
+    <https://blog.paperspace.com/busting-the-myths-about-batch-normalization/>
+    <https://stackoverflow.com/questions/39691902/ordering-of-batch-normalization-and-dropout>
+    """
+
+    def __init__(self, *args, pooling='avg', depth=50, include_top=True,
+                 return_layers=None, **kwargs):
+        """Model constructor.
+
+        :param nr_classes: number of classes to be predicted
+        :param nr_bands: number of bands of intended input images
+        :param nr_filters: base number of convolution filters (multiplied
+            deeper in the model)
+        :param batch_norm: boolean saying whether to use batch normalization
+            or not
+        :param dilation_rate: convolution dilation rate
+        :param tensor_shape: shape of the first two dimensions of input tensors
+        :param activation: activation function, such as tf.nn.relu, or string
+            name of built-in activation function, such as 'relu'
+        :param padding: 'valid' means no padding. 'same' results in padding
+            evenly to the left/right or up/down of the input such that output
+            has the same height/width dimension as the input
+        :param dropout_rate_input: float between 0 and 1. Fraction of the input
+            units of the input layer to drop
+        :param dropout_rate_hidden: float between 0 and 1. Fraction of
+            the input
+        :param pooling: global pooling mode for feature extraction
+            (must be 'avg' or 'max')
+        :param depth: depth of the ResNet model (must be 50, 101, or 152)
+        :param include_top: whether to include the fully-connected layer
+            at the top of the network
+        :param return_layers: layers to be returned (allows multistage
+            returns for the usage of ResNet as a backbone architecture)
+        """
+        if pooling not in ('avg', 'max'):
+            raise ModelConfigError(
+                f'Pooling {pooling} not supported for ResNet. Supported '
+                f'pooling values are "avg" and "max"')
+        if depth not in (50, 101, 152):
+            raise ModelConfigError(
+                f'ResNet variant of depth {depth} not supported. Supported '
+                f'depths are 50, 101, and 152')
+
+        self.pooling = pooling
+        self.depths = self.get_stage_depths(depth)
+        self.include_top = include_top
+        self.return_layers = return_layers
+
+        super(ResNet, self).__init__(*args, **kwargs)
+
+        self.resnet_layers = self.instantiate_layers()
+
+    def call(self, inputs, training=None, mask=None):
+        """Call the model on new inputs.
+
+        :param inputs: Input tensor, or dict/list/tuple of input tensors
+        :param training: Boolean or boolean scalar tensor, indicating whether
+            to run the Network in training mode or inference mode
+        :param mask: A mask or list of masks
+        :return: the output of the last layer
+            (either classifier or pooling for the case of the backbone usage)
+        """
+        x = self.dropout_in(tf.cast(inputs, tf.float16))
+
+        # run resnet
+        return_outputs = []  # used if self.return_layers is not None
+        for layer in self.resnet_layers:
+            x = layer(x)
+
+            if self.return_layers is not None:
+                if layer.name in self.return_layers:
+                    return_outputs.append(x)
+                    if len(return_outputs) == len(self.return_layers):
+                        return return_outputs
+
+        # TODO: Situation with return layers and self.include_top is True
+        # classifier head layer
+        if self.outputs is not None:
+            x = self.outputs(x)
+
+        return x
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the classifier.
+
+        TODO: Maybe the layers could be put defined as class variables instead
+              of returned values?
+
+        :return: this thing unfortunately differs
+        """
+        # stage 1
+        stage1 = [ZeroPadding2D(padding=(3, 3), name='conv1_pad'),
+                  ConvBlock(filters=(64,),
+                            kernel_sizes=((7, 7),),
+                            activations=('relu',),
+                            paddings=('valid',),
+                            depth=1,
+                            strides=((2, 2),),
+                            kernel_initializer='he_normal',
+                            name='conv_block_1'),
+                  ZeroPadding2D(padding=(1, 1), name='pool1_pad'),
+                  MaxPooling2D((3, 3), strides=(2, 2))]
+        # TODO: Why zero padding?
+
+        # stage 2
+        stage2 = [ResBlock(kernel_size=3,
+                           filters=(64, 64, 256),
+                           strides=(1, 1),
+                           name='res_block_2_1')]
+        for i in range(2, self.depths[1] + 1):
+            stage2.append(IdentityBlock(kernel_size=3,
+                                        filters=(64, 64, 256),
+                                        name=f'id_block_2_{i}'))
+
+        # stage 3
+        stage3 = [ResBlock(kernel_size=3,
+                           filters=(128, 128, 512),
+                           name='res_block_3_1')]
+        for i in range(2, self.depths[2] + 1):
+            stage3.append(IdentityBlock(kernel_size=3,
+                                        filters=(128, 128, 512),
+                                        name=f'id_block_3_{i}'))
+
+        # stage 4
+        stage4 = [ResBlock(kernel_size=3,
+                           filters=(256, 256, 1024),
+                           name='res_block_4_1')]
+        for i in range(2, self.depths[3] + 1):
+            stage4.append(IdentityBlock(kernel_size=3,
+                                        filters=(256, 256, 1024),
+                                        name=f'id_block_4_{i}'))
+
+        # stage 5
+        stage5 = [ResBlock(kernel_size=3,
+                           filters=(512, 512, 2048),
+                           name='res_block_5_1')]
+        for i in range(2, self.depths[4] + 1):
+            stage5.append(IdentityBlock(kernel_size=3,
+                                        filters=(512, 512, 2048),
+                                        name=f'id_block_5_{i}'))
+
+        # top
+        if self.pooling == 'avg':
+            top = [GlobalAveragePooling2D()]
+        else:
+            # self.pooling == 'max'
+            top = [GlobalMaxPooling2D()]
+
+        return stage1 + stage2 + stage3 + stage4 + stage5 + top
+
+    def get_classifier_layer(self):
+        """Get the classifier layer.
+
+        :return: the classifier layer
+        """
+        if self.include_top is True:
+            return Dense(self.nr_classes, activation=self.activation,
+                         name='classifier_layer')
+        else:
+            return None
+
+    @staticmethod
+    def get_stage_depths(depth):
+        """Get depths corresponding to individual stages of ResNet.
+
+        :param depth: depth of the ResNet model
+        :return: a tuple of depths corresponding to individual stages of ResNet
+        """
+        stage_2_depth = 3
+        if depth == 50:
+            stage_3_depth = 4
+            stage_4_depth = 6
+        elif depth == 101:
+            stage_3_depth = 4
+            stage_4_depth = 23
+        else:
+            # depth == 152
+            stage_3_depth = 8
+            stage_4_depth = 36
+        stage_5_depth = 3
+
+        return 1, stage_2_depth, stage_3_depth, stage_4_depth, stage_5_depth
+
+
+class DeepLabv3Plus(_BaseModel):
+    """DeeLabv3+ architecture.
+
+    For the original paper, see <https://arxiv.org/pdf/1802.02611.pdf>.
+    The original architecture was enhanced by the option to perform dropout.
+    """
+
+    def __init__(self, *args, resnet_pooling='avg', resnet_depth=50, **kwargs):
+        """Model constructor.
+
+        :param nr_classes: number of classes to be predicted
+        :param nr_bands: number of bands of intended input images
+        :param nr_filters: base number of convolution filters (multiplied
+            deeper in the model)
+        :param batch_norm: boolean saying whether to use batch normalization
+            or not
+        :param dilation_rate: convolution dilation rate
+        :param tensor_shape: shape of the first two dimensions of input tensors
+        :param activation: activation function, such as tf.nn.relu, or string
+            name of built-in activation function, such as 'relu'
+        :param padding: 'valid' means no padding. 'same' results in padding
+            evenly to the left/right or up/down of the input such that output
+            has the same height/width dimension as the input
+        :param dropout_rate_input: float between 0 and 1. Fraction of the input
+            units of the input layer to drop
+        :param dropout_rate_hidden: float between 0 and 1. Fraction of
+            the input
+        :param resnet_pooling: global pooling mode for feature extraction
+            in the backbone ResNet model (must be 'avg' or 'max')
+        :param resnet_depth: depth of the ResNet backbone model
+            (must be 50, 101, or 152)
+        """
+        self.resnet_pooling = resnet_pooling
+        self.resnet_depth = resnet_depth
+
+        super(DeepLabv3Plus, self).__init__(*args, **kwargs)
+
+        # instantiate layers
+        self.backbone = None
+        self.aspp = None
+        self.aspp_upsample = None
+        self.low_level = None
+        self.concat = None
+        self.decoder_layers = None
+        self.instantiate_layers()
+
+    def call(self, inputs, training=None, mask=None):
+        """Call the model on new inputs.
+
+        :param inputs: Input tensor, or dict/list/tuple of input tensors
+        :param training: Boolean or boolean scalar tensor, indicating whether
+            to run the Network in training mode or inference mode
+        :param mask: A mask or list of masks
+        :return: the output of the classifier layer
+        """
+        # in contrast to other architectures, the input layer is skipped
+        # here, because the backbone architecture has its own input handling
+        resnet_2_3, resnet_5_3 = self.backbone(inputs)
+
+        # TODO
+        aspp_out = self.aspp(resnet_5_3)
+        aspp_out = self.aspp_upsample(aspp_out)
+
+        low_level_conv = self.low_level(resnet_2_3)
+
+        x = self.concat([aspp_out, low_level_conv])
+
+        for layer in self.decoder_layers:
+            x = layer(x)
+
+        # softmax classifier head layer
+        classes = self.outputs(x)
+
+        return classes
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the classifier."""
+        self.backbone = ResNet(self.nr_classes, pooling=self.resnet_pooling,
+                               include_top=False, depth=self.resnet_depth,
+                               return_layers=('id_block_2_3', 'id_block_5_3'))
+
+        # following the paper in using only dilation rates (1,) 6, 12, and 18
+        # pool_dims should correspond to the dims of the last layer from the
+        # backbone model
+        backbone_pooled = 32
+        self.aspp = MyASPP(dilation_rates=(6, 12, 18),
+                           pool_dims=(self.tensor_shape[0] // backbone_pooled,
+                                      self.tensor_shape[1] // backbone_pooled))
+
+        self.aspp_upsample = UpSampling2D(
+            size=[self.tensor_shape[0] // (backbone_pooled * 2),
+                  self.tensor_shape[1] // (backbone_pooled * 2)],
+            interpolation='bilinear',
+            name='aspp_upsample')
+
+        self.low_level = ConvBlock(filters=(48, ),
+                                   kernel_sizes=((1, 1), ),
+                                   activations=('relu',),
+                                   paddings=('same',),
+                                   depth=1,
+                                   kernel_initializer='he_normal',
+                                   name='low_level_conv_block',
+                                   use_bias=False)
+
+        self.concat = Concatenate(name='decoder_concat')
+
+        # TODO: Why not using bias?
+        # decoder
+        self.decoder_layers = [
+            ConvBlock(filters=(256, 256),
+                      kernel_sizes=((3, 3), ),
+                      activations=('relu',),
+                      paddings=('same',),
+                      depth=2,
+                      kernel_initializer='he_normal',
+                      name='decoder_conv_blocks',
+                      use_bias=False),
+            UpSampling2D(size=[self.tensor_shape[0] // (backbone_pooled * 4),
+                               self.tensor_shape[1] // (backbone_pooled * 4)],
+                         interpolation='bilinear',
+                         name='decoder_final_upsample')]
+
+
 def create_model(model, nr_classes, nr_bands, tensor_shape,
                  nr_filters=64, optimizer='adam', loss='dice', metrics=None,
                  activation='relu', padding='same', verbose=1, alpha=None,
@@ -525,7 +841,7 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
         units of the hidden layers to drop
     :return: compiled model
     """
-    model_classes = {'U-Net': UNet, 'SegNet': SegNet, 'DeepLab': DeepLabV3Plus}
+    model_classes = {'U-Net': UNet, 'SegNet': SegNet, 'DeepLab': DeepLabv3Plus}
 
     if metrics is None:
         metrics = ['accuracy']
@@ -958,7 +1274,7 @@ def ResNet50(include_top=True,
         stage_4_depth = 36
     stage_5_depth = 3
 
-    inputs = Input(shape=input_shape)
+    inputs = Input(shape=input_shape, name='resnet_function_input')
 
     # TODO: Why zero padding?
     x = ZeroPadding2D(padding=(3, 3), name='conv1_pad')(inputs)
@@ -1126,7 +1442,11 @@ def _obtain_input_shape(input_shape,
 
 def ASPP(tensor):
     '''atrous spatial pyramid pooling'''
-    dims = K.int_shape(tensor)
+    # dims = K.int_shape(tensor)
+    # tf.print('*** dims ***')
+    # tf.print(dims)
+    dims = (None, 16, 16, 2048)
+    # dims = (None, 32, 32, 256)
 
     y_pool = AveragePooling2D(pool_size=(
         dims[1], dims[2]), name='average_pooling')(tensor)

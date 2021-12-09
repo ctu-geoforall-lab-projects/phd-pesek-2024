@@ -8,7 +8,7 @@ import tensorflow as tf
 from osgeo import gdal
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
-    Activation, Dropout, Add
+    Activation, Dropout, Add, AveragePooling2D, UpSampling2D, Concatenate
 from tensorflow.keras import backend as keras
 
 from data_preparation import generate_dataset_structure
@@ -454,6 +454,7 @@ class ConvBlock(Layer):
                       depth=self.depth,
                       strides=self.strides,
                       kernel_initializer=self.kernel_initializer,
+                      use_bias=self.use_bias,
                       name=self.base_name,
                       **self.kwargs)
 
@@ -528,9 +529,6 @@ class ResBlock(Layer):
 
     def instantiate_layers(self):
         """Instantiate layers lying between the input and the output.
-
-        TODO: Maybe the layers could be put defined as class variables instead
-              of returned values?
         """
         self.bottleneck = ConvBlock(filters=self.filters,
                                     kernel_sizes=((1, 1),
@@ -693,6 +691,164 @@ class IdentityBlock(Layer):
                       batch_norm=self.batch_norm,
                       dropout_rate=self.dropout_rate,
                       strides=self.strides,
+                      name=self.name,
+                      **self.kwargs)
+
+        return config
+
+
+class ASPP(Layer):
+    """TF Keras layer overriden to represent atrous spatial pyramid pooling.
+
+    For the original paper, see <https://arxiv.org/pdf/1606.00915.pdf>.
+    """
+
+    def __init__(self, filters=256, kernel_size=(3, 3),
+                 activation='relu', batch_norm=True, dropout_rate=None,
+                 dilation_rates=(6, 12, 18, 24), pool_dims=(16, 16),
+                 name='aspp', **kwargs):
+        """Create an atrous spatial pyramid pooling block.
+
+        :param filters: number of filters for conv layers
+        :param kernel_size: an integer or tuple/list of 2 integers, specifying
+            the height and width of the 2D convolution window in the central
+            convolutional layer in the bottleneck block
+        :param activation: activation function, such as tf.nn.relu, or string
+            name of built-in activation function, such as 'relu'
+        :param batch_norm: boolean saying whether to use batch normalization
+            or not
+        :param dropout_rate: float between 0 and 1. Fraction of the input
+            units of convolutional layers to drop
+        :param dilation_rates: dilation rates used for convolutional blocks
+            (dilation rate 1 always added to the dilation rates; the default
+            values correspond to the original ASPP-L model)
+        :param pool_dims: size of the pooling window for the pooling branch
+            of the ASPP
+        :param name: string base name of the block
+        :param kwargs: supplementary kwargs for the parent __init__()
+        """
+        super(ASPP, self).__init__(name=name, **kwargs)
+
+        # set init parameters to member variables
+        self.filters = filters
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.batch_norm = batch_norm
+        self.dropout_rate = dropout_rate
+        self.dilation_rates = dilation_rates
+        self.pool_dims = pool_dims
+        self.base_name = name
+        self.kwargs = kwargs
+
+        # instantiate layers
+        self.pool_blocks = None
+        self.conv_blocks = None
+        self.concat = None
+        self.output_layer = None
+        self.instantiate_layers()
+
+    def call(self, inputs, mask=None):
+        """Perform the logic of applying the layer to the input tensors.
+
+        :param inputs: Input tensor, or dict/list/tuple of input tensors
+        :param mask: boolean tensor encoding masked timesteps in the input,
+            used in RNN layers (currently not used)
+        :return: output layer of the residual block
+        """
+        x_pool = inputs
+        for pool_block in self.pool_blocks:
+            x_pool = pool_block(x_pool)
+
+        block_outputs = [x_pool]
+        for conv_block in self.conv_blocks:
+            block_outputs.append(conv_block(inputs))
+
+        # concat all outputs
+        x = self.concat(block_outputs)
+
+        # last (1, 1) convolution
+        x = self.output_layer(x)
+
+        return x
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the output."""
+        self.pool_blocks = [AveragePooling2D(pool_size=(self.pool_dims[0],
+                                                        self.pool_dims[1]),
+                                             name='average_pooling'),
+                            ConvBlock(filters=(self.filters,),
+                                      kernel_sizes=((1, 1),),
+                                      activations=('relu',),
+                                      paddings=('same',),
+                                      dilation_rate=1,
+                                      batch_norm=self.batch_norm,
+                                      depth=1,
+                                      kernel_initializer='he_normal',
+                                      use_bias=False,
+                                      name='ASPP_convblock_pool'),
+                            UpSampling2D(size=[self.pool_dims[0] // 1,
+                                               self.pool_dims[1] // 1],
+                                         interpolation='bilinear')]
+
+        # convolutional blocks
+        # (first block with dilation_rate == 1 always added)
+        self.conv_blocks = [ConvBlock(filters=(self.filters, ),
+                                      kernel_sizes=((1, 1), ),
+                                      activations=('relu', ),
+                                      paddings=('same', ),
+                                      dilation_rate=1,
+                                      batch_norm=self.batch_norm,
+                                      depth=1,
+                                      kernel_initializer='he_normal',
+                                      use_bias=False,
+                                      name='ASPP_convblock_d1')]
+
+        for dilation_rate in self.dilation_rates:
+            self.conv_blocks.append(
+                ConvBlock(filters=(self.filters, ),
+                          kernel_sizes=(self.kernel_size, ),
+                          activations=('relu', ),
+                          paddings=('same', ),
+                          dilation_rate=dilation_rate,
+                          batch_norm=self.batch_norm,
+                          depth=1,
+                          kernel_initializer='he_normal',
+                          use_bias=False,
+                          name=f'ASPP_convblock_d{dilation_rate}'))
+
+        # concatenation layer
+        self.concat = Concatenate(name='ASPP_concat')
+
+        # output layer
+        self.output_layer = ConvBlock(filters=(self.filters, ),
+                                      kernel_sizes=(1, ),
+                                      activations=('relu', ),
+                                      paddings=('same', ),
+                                      dilation_rate=1,
+                                      depth=1,
+                                      kernel_initializer='he_normal',
+                                      use_bias=False,
+                                      name=f'ASPP_convblock_final')
+
+    def get_config(self):
+        """Return the configuration of the residual block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        layer class name.
+
+        :return: the configuration dictionary of the residual block
+        """
+        config = super(ASPP, self).get_config()
+
+        config.update(filters=self.filters,
+                      kernel_size=self.kernel_size,
+                      activation=self.activation,
+                      batch_norm=self.batch_norm,
+                      dropout_rate=self.dropout_rate,
+                      strides=self.strides,
+                      dilation_rates=self.dilation_rates,
+                      pool_dims=self.pool_dims,
                       name=self.name,
                       **self.kwargs)
 
