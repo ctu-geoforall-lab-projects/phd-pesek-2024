@@ -745,7 +745,6 @@ class DeepLabv3Plus(_BaseModel):
         # here, because the backbone architecture has its own input handling
         resnet_2_3, resnet_5_3 = self.backbone(inputs)
 
-        # TODO
         aspp_out = self.aspp(resnet_5_3)
         aspp_out = self.aspp_upsample(aspp_out)
 
@@ -763,21 +762,26 @@ class DeepLabv3Plus(_BaseModel):
 
     def instantiate_layers(self):
         """Instantiate layers lying between the input and the classifier."""
+        # skipping last block of ResNet - seems to correspond with the
+        # original DeepLabv3+ paper
         self.backbone = ResNet(self.nr_classes, pooling=self.resnet_pooling,
                                include_top=False, depth=self.resnet_depth,
                                return_layers=('id_block_2_3', 'id_block_5_3'))
 
-        # following the paper in using only dilation rates (1,) 6, 12, and 18
-        # pool_dims should correspond to the dims of the last layer from the
-        # backbone model
-        backbone_pooled = 32
-        self.aspp = MyASPP(dilation_rates=(6, 12, 18),
-                           pool_dims=(self.tensor_shape[0] // backbone_pooled,
-                                      self.tensor_shape[1] // backbone_pooled))
+        # following the paper in using only dilation rates 1, 6, 12, and 18
+        # pool_dims should correspond to the dims of the returned layers from
+        # the backbone model
+        # TODO: Define the "pooled" sizes for different backbone architectures
+        backbone_out_1_pooled = 4
+        backbone_out_2_pooled = 32
+        self.aspp = MyASPP(
+            dilation_rates=(1, 6, 12, 18),
+            pool_dims=(self.tensor_shape[0] // backbone_out_2_pooled,
+                       self.tensor_shape[1] // backbone_out_2_pooled))
 
         self.aspp_upsample = UpSampling2D(
-            size=[self.tensor_shape[0] // (backbone_pooled * 2),
-                  self.tensor_shape[1] // (backbone_pooled * 2)],
+            size=[backbone_out_2_pooled // backbone_out_1_pooled,
+                  backbone_out_2_pooled // backbone_out_1_pooled],
             interpolation='bilinear',
             name='aspp_upsample')
 
@@ -803,8 +807,8 @@ class DeepLabv3Plus(_BaseModel):
                       kernel_initializer='he_normal',
                       name='decoder_conv_blocks',
                       use_bias=False),
-            UpSampling2D(size=[self.tensor_shape[0] // (backbone_pooled * 4),
-                               self.tensor_shape[1] // (backbone_pooled * 4)],
+            UpSampling2D(size=[backbone_out_1_pooled,
+                               backbone_out_1_pooled],
                          interpolation='bilinear',
                          name='decoder_final_upsample')]
 

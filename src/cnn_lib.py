@@ -705,7 +705,7 @@ class ASPP(Layer):
 
     def __init__(self, filters=256, kernel_size=(3, 3),
                  activation='relu', batch_norm=True, dropout_rate=None,
-                 dilation_rates=(6, 12, 18, 24), pool_dims=(16, 16),
+                 dilation_rates=(1, 6, 12, 18, 24), pool_dims=(16, 16),
                  name='aspp', **kwargs):
         """Create an atrous spatial pyramid pooling block.
 
@@ -720,8 +720,7 @@ class ASPP(Layer):
         :param dropout_rate: float between 0 and 1. Fraction of the input
             units of convolutional layers to drop
         :param dilation_rates: dilation rates used for convolutional blocks
-            (dilation rate 1 always added to the dilation rates; the default
-            values correspond to the original ASPP-L model)
+            (the default values correspond to the original ASPP-L model)
         :param pool_dims: size of the pooling window for the pooling branch
             of the ASPP
         :param name: string base name of the block
@@ -742,7 +741,7 @@ class ASPP(Layer):
 
         # instantiate layers
         self.pool_blocks = None
-        self.conv_blocks = None
+        self.conv_blocks = []
         self.concat = None
         self.output_layer = None
         self.instantiate_layers()
@@ -792,21 +791,26 @@ class ASPP(Layer):
 
         # convolutional blocks
         # (first block with dilation_rate == 1 always added)
-        self.conv_blocks = [ConvBlock(filters=(self.filters, ),
-                                      kernel_sizes=((1, 1), ),
-                                      activations=('relu', ),
-                                      paddings=('same', ),
-                                      dilation_rate=1,
-                                      batch_norm=self.batch_norm,
-                                      depth=1,
-                                      kernel_initializer='he_normal',
-                                      use_bias=False,
-                                      name='ASPP_convblock_d1')]
+        # self.conv_blocks = [ConvBlock(filters=(self.filters, ),
+        #                               kernel_sizes=((1, 1), ),
+        #                               activations=('relu', ),
+        #                               paddings=('same', ),
+        #                               dilation_rate=1,
+        #                               batch_norm=self.batch_norm,
+        #                               depth=1,
+        #                               kernel_initializer='he_normal',
+        #                               use_bias=False,
+        #                               name='ASPP_convblock_d1')]
 
         for dilation_rate in self.dilation_rates:
+            if dilation_rate == 1:
+                kernel_size = (1, 1)
+            else:
+                kernel_size = self.kernel_size
+
             self.conv_blocks.append(
                 ConvBlock(filters=(self.filters, ),
-                          kernel_sizes=(self.kernel_size, ),
+                          kernel_sizes=(kernel_size, ),
                           activations=('relu', ),
                           paddings=('same', ),
                           dilation_rate=dilation_rate,
