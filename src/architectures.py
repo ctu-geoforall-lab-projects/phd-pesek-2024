@@ -693,7 +693,8 @@ class DeepLabv3Plus(_BaseModel):
     The original architecture was enhanced by the option to perform dropout.
     """
 
-    def __init__(self, *args, resnet_pooling='avg', resnet_depth=50, **kwargs):
+    def __init__(self, *args, resnet_pooling='avg', resnet_depth=50,
+                 resnet_2_out='id_block_4_6', **kwargs):
         """Model constructor.
 
         :param nr_classes: number of classes to be predicted
@@ -715,11 +716,13 @@ class DeepLabv3Plus(_BaseModel):
             the input
         :param resnet_pooling: global pooling mode for feature extraction
             in the backbone ResNet model (must be 'avg' or 'max')
+        :param resnet_2_out: ResNet layer to be passed into ASPP
         :param resnet_depth: depth of the ResNet backbone model
             (must be 50, 101, or 152)
         """
         self.resnet_pooling = resnet_pooling
         self.resnet_depth = resnet_depth
+        self.resnet_2_out = resnet_2_out
 
         super(DeepLabv3Plus, self).__init__(*args, **kwargs)
 
@@ -743,12 +746,12 @@ class DeepLabv3Plus(_BaseModel):
         """
         # in contrast to other architectures, the input layer is skipped
         # here, because the backbone architecture has its own input handling
-        resnet_2_3, resnet_5_3 = self.backbone(inputs)
+        resnet_1_out, resnet_2_out = self.backbone(inputs)
 
-        aspp_out = self.aspp(resnet_5_3)
+        aspp_out = self.aspp(resnet_2_out)  # usually resnet layer stg4 l6
         aspp_out = self.aspp_upsample(aspp_out)
 
-        low_level_conv = self.low_level(resnet_2_3)
+        low_level_conv = self.low_level(resnet_1_out)  # usually resnet stg2 l3
 
         x = self.concat([aspp_out, low_level_conv])
 
@@ -766,14 +769,22 @@ class DeepLabv3Plus(_BaseModel):
         # original DeepLabv3+ paper
         self.backbone = ResNet(self.nr_classes, pooling=self.resnet_pooling,
                                include_top=False, depth=self.resnet_depth,
-                               return_layers=('id_block_2_3', 'id_block_5_3'))
+                               return_layers=('id_block_2_3',
+                                              self.resnet_2_out))
+
+        backbone_out_1_pooled = 4
+        if 'block_4' in self.resnet_2_out:
+            backbone_out_2_pooled = 16
+        elif 'block_5' in self.resnet_2_out:
+            backbone_out_2_pooled = 32
+        else:
+            raise ModelConfigError('So far only id_block_4_6 and id_block_5_3 '
+                                   'are supported as the deepest outputs from '
+                                   'ResNet for DeepLabv3+')
 
         # following the paper in using only dilation rates 1, 6, 12, and 18
         # pool_dims should correspond to the dims of the returned layers from
         # the backbone model
-        # TODO: Define the "pooled" sizes for different backbone architectures
-        backbone_out_1_pooled = 4
-        backbone_out_2_pooled = 32
         self.aspp = MyASPP(
             dilation_rates=(1, 6, 12, 18),
             pool_dims=(self.tensor_shape[0] // backbone_out_2_pooled,
