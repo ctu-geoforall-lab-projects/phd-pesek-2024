@@ -71,7 +71,7 @@ if __name__ == '__main__':
         help='Path to the directory containing images and labels')
     parser.add_argument(
         '--model', type=str, default='U-Net',
-        choices=('U-Net', 'SegNet'),
+        choices=('U-Net', 'SegNet', 'DeepLab'),
         help='Model architecture')
     parser.add_argument(
         '--weights_path', type=str, default=None,
