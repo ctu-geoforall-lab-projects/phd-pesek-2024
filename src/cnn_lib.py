@@ -410,11 +410,7 @@ class ConvBlock(Layer):
         return x
 
     def instantiate_layers(self):
-        """Instantiate layers lying between the input and the classifier.
-
-        TODO: Maybe the layers could be put defined as class variables instead
-              of returned values?
-        """
+        """Instantiate layers lying between the input and the classifier."""
         for i in range(self.depth):
             self.conv_layers.append(
                 Conv2D(self.filters[i], self.kernel_sizes[i],
@@ -528,8 +524,7 @@ class ResBlock(Layer):
         return x
 
     def instantiate_layers(self):
-        """Instantiate layers lying between the input and the output.
-        """
+        """Instantiate layers lying between the input and the output."""
         self.bottleneck = ConvBlock(filters=self.filters,
                                     kernel_sizes=((1, 1),
                                                   self.kernel_size,
