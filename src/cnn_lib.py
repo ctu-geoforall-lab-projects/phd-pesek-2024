@@ -367,7 +367,6 @@ class ConvBlock(Layer):
         self.kernel_initializer = kernel_initializer
         self.use_bias = use_bias
         self.base_name = name
-        self.kwargs = kwargs
 
         # solve the case of the same parameter for each conv_layer for the
         # variable ones
@@ -451,9 +450,7 @@ class ConvBlock(Layer):
                       depth=self.depth,
                       strides=self.strides,
                       kernel_initializer=self.kernel_initializer,
-                      use_bias=self.use_bias,
-                      name=self.base_name,
-                      **self.kwargs)
+                      use_bias=self.use_bias)
 
         return config
 
@@ -500,7 +497,6 @@ class ResBlock(Layer):
         self.dropout_rate = dropout_rate
         self.strides = strides
         self.base_name = name
-        self.kwargs = kwargs
 
         # instantiate layers
         self.bottleneck = None
@@ -575,9 +571,7 @@ class ResBlock(Layer):
                       activation=self.activation,
                       batch_norm=self.batch_norm,
                       dropout_rate=self.dropout_rate,
-                      strides=self.strides,
-                      name=self.name,
-                      **self.kwargs)
+                      strides=self.strides)
 
         return config
 
@@ -620,7 +614,6 @@ class IdentityBlock(Layer):
         self.dropout_rate = dropout_rate
         self.strides = strides
         self.base_name = name
-        self.kwargs = kwargs
 
         # instantiate layers
         self.bottleneck = None
@@ -686,9 +679,7 @@ class IdentityBlock(Layer):
                       activation=self.activation,
                       batch_norm=self.batch_norm,
                       dropout_rate=self.dropout_rate,
-                      strides=self.strides,
-                      name=self.name,
-                      **self.kwargs)
+                      strides=self.strides)
 
         return config
 
@@ -733,7 +724,6 @@ class ASPP(Layer):
         self.dilation_rates = dilation_rates
         self.pool_dims = pool_dims
         self.base_name = name
-        self.kwargs = kwargs
 
         # instantiate layers
         self.pool_blocks = None
@@ -848,9 +838,7 @@ class ASPP(Layer):
                       dropout_rate=self.dropout_rate,
                       strides=self.strides,
                       dilation_rates=self.dilation_rates,
-                      pool_dims=self.pool_dims,
-                      name=self.name,
-                      **self.kwargs)
+                      pool_dims=self.pool_dims)
 
         return config
 

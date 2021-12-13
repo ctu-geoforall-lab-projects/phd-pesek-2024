@@ -140,6 +140,17 @@ class _BaseModel(Model, ABC):
         """
         pass
 
+    def get_config(self):
+        """Return the configuration of the convolutional block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        model class name.
+
+        :return: the configuration dictionary of the convolutional block
+        """
+        return super(_BaseModel, self).get_config()
+
 
 class UNet(_BaseModel):
     """U-Net architecture.
@@ -546,12 +557,14 @@ class ResNet(_BaseModel):
                 f'depths are 50, 101, and 152')
 
         self.pooling = pooling
-        self.depths = self.get_stage_depths(depth)
+        self.depth = depth
         self.include_top = include_top
         self.return_layers = return_layers
 
         super(ResNet, self).__init__(*args, **kwargs)
 
+        # get depths of individual ResNet stages depending on total depth
+        self.depths = self.get_stage_depths(depth)
         self.resnet_layers = self.instantiate_layers()
 
     def call(self, inputs, training=None, mask=None):
@@ -583,6 +596,24 @@ class ResNet(_BaseModel):
             x = self.outputs(x)
 
         return x
+
+    def get_config(self):
+        """Return the configuration of the convolutional block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        model class name.
+
+        :return: the configuration dictionary of the convolutional block
+        """
+        config = super(ResNet, self).get_config()
+
+        config.update(pooling=self.pooling,
+                      depth=self.depth,
+                      include_top=self.include_top,
+                      return_layers=self.return_layers)
+
+        return config
 
     def instantiate_layers(self):
         """Instantiate layers lying between the input and the classifier.
@@ -822,6 +853,21 @@ class DeepLabv3Plus(_BaseModel):
                                backbone_out_1_pooled],
                          interpolation='bilinear',
                          name='decoder_final_upsample')]
+
+    def get_config(self):
+        """Return the configuration of the convolutional block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        model class name.
+
+        :return: the configuration dictionary of the convolutional block
+        """
+        config = super(DeepLabv3Plus, self).get_config()
+
+        config.update(resnet_pooling=self.resnet_pooling,
+                      resnet_depth=self.resnet_depth,
+                      resnet_2_out=self.resnet_2_out)
 
 
 def create_model(model, nr_classes, nr_bands, tensor_shape,
