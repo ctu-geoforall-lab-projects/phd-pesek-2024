@@ -389,14 +389,15 @@ class ConvBlock(Layer):
         self.batch_norms = []
         self.instantiate_layers()
 
-    def call(self, x, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         """Perform the logic of applying the layer to the input tensors.
 
-        :param x: input tensor
+        :param inputs: input tensor
         :param mask: boolean tensor encoding masked timesteps in the input,
             used in RNN layers (currently not used)
         :return: output layer of the convolutional block
         """
+        x = inputs
         for i in range(self.depth):
             # apply inner blocks inside the entire block
             x = self.conv_layers[i](x)
@@ -508,7 +509,7 @@ class ResBlock(Layer):
         self.activation_layer = None
         self.instantiate_layers()
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         """Perform the logic of applying the layer to the input tensors.
 
         :param inputs: Input tensor, or dict/list/tuple of input tensors
@@ -627,7 +628,7 @@ class IdentityBlock(Layer):
         self.activation_layer = None
         self.instantiate_layers()
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         """Perform the logic of applying the layer to the input tensors.
 
         :param inputs: Input tensor, or dict/list/tuple of input tensors
@@ -741,7 +742,7 @@ class ASPP(Layer):
         self.output_layer = None
         self.instantiate_layers()
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         """Perform the logic of applying the layer to the input tensors.
 
         :param inputs: Input tensor, or dict/list/tuple of input tensors
@@ -884,10 +885,10 @@ class MyMaxPooling(Layer):
 
         # TODO: self.instantiate_layers()
 
-    def call(self, x, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         """Perform the logic of applying the layer to the input tensors.
 
-        :param x: input tensor
+        :param inputs: input tensor
         :param mask: boolean tensor encoding masked timesteps in the input,
             used in RNN layers (currently not used)
         :return: output layer of the convolutional block
@@ -896,15 +897,15 @@ class MyMaxPooling(Layer):
         # TODO: Why don't I use the following strides?
         strides = (1, self.strides[0], self.strides[1], 1)
         output, argmax = tf.nn.max_pool_with_argmax(
-            x, ksize=ksize, strides=self.strides, padding=self.padding.upper(),
-            include_batch_in_index=True)
+            inputs, ksize=ksize, strides=self.strides,
+            padding=self.padding.upper(), include_batch_in_index=True)
 
         argmax = tf.cast(argmax, tf.int32)
 
         return output, argmax
 
     @staticmethod
-    def compute_output_shape(input_shape):
+    def compute_output_shape(input_shape, **kwargs):
         """Compute the output shape of the layer.
 
         :param input_shape: Shape tuple (tuple of integers) or list of shape
@@ -918,7 +919,7 @@ class MyMaxPooling(Layer):
         return output_shape, output_shape
 
     @staticmethod
-    def compute_mask(inputs, mask=None):
+    def compute_mask(inputs, mask=None, **kwargs):
         """Compute the output tensor mask.
 
         :param inputs: Tensor or list of tensors
@@ -973,7 +974,7 @@ class MyMaxUnpooling(Layer):
 
         # TODO: self.instantiate_layers()
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         """Perform the logic of applying the layer to the input tensors.
 
         :param inputs: data structure in form (layer input, indices received
