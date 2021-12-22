@@ -121,7 +121,7 @@ if __name__ == '__main__':
     if args.weights_path is None:
         raise parser.error(
             'Argument weights_path required')
-    if not 0 <= args.validation_set_percentage < 1:
+    if not 0 <= args.validation_set_percentage <= 1:
         raise parser.error(
             'Argument validation_set_percentage must be greater or equal to 0 '
             'and smaller than 1')
