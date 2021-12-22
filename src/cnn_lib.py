@@ -469,7 +469,7 @@ class ResBlock(Layer):
 
     def __init__(self, filters=(64, 64, 256), kernel_size=(3, 3),
                  activation='relu', batch_norm=True, dropout_rate=None,
-                 strides=(2, 2), name='res_block', **kwargs):
+                 strides=(2, 2), use_bias=True, name='res_block', **kwargs):
         """Create a residual block.
 
         :param filters: set of numbers of filters for each conv layer
@@ -484,6 +484,8 @@ class ResBlock(Layer):
             units of convolutional layers to drop
         :param strides: integer or tuple/list of 2 integers, specifying
             the strides of the convolution along the height and width
+        :param use_bias: boolean saying whether the conv layers use a bias
+            vector or not
         :param name: string base name of the block
         :param kwargs: supplementary kwargs for the parent __init__()
         """
@@ -496,6 +498,7 @@ class ResBlock(Layer):
         self.batch_norm = batch_norm
         self.dropout_rate = dropout_rate
         self.strides = strides
+        self.use_bias = use_bias
         self.base_name = name
 
         # instantiate layers
@@ -538,6 +541,7 @@ class ResBlock(Layer):
                                     strides=(self.strides,
                                              (1, 1),
                                              (1, 1)),
+                                    use_bias=self.use_bias,
                                     kernel_initializer='he_normal',
                                     name=self.base_name + '_bottleneck')
 
@@ -549,6 +553,7 @@ class ResBlock(Layer):
                                   dropout_rate=self.dropout_rate,
                                   depth=1,
                                   strides=(self.strides, ),
+                                  use_bias=self.use_bias,
                                   kernel_initializer='he_normal',
                                   name=self.base_name + '_shortcut')
 
@@ -571,7 +576,8 @@ class ResBlock(Layer):
                       activation=self.activation,
                       batch_norm=self.batch_norm,
                       dropout_rate=self.dropout_rate,
-                      strides=self.strides)
+                      strides=self.strides,
+                      use_bias=self.use_bias)
 
         return config
 
@@ -586,7 +592,7 @@ class IdentityBlock(Layer):
 
     def __init__(self, filters=(64, 64, 256), kernel_size=(3, 3),
                  activation='relu', batch_norm=True, dropout_rate=None,
-                 strides=(2, 2), name='res_block', **kwargs):
+                 strides=(2, 2), use_bias=True, name='res_block', **kwargs):
         """Create a residual block.
 
         :param filters: set of numbers of filters for each conv layer
@@ -601,6 +607,8 @@ class IdentityBlock(Layer):
             units of convolutional layers to drop
         :param strides: integer or tuple/list of 2 integers, specifying
             the strides of the convolution along the height and width
+        :param use_bias: boolean saying whether the conv layers use a bias
+            vector or not
         :param name: string base name of the block
         :param kwargs: supplementary kwargs for the parent __init__()
         """
@@ -613,6 +621,7 @@ class IdentityBlock(Layer):
         self.batch_norm = batch_norm
         self.dropout_rate = dropout_rate
         self.strides = strides
+        self.use_bias=use_bias
         self.base_name = name
 
         # instantiate layers
@@ -636,11 +645,7 @@ class IdentityBlock(Layer):
         return x
 
     def instantiate_layers(self):
-        """Instantiate layers lying between the input and the output.
-
-        TODO: Maybe the layers could be put defined as class variables instead
-              of returned values?
-        """
+        """Instantiate layers lying between the input and the output."""
         self.bottleneck = ConvBlock(filters=self.filters,
                                     kernel_sizes=((1, 1),
                                                   self.kernel_size,
@@ -657,6 +662,7 @@ class IdentityBlock(Layer):
                                     strides=((1, 1),
                                              (1, 1),
                                              (1, 1)),
+                                    use_bias=self.use_bias,
                                     kernel_initializer='he_normal',
                                     name=self.base_name + '_bottleneck')
 
@@ -679,7 +685,8 @@ class IdentityBlock(Layer):
                       activation=self.activation,
                       batch_norm=self.batch_norm,
                       dropout_rate=self.dropout_rate,
-                      strides=self.strides)
+                      strides=self.strides,
+                      use_bias=self.use_bias)
 
         return config
 
@@ -693,7 +700,7 @@ class ASPP(Layer):
     def __init__(self, filters=256, kernel_size=(3, 3),
                  activation='relu', batch_norm=True, dropout_rate=None,
                  dilation_rates=(1, 6, 12, 18, 24), pool_dims=(16, 16),
-                 name='aspp', **kwargs):
+                 use_bias=True, name='aspp', **kwargs):
         """Create an atrous spatial pyramid pooling block.
 
         :param filters: number of filters for conv layers
@@ -710,6 +717,8 @@ class ASPP(Layer):
             (the default values correspond to the original ASPP-L model)
         :param pool_dims: size of the pooling window for the pooling branch
             of the ASPP
+        :param use_bias: boolean saying whether the conv layers use a bias
+            vector or not
         :param name: string base name of the block
         :param kwargs: supplementary kwargs for the parent __init__()
         """
@@ -723,6 +732,7 @@ class ASPP(Layer):
         self.dropout_rate = dropout_rate
         self.dilation_rates = dilation_rates
         self.pool_dims = pool_dims
+        self.use_bias = use_bias
         self.base_name = name
 
         # instantiate layers
@@ -769,24 +779,12 @@ class ASPP(Layer):
                                       batch_norm=self.batch_norm,
                                       depth=1,
                                       kernel_initializer='he_normal',
+                                      # use_bias=self.use_bias,
                                       use_bias=False,
                                       name='ASPP_convblock_pool'),
                             UpSampling2D(size=[self.pool_dims[0] // 1,
                                                self.pool_dims[1] // 1],
                                          interpolation='bilinear')]
-
-        # convolutional blocks
-        # (first block with dilation_rate == 1 always added)
-        # self.conv_blocks = [ConvBlock(filters=(self.filters, ),
-        #                               kernel_sizes=((1, 1), ),
-        #                               activations=('relu', ),
-        #                               paddings=('same', ),
-        #                               dilation_rate=1,
-        #                               batch_norm=self.batch_norm,
-        #                               depth=1,
-        #                               kernel_initializer='he_normal',
-        #                               use_bias=False,
-        #                               name='ASPP_convblock_d1')]
 
         for dilation_rate in self.dilation_rates:
             if dilation_rate == 1:
@@ -803,6 +801,7 @@ class ASPP(Layer):
                           batch_norm=self.batch_norm,
                           depth=1,
                           kernel_initializer='he_normal',
+                          # use_bias=self.use_bias,
                           use_bias=False,
                           name=f'ASPP_convblock_d{dilation_rate}'))
 
@@ -817,6 +816,7 @@ class ASPP(Layer):
                                       dilation_rate=1,
                                       depth=1,
                                       kernel_initializer='he_normal',
+                                      # use_bias=self.use_bias,
                                       use_bias=False,
                                       name=f'ASPP_convblock_final')
 
@@ -838,7 +838,8 @@ class ASPP(Layer):
                       dropout_rate=self.dropout_rate,
                       strides=self.strides,
                       dilation_rates=self.dilation_rates,
-                      pool_dims=self.pool_dims)
+                      pool_dims=self.pool_dims,
+                      use_bias=self.use_bias)
 
         return config
 
