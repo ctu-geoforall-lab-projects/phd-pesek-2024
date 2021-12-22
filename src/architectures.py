@@ -3,6 +3,7 @@
 import tensorflow as tf
 
 from abc import ABC, abstractmethod
+from tensorflow.keras import layers as k_layers
 from tensorflow.keras.layers import MaxPooling2D, Conv2D, Input, UpSampling2D, \
     Concatenate, Dropout, ZeroPadding2D, GlobalAveragePooling2D, \
     GlobalMaxPooling2D, Dense
@@ -17,7 +18,8 @@ class _BaseModel(Model, ABC):
     """A base Model class holding methods mutual for various architectures."""
 
     def __init__(self, nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
-                 dilation_rate=1, tensor_shape=(256, 256), activation='relu',
+                 dilation_rate=1, tensor_shape=(256, 256),
+                 activation=k_layers.ReLU,
                  padding='same', dropout_rate_input=None,
                  dropout_rate_hidden=None, use_bias=True, **kwargs):
         """Model constructor.
@@ -30,8 +32,7 @@ class _BaseModel(Model, ABC):
             or not
         :param dilation_rate: convolution dilation rate
         :param tensor_shape: shape of the first two dimensions of input tensors
-        :param activation: activation function, such as tf.nn.relu, or string
-            name of built-in activation function, such as 'relu'
+        :param activation: activation layer
         :param padding: 'valid' means no padding. 'same' results in padding
             evenly to the left/right or up/down of the input such that output
             has the same height/width dimension as the input
@@ -628,7 +629,7 @@ class ResNet(_BaseModel):
         stage1 = [ZeroPadding2D(padding=(3, 3), name='conv1_pad'),
                   ConvBlock(filters=(64,),
                             kernel_sizes=((7, 7),),
-                            activations=('relu',),
+                            activations=(self.activation,),
                             paddings=('valid',),
                             depth=1,
                             strides=((2, 2),),
@@ -643,22 +644,26 @@ class ResNet(_BaseModel):
         stage2 = [ResBlock(kernel_size=3,
                            filters=(64, 64, 256),
                            strides=(1, 1),
+                           activation=self.activation,
                            use_bias=self.use_bias,
                            name='res_block_2_1')]
         for i in range(2, self.depths[1] + 1):
             stage2.append(IdentityBlock(kernel_size=3,
                                         filters=(64, 64, 256),
+                                        activation=self.activation,
                                         use_bias=self.use_bias,
                                         name=f'id_block_2_{i}'))
 
         # stage 3
         stage3 = [ResBlock(kernel_size=3,
                            filters=(128, 128, 512),
+                           activation=self.activation,
                            use_bias=self.use_bias,
                            name='res_block_3_1')]
         for i in range(2, self.depths[2] + 1):
             stage3.append(IdentityBlock(kernel_size=3,
                                         filters=(128, 128, 512),
+                                        activation=self.activation,
                                         use_bias=self.use_bias,
                                         name=f'id_block_3_{i}'))
 
@@ -666,22 +671,26 @@ class ResNet(_BaseModel):
         stage4 = [ResBlock(kernel_size=3,
                            filters=(256, 256, 1024),
                            use_bias=self.use_bias,
+                           activation=self.activation,
                            name='res_block_4_1')]
         for i in range(2, self.depths[3] + 1):
             stage4.append(IdentityBlock(kernel_size=3,
                                         filters=(256, 256, 1024),
                                         use_bias=self.use_bias,
+                                        activation=self.activation,
                                         name=f'id_block_4_{i}'))
 
         # stage 5
         stage5 = [ResBlock(kernel_size=3,
                            filters=(512, 512, 2048),
                            use_bias=self.use_bias,
+                           activation=self.activation,
                            name='res_block_5_1')]
         for i in range(2, self.depths[4] + 1):
             stage5.append(IdentityBlock(kernel_size=3,
                                         filters=(512, 512, 2048),
                                         use_bias=self.use_bias,
+                                        activation=self.activation,
                                         name=f'id_block_5_{i}'))
 
         # top
@@ -810,6 +819,7 @@ class DeepLabv3Plus(_BaseModel):
         # original DeepLabv3+ paper
         self.backbone = ResNet(self.nr_classes, pooling=self.resnet_pooling,
                                include_top=False, depth=self.resnet_depth,
+                               activation=self.activation,
                                use_bias=self.use_bias,
                                return_layers=('id_block_2_3',
                                               self.resnet_2_out))
@@ -830,7 +840,8 @@ class DeepLabv3Plus(_BaseModel):
         self.aspp = ASPP(
             dilation_rates=(1, 6, 12, 18),
             pool_dims=(self.tensor_shape[0] // backbone_out_2_pooled,
-                       self.tensor_shape[1] // backbone_out_2_pooled))
+                       self.tensor_shape[1] // backbone_out_2_pooled),
+            activation=self.activation)
 
         self.aspp_upsample = UpSampling2D(
             size=[backbone_out_2_pooled // backbone_out_1_pooled,
@@ -840,13 +851,12 @@ class DeepLabv3Plus(_BaseModel):
 
         self.low_level = ConvBlock(filters=(48, ),
                                    kernel_sizes=((1, 1), ),
-                                   activations=('relu',),
+                                   activations=(self.activation,),
                                    paddings=('same',),
                                    depth=1,
                                    kernel_initializer='he_normal',
                                    name='low_level_conv_block',
-                                   # use_bias=self.use_bias)
-                                   use_bias=False)
+                                   use_bias=self.use_bias)
 
         self.concat = Concatenate(name='decoder_concat')
 
@@ -854,13 +864,12 @@ class DeepLabv3Plus(_BaseModel):
         self.decoder_layers = [
             ConvBlock(filters=(256, 256),
                       kernel_sizes=((3, 3), ),
-                      activations=('relu',),
+                      activations=(self.activation,),
                       paddings=('same',),
                       depth=2,
                       kernel_initializer='he_normal',
                       name='decoder_conv_blocks',
-                      # use_bias=self.use_bias),
-                      use_bias=False),
+                      use_bias=self.use_bias),
             UpSampling2D(size=[backbone_out_1_pooled,
                                backbone_out_1_pooled],
                          interpolation='bilinear',
@@ -881,6 +890,8 @@ class DeepLabv3Plus(_BaseModel):
                       resnet_depth=self.resnet_depth,
                       resnet_2_out=self.resnet_2_out)
 
+        return config
+
 
 def create_model(model, nr_classes, nr_bands, tensor_shape,
                  nr_filters=64, optimizer='adam', loss='dice', metrics=None,
@@ -900,8 +911,8 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
     :param metrics: list of metrics to be evaluated by the model during
         training and testing. Each of this can be a name of a built-in
         function, function or a tf.keras.metrics.Metric instance
-    :param activation: activation function, such as tf.nn.relu, or string
-        name of built-in activation function, such as 'relu'
+    :param activation: string name of built-in activation function, such as
+        'relu'
     :param padding: 'valid' means no padding. 'same' results in padding
         evenly to the left/right or up/down of the input such that output
         has the same height/width dimension as the input
@@ -915,6 +926,8 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
     :return: compiled model
     """
     model_classes = {'U-Net': UNet, 'SegNet': SegNet, 'DeepLab': DeepLabv3Plus}
+    activations = {'relu': k_layers.ReLU, 'leaky_relu': k_layers.LeakyReLU,
+                   'prelu': k_layers.PReLU}
 
     if metrics is None:
         metrics = ['accuracy']
@@ -922,7 +935,8 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
     model = model_classes[model](nr_classes, nr_bands=nr_bands,
                                  nr_filters=nr_filters,
                                  tensor_shape=tensor_shape,
-                                 activation=activation, padding=padding,
+                                 activation=activations[activation],
+                                 padding=padding,
                                  dropout_rate_input=dropout_rate_input,
                                  dropout_rate_hidden=dropout_rate_hidden)
 

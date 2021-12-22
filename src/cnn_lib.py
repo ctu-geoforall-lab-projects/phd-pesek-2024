@@ -7,6 +7,7 @@ import tensorflow as tf
 
 from osgeo import gdal
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras import layers as k_layers
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
     Activation, Dropout, Add, AveragePooling2D, UpSampling2D, Concatenate
 from tensorflow.keras import backend as keras
@@ -311,8 +312,8 @@ class ConvBlock(Layer):
     """TF Keras layer overriden to represent a convolutional block."""
 
     def __init__(self, filters=(64, ), kernel_sizes=((3, 3), ),
-                 activations=('relu', ), paddings=('same', ), dilation_rate=1,
-                 batch_norm=True, dropout_rate=None, depth=2,
+                 activations=(k_layers.ReLU, ), paddings=('same', ),
+                 dilation_rate=1, batch_norm=True, dropout_rate=None, depth=2,
                  strides=((1, 1), ), kernel_initializer='glorot_uniform',
                  use_bias=True, name='conv_block', **kwargs):
         """Create a block of convolutional layers.
@@ -423,7 +424,7 @@ class ConvBlock(Layer):
             if self.dropout_rate is not None:
                 self.dropouts.append(Dropout(rate=self.dropout_rate))
             if self.activations[i] is not None:
-                self.activation_layers.append(Activation(self.activations[i]))
+                self.activation_layers.append(self.activations[i]())
             if self.batch_norm is True:
                 self.batch_norms.append(
                     BatchNormalization(
@@ -468,7 +469,7 @@ class ResBlock(Layer):
     """
 
     def __init__(self, filters=(64, 64, 256), kernel_size=(3, 3),
-                 activation='relu', batch_norm=True, dropout_rate=None,
+                 activation=k_layers.ReLU, batch_norm=True, dropout_rate=None,
                  strides=(2, 2), use_bias=True, name='res_block', **kwargs):
         """Create a residual block.
 
@@ -558,7 +559,7 @@ class ResBlock(Layer):
                                   name=self.base_name + '_shortcut')
 
         self.add = Add()
-        self.activation_layer = Activation(self.activation)
+        self.activation_layer = self.activation()
 
     def get_config(self):
         """Return the configuration of the residual block.
@@ -591,7 +592,7 @@ class IdentityBlock(Layer):
     """
 
     def __init__(self, filters=(64, 64, 256), kernel_size=(3, 3),
-                 activation='relu', batch_norm=True, dropout_rate=None,
+                 activation=k_layers.ReLU, batch_norm=True, dropout_rate=None,
                  strides=(2, 2), use_bias=True, name='res_block', **kwargs):
         """Create a residual block.
 
@@ -667,7 +668,7 @@ class IdentityBlock(Layer):
                                     name=self.base_name + '_bottleneck')
 
         self.add = Add()
-        self.activation_layer = Activation(self.activation)
+        self.activation_layer = self.activation()
 
     def get_config(self):
         """Return the configuration of the residual block.
@@ -698,7 +699,7 @@ class ASPP(Layer):
     """
 
     def __init__(self, filters=256, kernel_size=(3, 3),
-                 activation='relu', batch_norm=True, dropout_rate=None,
+                 activation=k_layers.ReLU, batch_norm=True, dropout_rate=None,
                  dilation_rates=(1, 6, 12, 18, 24), pool_dims=(16, 16),
                  use_bias=True, name='aspp', **kwargs):
         """Create an atrous spatial pyramid pooling block.
@@ -773,14 +774,13 @@ class ASPP(Layer):
                                              name='average_pooling'),
                             ConvBlock(filters=(self.filters,),
                                       kernel_sizes=((1, 1),),
-                                      activations=('relu',),
+                                      activations=(self.activation, ),
                                       paddings=('same',),
                                       dilation_rate=1,
                                       batch_norm=self.batch_norm,
                                       depth=1,
                                       kernel_initializer='he_normal',
-                                      # use_bias=self.use_bias,
-                                      use_bias=False,
+                                      use_bias=self.use_bias,
                                       name='ASPP_convblock_pool'),
                             UpSampling2D(size=[self.pool_dims[0] // 1,
                                                self.pool_dims[1] // 1],
@@ -795,14 +795,13 @@ class ASPP(Layer):
             self.conv_blocks.append(
                 ConvBlock(filters=(self.filters, ),
                           kernel_sizes=(kernel_size, ),
-                          activations=('relu', ),
+                          activations=(self.activation, ),
                           paddings=('same', ),
                           dilation_rate=dilation_rate,
                           batch_norm=self.batch_norm,
                           depth=1,
                           kernel_initializer='he_normal',
-                          # use_bias=self.use_bias,
-                          use_bias=False,
+                          use_bias=self.use_bias,
                           name=f'ASPP_convblock_d{dilation_rate}'))
 
         # concatenation layer
@@ -811,13 +810,12 @@ class ASPP(Layer):
         # output layer
         self.output_layer = ConvBlock(filters=(self.filters, ),
                                       kernel_sizes=(1, ),
-                                      activations=('relu', ),
+                                      activations=(self.activation, ),
                                       paddings=('same', ),
                                       dilation_rate=1,
                                       depth=1,
                                       kernel_initializer='he_normal',
-                                      # use_bias=self.use_bias,
-                                      use_bias=False,
+                                      use_bias=self.use_bias,
                                       name=f'ASPP_convblock_final')
 
     def get_config(self):
@@ -836,7 +834,6 @@ class ASPP(Layer):
                       activation=self.activation,
                       batch_norm=self.batch_norm,
                       dropout_rate=self.dropout_rate,
-                      strides=self.strides,
                       dilation_rates=self.dilation_rates,
                       pool_dims=self.pool_dims,
                       use_bias=self.use_bias)
