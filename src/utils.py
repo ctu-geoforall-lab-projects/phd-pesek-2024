@@ -75,3 +75,28 @@ def str2bool(string_val):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+def model_replace_nans(weights):
+    """Replace NaN values with zeroes.
+
+    Needed because of a (supposedly) bug in TF - a model trained on GPUs can
+    contain NaN values, but running predict() on CPUs cannot handle these
+    values and ends in returning zeros everywhere. Replacing NaN values fixes
+    this issue.
+
+    :param weights: weights of a model
+    :return: weights with NaN values replaced by zeros
+    """
+    import numpy as np
+
+    valid_weights = []
+    for l in weights:
+        if np.isnan(l).any():
+            valid_weights.append(np.nan_to_num(l))
+            tf.print('NaN values found in the weights -> they are changed '
+                     'to zeros')
+        else:
+            valid_weights.append(l)
+
+    return valid_weights

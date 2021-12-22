@@ -37,6 +37,7 @@ def main(data_dir, model, in_weights_path, visualization_path, batch_size,
 
     # load weights if the model is supposed to do so
     model.load_weights(in_weights_path)
+    model.set_weights(utils.model_replace_nans(model.get_weights()))
 
     detect(model, val_generator, id2code, [i for i in label_codes],
            label_names, seed, visualization_path)
