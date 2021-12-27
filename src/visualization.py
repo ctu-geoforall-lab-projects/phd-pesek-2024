@@ -77,8 +77,37 @@ def write_stats(result, out_path='/tmp/accu.png'):
     plt.close()
 
 
+def write_predictions(data_dir, detections, id2code, out_dir):
+    import glob
+    from osgeo import gdal
+    images = sorted(
+        glob.glob(os.path.join(data_dir, '*image.tif')))
+    geo_transform = []
+    projection = []
+    driver = gdal.GetDriverByName("GTiff")
+
+    for i in range(len(detections)):
+        dataset_image = gdal.Open(images[i], gdal.GA_ReadOnly)
+        nr_bands = dataset_image.RasterCount
+        geo_transform.append(dataset_image.GetGeoTransform())
+        projection.append(dataset_image.GetProjection())
+        file_name = os.path.splitext(os.path.split(images[i])[-1])[0]
+        out = driver.Create(os.path.join(out_dir, f'{file_name}.tif'),
+                            dataset_image.RasterXSize,
+                            dataset_image.RasterYSize,
+                            1,
+                            gdal.GDT_UInt16)
+        outband = out.GetRasterBand(1)
+        outband.WriteArray(onehot_decode(detections[i], id2code)[:, :, 0], 0, 0)
+        out.SetGeoTransform(geo_transform[i])
+        out.SetProjection(projection[i])
+        dataset_image = None
+        out = None
+
+
 def visualize_detections(images, ground_truths, detections, id2code,
-                         label_codes, label_names, out_dir='/tmp'):
+                         label_codes, label_names, data_dir, out_dir='/tmp',
+                         run_full_pred=True):
     """Create visualizations.
 
     Consist of the original image, the confusion matrix, ground truth labels
@@ -90,10 +119,16 @@ def visualize_detections(images, ground_truths, detections, id2code,
     :param id2code: dictionary mapping label ids to their codes
     :param label_codes: list with label codes
     :param label_names: list with label names
+    :param data_dir: path to the directory containing images and labels
     :param out_dir: directory where the output visualizations will be saved
+    :param run_full_pred: boolean saying whether to make geotiffs with full
+        tile predictions or not
     """
     max_id = max(id2code.values())
     name_range = range(len(label_names))
+
+    if run_full_pred is True:
+        write_predictions(data_dir, detections, id2code, out_dir)
 
     for i in range(0, np.shape(detections)[0]):
         fig = plt.figure(figsize=(17, 17))

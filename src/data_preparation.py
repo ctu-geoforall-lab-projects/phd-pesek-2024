@@ -26,7 +26,7 @@ def read_images(data_dir, tensor_shape=(256, 256),
     """
     images_arrays = []
     masks_arrays = []
-    for i in glob.glob(os.path.join(data_dir, '*image.tif')):
+    for i in sorted(glob.glob(os.path.join(data_dir, '*image.tif'))):
         tiled = tile(i, i.replace('image.tif', 'label.tif'),
                      tensor_shape, filter_by_class)
         images_arrays.extend(tiled[0])

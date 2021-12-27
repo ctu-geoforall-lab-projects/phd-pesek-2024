@@ -40,11 +40,11 @@ def main(data_dir, model, in_weights_path, visualization_path, batch_size,
     model.set_weights(utils.model_replace_nans(model.get_weights()))
 
     detect(model, val_generator, id2code, [i for i in label_codes],
-           label_names, seed, visualization_path)
+           label_names, data_dir, seed, visualization_path)
 
 
-def detect(model, val_generator, id2code, label_codes, label_names, seed=1,
-           out_dir='/tmp'):
+def detect(model, val_generator, id2code, label_codes, label_names,
+           data_dir, seed=1, out_dir='/tmp'):
     """Run detection.
 
     :param model: model to be used for the detection
@@ -52,6 +52,7 @@ def detect(model, val_generator, id2code, label_codes, label_names, seed=1,
     :param id2code: dictionary mapping label ids to their codes
     :param label_codes: list with label codes
     :param label_names: list with label names
+    :param data_dir: path to the directory containing images and labels
     :param seed: the generator seed
     :param out_dir: directory where the output visualizations will be saved
     """
@@ -61,7 +62,8 @@ def detect(model, val_generator, id2code, label_codes, label_names, seed=1,
     pred_all = model.predict(batch_img)
 
     visualize_detections(batch_img, batch_mask, pred_all, id2code,
-                         label_codes, label_names, out_dir)
+                         label_codes, label_names, data_dir, out_dir,
+                         run_full_pred=True)
 
 
 if __name__ == '__main__':
