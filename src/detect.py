@@ -61,6 +61,9 @@ def detect(model, val_generator, id2code, label_codes, label_names,
     batch_img, batch_mask = next(testing_gen)
     pred_all = model.predict(batch_img)
 
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
     visualize_detections(batch_img, batch_mask, pred_all, id2code,
                          label_codes, label_names, data_dir, out_dir,
                          run_full_pred=True)
