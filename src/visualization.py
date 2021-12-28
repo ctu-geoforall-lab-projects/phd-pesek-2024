@@ -88,7 +88,6 @@ def write_predictions(data_dir, detections, id2code, out_dir):
 
     for i in range(len(detections)):
         dataset_image = gdal.Open(images[i], gdal.GA_ReadOnly)
-        nr_bands = dataset_image.RasterCount
         geo_transform.append(dataset_image.GetGeoTransform())
         projection.append(dataset_image.GetProjection())
         file_name = os.path.splitext(os.path.split(images[i])[-1])[0]
