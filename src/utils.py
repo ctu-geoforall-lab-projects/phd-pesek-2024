@@ -91,12 +91,12 @@ def model_replace_nans(weights):
     import numpy as np
 
     valid_weights = []
-    for l in weights:
-        if np.isnan(l).any():
-            valid_weights.append(np.nan_to_num(l))
+    for weights_layer in weights:
+        if np.isnan(weights_layer).any():
+            valid_weights.append(np.nan_to_num(weights_layer))
             tf.print('NaN values found in the weights -> they are changed '
                      'to zeros')
         else:
-            valid_weights.append(l)
+            valid_weights.append(weights_layer)
 
     return valid_weights
