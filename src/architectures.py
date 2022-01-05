@@ -631,6 +631,7 @@ class ResNet(_BaseModel):
                             kernel_sizes=((7, 7),),
                             activations=(self.activation,),
                             paddings=('valid',),
+                            dropout_rate=self.dropout_rate_hidden,
                             depth=1,
                             strides=((2, 2),),
                             use_bias=self.use_bias,
@@ -643,6 +644,7 @@ class ResNet(_BaseModel):
         # stage 2
         stage2 = [ResBlock(kernel_size=3,
                            filters=(64, 64, 256),
+                           dropout_rate=self.dropout_rate_hidden,
                            strides=(1, 1),
                            activation=self.activation,
                            use_bias=self.use_bias,
@@ -651,6 +653,7 @@ class ResNet(_BaseModel):
             stage2.append(IdentityBlock(kernel_size=3,
                                         filters=(64, 64, 256),
                                         activation=self.activation,
+                                        dropout_rate=self.dropout_rate_hidden,
                                         use_bias=self.use_bias,
                                         name=f'id_block_2_{i}'))
 
@@ -658,12 +661,14 @@ class ResNet(_BaseModel):
         stage3 = [ResBlock(kernel_size=3,
                            filters=(128, 128, 512),
                            activation=self.activation,
+                           dropout_rate=self.dropout_rate_hidden,
                            use_bias=self.use_bias,
                            name='res_block_3_1')]
         for i in range(2, self.depths[2] + 1):
             stage3.append(IdentityBlock(kernel_size=3,
                                         filters=(128, 128, 512),
                                         activation=self.activation,
+                                        dropout_rate=self.dropout_rate_hidden,
                                         use_bias=self.use_bias,
                                         name=f'id_block_3_{i}'))
 
@@ -672,12 +677,14 @@ class ResNet(_BaseModel):
                            filters=(256, 256, 1024),
                            use_bias=self.use_bias,
                            activation=self.activation,
+                           dropout_rate=self.dropout_rate_hidden,
                            name='res_block_4_1')]
         for i in range(2, self.depths[3] + 1):
             stage4.append(IdentityBlock(kernel_size=3,
                                         filters=(256, 256, 1024),
                                         use_bias=self.use_bias,
                                         activation=self.activation,
+                                        dropout_rate=self.dropout_rate_hidden,
                                         name=f'id_block_4_{i}'))
 
         # stage 5
@@ -685,12 +692,14 @@ class ResNet(_BaseModel):
                            filters=(512, 512, 2048),
                            use_bias=self.use_bias,
                            activation=self.activation,
+                           dropout_rate=self.dropout_rate_hidden,
                            name='res_block_5_1')]
         for i in range(2, self.depths[4] + 1):
             stage5.append(IdentityBlock(kernel_size=3,
                                         filters=(512, 512, 2048),
                                         use_bias=self.use_bias,
                                         activation=self.activation,
+                                        dropout_rate=self.dropout_rate_hidden,
                                         name=f'id_block_5_{i}'))
 
         # top
@@ -821,6 +830,7 @@ class DeepLabv3Plus(_BaseModel):
                                include_top=False, depth=self.resnet_depth,
                                activation=self.activation,
                                use_bias=self.use_bias,
+                               dropout_rate_hidden=self.dropout_rate_hidden,
                                return_layers=('id_block_2_3',
                                               self.resnet_2_out))
 
@@ -841,7 +851,8 @@ class DeepLabv3Plus(_BaseModel):
             dilation_rates=(1, 6, 12, 18),
             pool_dims=(self.tensor_shape[0] // backbone_out_2_pooled,
                        self.tensor_shape[1] // backbone_out_2_pooled),
-            activation=self.activation)
+            activation=self.activation,
+            dropout_rate=self.dropout_rate_hidden)
 
         self.aspp_upsample = UpSampling2D(
             size=[backbone_out_2_pooled // backbone_out_1_pooled,
@@ -852,6 +863,7 @@ class DeepLabv3Plus(_BaseModel):
         self.low_level = ConvBlock(filters=(48, ),
                                    kernel_sizes=((1, 1), ),
                                    activations=(self.activation,),
+                                   dropout_rate=self.dropout_rate_hidden,
                                    paddings=('same',),
                                    depth=1,
                                    kernel_initializer='he_normal',
@@ -866,6 +878,7 @@ class DeepLabv3Plus(_BaseModel):
                       kernel_sizes=((3, 3), ),
                       activations=(self.activation,),
                       paddings=('same',),
+                      dropout_rate=self.dropout_rate_hidden,
                       depth=2,
                       kernel_initializer='he_normal',
                       name='decoder_conv_blocks',
