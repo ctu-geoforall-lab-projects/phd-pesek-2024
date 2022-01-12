@@ -97,7 +97,8 @@ def write_predictions(data_dir, detections, id2code, out_dir):
                             1,
                             gdal.GDT_UInt16)
         outband = out.GetRasterBand(1)
-        outband.WriteArray(onehot_decode(detections[i], id2code)[:, :, 0], 0, 0)
+        outband.WriteArray(
+            onehot_decode(detections[i], id2code)[:, :, 0], 0, 0)
         out.SetGeoTransform(geo_transform[i])
         out.SetProjection(projection[i])
         dataset_image = None

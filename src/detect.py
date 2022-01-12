@@ -111,8 +111,8 @@ if __name__ == '__main__':
     parser.add_argument(
         '--validation_set_percentage', type=float, default=0.2,
         help='If generating the dataset - Percentage of the entire dataset to '
-             'be used for the validation or detection in the form of a decimal '
-             'number')
+             'be used for the validation or detection in the form of '
+             'a decimal number')
     parser.add_argument(
         '--filter_by_classes', type=str, default=None,
         help='If generating the dataset - Classes of interest. If specified, '

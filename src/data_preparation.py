@@ -66,7 +66,10 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     """
     # function to be used while saving samples
     def train_val_determination(pct):
-        """Return decision about the sample will be part of train or val set."""
+        """Return decision about the sample will be part of train or val set.
+
+        :param pct: Percentage at which a val determinator is returned
+        """
         cur_pct = 0
         while True:
             cur_pct += pct

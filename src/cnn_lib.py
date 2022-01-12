@@ -73,8 +73,8 @@ class AugmentGenerator:
         :param seed: the generator seed (unfortunately, the seed does not
             work properly in tensorflow, therefore it does not do what is
             expected when augment is set to True)
-        :return: yielded tuple of batch-sized np stacks of validation images and
-            masks
+        :return: yielded tuple of batch-sized np stacks of validation images
+            and masks
         """
         if self.augment is False:
             return self.generate_numpy(id2code)
@@ -89,8 +89,8 @@ class AugmentGenerator:
         properly when __call__ takes arguments.
 
         :param id2code: dictionary mapping label ids to their codes
-        :return: yielded tuple of batch-sized np stacks of validation images and
-            masks
+        :return: yielded tuple of batch-sized np stacks of validation images
+            and masks
         """
         # create generators
         image_generator = self.numpy_generator(
@@ -141,8 +141,8 @@ class AugmentGenerator:
         :param data_dir: path to the directory containing images
         :param rescale: boolean saying whether to rescale images or not
             (rescaling is a division by 255)
-        :param batch_size: the number of samples that will be propagated through
-            the network at once
+        :param batch_size: the number of samples that will be propagated
+            through the network at once
         :param fit_memory: boolean to load the entire dataset into memory
             instead of opening new files with each request
         :return: yielded batch-sized np stack of images
@@ -186,8 +186,9 @@ class AugmentGenerator:
         # list of files from which the dataset will be created
         files_list = sorted(os.listdir(data_dir))
 
-        images_list = [self.transpose_image(data_dir, file, rescale) for file in
-                       files_list]
+        images_list = [
+            self.transpose_image(data_dir, file, rescale) for file in
+            files_list]
 
         return images_list
 
@@ -622,7 +623,7 @@ class IdentityBlock(Layer):
         self.batch_norm = batch_norm
         self.dropout_rate = dropout_rate
         self.strides = strides
-        self.use_bias=use_bias
+        self.use_bias = use_bias
         self.base_name = name
 
         # instantiate layers
@@ -1016,8 +1017,8 @@ class MyMaxUnpooling(Layer):
             tuples (one per output tensor of the layer)
         :return: list describing the layer shape
         """
-        return (input_shape[0][0], self.output_shape_[1], self.output_shape_[2],
-                self.output_shape_[3])
+        return (input_shape[0][0], self.output_shape_[1],
+                self.output_shape_[2], self.output_shape_[3])
 
     def build(self, input_shape):
         """Create the input_shape class variable and build the layer.

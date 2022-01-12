@@ -4,9 +4,9 @@ import tensorflow as tf
 
 from abc import ABC, abstractmethod
 from tensorflow.keras import layers as k_layers
-from tensorflow.keras.layers import MaxPooling2D, Conv2D, Input, UpSampling2D, \
-    Concatenate, Dropout, ZeroPadding2D, GlobalAveragePooling2D, \
-    GlobalMaxPooling2D, Dense
+from tensorflow.keras.layers import MaxPooling2D, Conv2D, Input, \
+    UpSampling2D, Concatenate, Dropout, ZeroPadding2D, \
+    GlobalAveragePooling2D, GlobalMaxPooling2D, Dense
 from tensorflow.keras.models import Model
 
 from cnn_lib import ConvBlock, MyMaxPooling, MyMaxUnpooling, \
@@ -266,7 +266,8 @@ class UNet(_BaseModel):
                                    name=f'upsampling_conv{i}'))
             # concatenate the upsampled weights with the corresponding ones
             # from the contracting path
-            us_concats.append(Concatenate(axis=3, name=f'upsampling_concat{i}'))
+            us_concats.append(Concatenate(axis=3,
+                                          name=f'upsampling_concat{i}'))
             us_blocks.append(ConvBlock((self.nr_filters * (2 ** i), ),
                                        ((3, 3), ),
                                        (self.activation, ),

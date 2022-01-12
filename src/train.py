@@ -225,8 +225,8 @@ if __name__ == '__main__':
     parser.add_argument(
         '--validation_set_percentage', type=float, default=0.2,
         help='If generating the dataset - Percentage of the entire dataset to '
-             'be used for the validation or detection in the form of a decimal '
-             'number')
+             'be used for the validation or detection in the form of '
+             'a decimal number')
     parser.add_argument(
         '--filter_by_classes', type=str, default=None,
         help='If generating the dataset - Classes of interest. If specified, '
@@ -252,8 +252,8 @@ if __name__ == '__main__':
                         args.dropout_rate_hidden is not None
     if not 0 <= args.validation_set_percentage < 1:
         raise parser.error(
-            'Argument validation_set_percentage must be greater or equal to 0 '
-            'and smaller than 1')
+            'Argument validation_set_percentage must be greater or equal to '
+            '0 and smaller or equal than 1')
 
     main(args.operation, args.data_dir, args.output_dir,
          args.model, args.model_fn, args.weights_path, args.visualization_path,
