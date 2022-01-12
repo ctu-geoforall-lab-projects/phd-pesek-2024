@@ -78,6 +78,13 @@ def write_stats(result, out_path='/tmp/accu.png'):
 
 
 def write_predictions(data_dir, detections, id2code, out_dir):
+    """Write predictions as geotiffs.
+
+    :param data_dir: path to the directory containing images and labels
+    :param detections: the model label predictions
+    :param id2code: dictionary mapping label ids to their codes
+    :param out_dir: directory where the output visualizations will be saved
+    """
     import glob
     from osgeo import gdal
     images = sorted(

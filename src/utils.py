@@ -24,7 +24,10 @@ def get_codings(description_file):
 
 
 def get_nr_of_bands(data_dir):
-    """TODO"""
+    """Get number of bands in the first *image.tif raster in a directory.
+
+    :param data_dir: directory with images for training or detection
+    """
     images = glob.glob(os.path.join(data_dir, '*image.tif'))
     dataset_image = gdal.Open(images[0], gdal.GA_ReadOnly)
     nr_bands = dataset_image.RasterCount
