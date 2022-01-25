@@ -55,7 +55,7 @@ class AugmentGenerator:
         do_exist = [os.path.isdir(i) is True for i in (images_dir, masks_dir)]
         if force_dataset_generation is True or all(do_exist) is False:
             generate_dataset_structure(data_dir, nr_bands, tensor_shape,
-                                       val_set_pct, filter_by_class)
+                                       val_set_pct, filter_by_class, augment)
 
         # create variables useful throughout the entire class
         self.nr_samples = len(os.listdir(images_dir))
@@ -76,10 +76,12 @@ class AugmentGenerator:
         :return: yielded tuple of batch-sized np stacks of validation images
             and masks
         """
-        if self.augment is False:
-            return self.generate_numpy(id2code)
-        else:
-            return self.generate_augmented(id2code, seed)
+        # if self.augment is False:
+        #     return self.generate_numpy(id2code)
+        # else:
+        #     return self.generate_augmented(id2code, seed)
+        # TODO: Why does the TF approach not work?
+        return self.generate_numpy(id2code)
 
     def generate_numpy(self, id2code):
         """Generate batches of data using our own numpy generator.
