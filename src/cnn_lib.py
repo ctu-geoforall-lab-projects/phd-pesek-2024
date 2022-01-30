@@ -7,8 +7,9 @@ import tensorflow as tf
 
 from osgeo import gdal
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras import layers as k_layers
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, \
-    Activation, Dropout
+    Activation, Dropout, Add, AveragePooling2D, UpSampling2D, Concatenate
 from tensorflow.keras import backend as keras
 
 from data_preparation import generate_dataset_structure
@@ -54,7 +55,7 @@ class AugmentGenerator:
         do_exist = [os.path.isdir(i) is True for i in (images_dir, masks_dir)]
         if force_dataset_generation is True or all(do_exist) is False:
             generate_dataset_structure(data_dir, nr_bands, tensor_shape,
-                                       val_set_pct, filter_by_class)
+                                       val_set_pct, filter_by_class, augment)
 
         # create variables useful throughout the entire class
         self.nr_samples = len(os.listdir(images_dir))
@@ -72,13 +73,15 @@ class AugmentGenerator:
         :param seed: the generator seed (unfortunately, the seed does not
             work properly in tensorflow, therefore it does not do what is
             expected when augment is set to True)
-        :return: yielded tuple of batch-sized np stacks of validation images and
-            masks
+        :return: yielded tuple of batch-sized np stacks of validation images
+            and masks
         """
-        if self.augment is False:
-            return self.generate_numpy(id2code)
-        else:
-            return self.generate_augmented(id2code, seed)
+        # if self.augment is False:
+        #     return self.generate_numpy(id2code)
+        # else:
+        #     return self.generate_augmented(id2code, seed)
+        # TODO: Why does the TF approach not work?
+        return self.generate_numpy(id2code)
 
     def generate_numpy(self, id2code):
         """Generate batches of data using our own numpy generator.
@@ -88,8 +91,8 @@ class AugmentGenerator:
         properly when __call__ takes arguments.
 
         :param id2code: dictionary mapping label ids to their codes
-        :return: yielded tuple of batch-sized np stacks of validation images and
-            masks
+        :return: yielded tuple of batch-sized np stacks of validation images
+            and masks
         """
         # create generators
         image_generator = self.numpy_generator(
@@ -140,8 +143,8 @@ class AugmentGenerator:
         :param data_dir: path to the directory containing images
         :param rescale: boolean saying whether to rescale images or not
             (rescaling is a division by 255)
-        :param batch_size: the number of samples that will be propagated through
-            the network at once
+        :param batch_size: the number of samples that will be propagated
+            through the network at once
         :param fit_memory: boolean to load the entire dataset into memory
             instead of opening new files with each request
         :return: yielded batch-sized np stack of images
@@ -185,8 +188,9 @@ class AugmentGenerator:
         # list of files from which the dataset will be created
         files_list = sorted(os.listdir(data_dir))
 
-        images_list = [self.transpose_image(data_dir, file, rescale) for file in
-                       files_list]
+        images_list = [
+            self.transpose_image(data_dir, file, rescale) for file in
+            files_list]
 
         return images_list
 
@@ -212,7 +216,7 @@ class AugmentGenerator:
             transposed = np.moveaxis(image.ReadAsArray(), 0, -1)
 
         if rescale:
-            transposed = 1. / 255 * transposed
+            transposed *= 1. / 255
 
         image = None
 
@@ -308,23 +312,33 @@ def categorical_tversky(ground_truth_onehot, predictions, alpha=0.5,
 # objects to be used in the architectures
 
 class ConvBlock(Layer):
-    """TF Keras layer overriden to represent a convolutional block in U-Net."""
+    """TF Keras layer overriden to represent a convolutional block."""
 
-    def __init__(self, nr_filters=64, kernel_size=(3, 3), activation='relu',
-                 padding='same', dilation_rate=1, batch_norm=True,
-                 dropout_rate=None, depth=2, **kwargs):
-        """Create a block of two convolutional layers.
+    def __init__(self, filters=(64, ), kernel_sizes=((3, 3), ),
+                 activations=(k_layers.ReLU, ), paddings=('same', ),
+                 dilation_rate=1, batch_norm=True, dropout_rate=None, depth=2,
+                 strides=((1, 1), ), kernel_initializer='glorot_uniform',
+                 use_bias=True, name='conv_block', **kwargs):
+        """Create a block of convolutional layers.
 
-        Each of them could be followed by a batch normalization layer.
+        Each of them could be followed by a dropout layer, activation
+        function, and/or batch normalization layer.
 
-        :param nr_filters: number of convolution filters
-        :param kernel_size: an integer or tuple/list of 2 integers, specifying
-            the height and width of the 2D convolution window
-        :param activation: activation function, such as tf.nn.relu, or string
-            name of built-in activation function, such as 'relu'
-        :param padding: 'valid' means no padding. 'same' results in padding
-            evenly to the left/right or up/down of the input such that output
-            has the same height/width dimension as the input
+        :param filters: set of numbers of filters for each conv layer. If
+            len(filters) == 1, the same number is used for every conv layer
+        :param kernel_sizes: set of integers or tuples/lists of 2 integers,
+            specifying the height and width of the 2D convolution window. If
+            len(kernel_sizes) == 1, the same kernel is used for every conv
+            layer
+        :param activations: set of activation functions, such as tf.nn.relu,
+            or string names of built-in activation function, such as 'relu'. If
+            len(activations) == 1, the same activation function is used for
+            every conv layer
+        :param paddings: set of paddings for each conv layer. 'valid' means no
+            padding. 'same' results in padding evenly to the left/right or
+            up/down of the input such that output has the same height/width
+            dimension as the input. If len(paddings) == 1, the same padding is
+            used for every conv layer
         :param dilation_rate: convolution dilation rate
         :param batch_norm: boolean saying whether to use batch normalization
             or not
@@ -332,52 +346,92 @@ class ConvBlock(Layer):
             units of convolutional layers to drop
         :param depth: depth of the block, specifying the number of conv
             layers in the block
+        :param strides: Set of integers or tuples/lists of 2 integers,
+            specifying the strides of the convolution along the height and
+            width. If len(strides) == 1, the same stride is used for every
+            conv layer
+        :param kernel_initializer: initializer for the kernel weights matrix
+        :param use_bias: boolean saying whether the conv layers use a bias
+            vector or not
+        :param name: string base name of the block
         :param kwargs: supplementary kwargs for the parent __init__()
         """
-        super(ConvBlock, self).__init__(**kwargs)
+        super(ConvBlock, self).__init__(name=name, **kwargs)
 
         # set init parameters to member variables
-        self.nr_filters = nr_filters
-        self.kernel_size = kernel_size
-        self.activation = activation
-        self.padding = padding
+        self.filters = filters
+        self.kernel_sizes = kernel_sizes
+        self.activations = activations
+        self.paddings = paddings
         self.dilation_rate = dilation_rate
         self.batch_norm = batch_norm
         self.dropout_rate = dropout_rate
         self.depth = depth
-        self.kwargs = kwargs
+        self.strides = strides
+        self.kernel_initializer = kernel_initializer
+        self.use_bias = use_bias
+        self.base_name = name
+
+        # solve the case of the same parameter for each conv_layer for the
+        # variable ones
+        if len(filters) == 1:
+            self.filters = depth * filters
+        if len(kernel_sizes) == 1:
+            self.kernel_sizes = depth * kernel_sizes
+        if len(activations) == 1:
+            self.activations = depth * activations
+        if len(paddings) == 1:
+            self.paddings = depth * paddings
+        if len(strides) == 1:
+            self.strides = depth * strides
 
         # instantiate layers of the conv block
         self.conv_layers = []
         self.dropouts = []
-        self.activations = []
+        self.activation_layers = []
         self.batch_norms = []
-        for i in range(depth):
-            self.conv_layers.append(Conv2D(nr_filters, kernel_size,
-                                           padding=padding,
-                                           dilation_rate=dilation_rate))
-            self.dropouts.append(Dropout(rate=dropout_rate))
-            self.activations.append(Activation(activation))
-            self.batch_norms.append(BatchNormalization())
+        self.instantiate_layers()
 
-    def call(self, x, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         """Perform the logic of applying the layer to the input tensors.
 
-        :param x: input tensor
+        :param inputs: input tensor
         :param mask: boolean tensor encoding masked timesteps in the input,
             used in RNN layers (currently not used)
         :return: output layer of the convolutional block
         """
+        x = inputs
         for i in range(self.depth):
             # apply inner blocks inside the entire block
             x = self.conv_layers[i](x)
             if self.dropout_rate is not None:
                 x = self.dropouts[i](x)
-            x = self.activations[i](x)
+            if self.activations[i] is not None:
+                x = self.activation_layers[i](x)
             if self.batch_norm is True:
                 x = self.batch_norms[i](x)
 
         return x
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the classifier."""
+        for i in range(self.depth):
+            self.conv_layers.append(
+                Conv2D(self.filters[i], self.kernel_sizes[i],
+                       padding=self.paddings[i],
+                       dilation_rate=self.dilation_rate,
+                       strides=self.strides[i],
+                       kernel_initializer=self.kernel_initializer,
+                       use_bias=self.use_bias,
+                       name='{}_conv{}'.format(self.base_name, i)))
+            if self.dropout_rate is not None:
+                self.dropouts.append(Dropout(rate=self.dropout_rate))
+            if self.activations[i] is not None:
+                self.activation_layers.append(self.activations[i]())
+            if self.batch_norm is True:
+                self.batch_norms.append(
+                    BatchNormalization(
+                        name='{}_bn{}'.format(self.base_name, i)))
 
     def get_config(self):
         """Return the configuration of the convolutional block.
@@ -390,15 +444,405 @@ class ConvBlock(Layer):
         """
         config = super(ConvBlock, self).get_config()
 
-        config.update(nr_filters=self.nr_filters,
-                      kernel_size=self.kernel_size,
-                      activation=self.activation,
-                      padding=self.padding,
+        config.update(filters=self.filters,
+                      kernel_sizes=self.kernel_sizes,
+                      activations=self.activations,
+                      paddings=self.paddings,
                       dilation_rate=self.dilation_rate,
                       batch_norm=self.batch_norm,
                       dropout_rate=self.dropout_rate,
                       depth=self.depth,
-                      **self.kwargs)
+                      strides=self.strides,
+                      kernel_initializer=self.kernel_initializer,
+                      use_bias=self.use_bias)
+
+        return config
+
+
+class ResBlock(Layer):
+    """TF Keras layer overriden to represent a residual block in ResNet.
+
+    Following the definition of residual blocks for ResNet-50 and deeper from
+    the original paper: <https://arxiv.org/pdf/1512.03385.pdf>. The original
+    design was enhanced by the option to perform dropout.
+
+    Represents only the better performing/more widely used version with 1x1
+    shortcut convolution from the paper. The version with zero padding not
+    implemented as I have never seen it anywhere in use.
+    """
+
+    def __init__(self, filters=(64, 64, 256), kernel_size=(3, 3),
+                 activation=k_layers.ReLU, batch_norm=True, dropout_rate=None,
+                 strides=(2, 2), use_bias=True, name='res_block', **kwargs):
+        """Create a residual block.
+
+        :param filters: set of numbers of filters for each conv layer
+        :param kernel_size: an integer or tuple/list of 2 integers, specifying
+            the height and width of the 2D convolution window in the central
+            convolutional layer in the bottleneck block
+        :param activation: activation function, such as tf.nn.relu, or string
+            name of built-in activation function, such as 'relu'
+        :param batch_norm: boolean saying whether to use batch normalization
+            or not
+        :param dropout_rate: float between 0 and 1. Fraction of the input
+            units of convolutional layers to drop
+        :param strides: integer or tuple/list of 2 integers, specifying
+            the strides of the convolution along the height and width
+        :param use_bias: boolean saying whether the conv layers use a bias
+            vector or not
+        :param name: string base name of the block
+        :param kwargs: supplementary kwargs for the parent __init__()
+        """
+        super(ResBlock, self).__init__(name=name, **kwargs)
+
+        # set init parameters to member variables
+        self.filters = filters
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.batch_norm = batch_norm
+        self.dropout_rate = dropout_rate
+        self.strides = strides
+        self.use_bias = use_bias
+        self.base_name = name
+
+        # instantiate layers
+        self.bottleneck = None
+        self.shortcut = None
+        self.add = None
+        self.activation_layer = None
+        self.instantiate_layers()
+
+    def call(self, inputs, mask=None, **kwargs):
+        """Perform the logic of applying the layer to the input tensors.
+
+        :param inputs: Input tensor, or dict/list/tuple of input tensors
+        :param mask: boolean tensor encoding masked timesteps in the input,
+            used in RNN layers (currently not used)
+        :return: output layer of the residual block
+        """
+        x = self.bottleneck(inputs)
+        s = self.shortcut(inputs)
+        x = self.add([x, s])
+        x = self.activation_layer(x)
+
+        return x
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the output."""
+        self.bottleneck = ConvBlock(filters=self.filters,
+                                    kernel_sizes=((1, 1),
+                                                  self.kernel_size,
+                                                  (1, 1)),
+                                    activations=(self.activation,
+                                                 self.activation,
+                                                 None),
+                                    paddings=('valid',
+                                              'same',
+                                              'valid'),
+                                    batch_norm=self.batch_norm,
+                                    dropout_rate=self.dropout_rate,
+                                    depth=3,
+                                    strides=(self.strides,
+                                             (1, 1),
+                                             (1, 1)),
+                                    use_bias=self.use_bias,
+                                    kernel_initializer='he_normal',
+                                    name=self.base_name + '_bottleneck')
+
+        self.shortcut = ConvBlock(filters=(self.filters[-1], ),
+                                  kernel_sizes=((1, 1), ),
+                                  activations=(None, ),
+                                  paddings=('valid', ),
+                                  batch_norm=self.batch_norm,
+                                  dropout_rate=self.dropout_rate,
+                                  depth=1,
+                                  strides=(self.strides, ),
+                                  use_bias=self.use_bias,
+                                  kernel_initializer='he_normal',
+                                  name=self.base_name + '_shortcut')
+
+        self.add = Add()
+        self.activation_layer = self.activation()
+
+    def get_config(self):
+        """Return the configuration of the residual block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        layer class name.
+
+        :return: the configuration dictionary of the residual block
+        """
+        config = super(ResBlock, self).get_config()
+
+        config.update(filters=self.filters,
+                      kernel_size=self.kernel_size,
+                      activation=self.activation,
+                      batch_norm=self.batch_norm,
+                      dropout_rate=self.dropout_rate,
+                      strides=self.strides,
+                      use_bias=self.use_bias)
+
+        return config
+
+
+class IdentityBlock(Layer):
+    """TF Keras layer overriden to represent an identity block in ResNet.
+
+    Following the definition of residual blocks for ResNet-50 and deeper from
+    the original paper: <https://arxiv.org/pdf/1512.03385.pdf>. The original
+    design was enhanced by the option to perform dropout.
+    """
+
+    def __init__(self, filters=(64, 64, 256), kernel_size=(3, 3),
+                 activation=k_layers.ReLU, batch_norm=True, dropout_rate=None,
+                 strides=(2, 2), use_bias=True, name='res_block', **kwargs):
+        """Create a residual block.
+
+        :param filters: set of numbers of filters for each conv layer
+        :param kernel_size: an integer or tuple/list of 2 integers, specifying
+            the height and width of the 2D convolution window in the central
+            convolutional layer in the bottleneck block
+        :param activation: activation function, such as tf.nn.relu, or string
+            name of built-in activation function, such as 'relu'
+        :param batch_norm: boolean saying whether to use batch normalization
+            or not
+        :param dropout_rate: float between 0 and 1. Fraction of the input
+            units of convolutional layers to drop
+        :param strides: integer or tuple/list of 2 integers, specifying
+            the strides of the convolution along the height and width
+        :param use_bias: boolean saying whether the conv layers use a bias
+            vector or not
+        :param name: string base name of the block
+        :param kwargs: supplementary kwargs for the parent __init__()
+        """
+        super(IdentityBlock, self).__init__(name=name, **kwargs)
+
+        # set init parameters to member variables
+        self.filters = filters
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.batch_norm = batch_norm
+        self.dropout_rate = dropout_rate
+        self.strides = strides
+        self.use_bias = use_bias
+        self.base_name = name
+
+        # instantiate layers
+        self.bottleneck = None
+        self.add = None
+        self.activation_layer = None
+        self.instantiate_layers()
+
+    def call(self, inputs, mask=None, **kwargs):
+        """Perform the logic of applying the layer to the input tensors.
+
+        :param inputs: Input tensor, or dict/list/tuple of input tensors
+        :param mask: boolean tensor encoding masked timesteps in the input,
+            used in RNN layers (currently not used)
+        :return: output layer of the residual block
+        """
+        x = self.bottleneck(inputs)
+        x = self.add([x, inputs])
+        x = self.activation_layer(x)
+
+        return x
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the output."""
+        self.bottleneck = ConvBlock(filters=self.filters,
+                                    kernel_sizes=((1, 1),
+                                                  self.kernel_size,
+                                                  (1, 1)),
+                                    activations=(self.activation,
+                                                 self.activation,
+                                                 None),
+                                    paddings=('valid',
+                                              'same',
+                                              'valid'),
+                                    batch_norm=self.batch_norm,
+                                    dropout_rate=self.dropout_rate,
+                                    depth=3,
+                                    strides=((1, 1),
+                                             (1, 1),
+                                             (1, 1)),
+                                    use_bias=self.use_bias,
+                                    kernel_initializer='he_normal',
+                                    name=self.base_name + '_bottleneck')
+
+        self.add = Add()
+        self.activation_layer = self.activation()
+
+    def get_config(self):
+        """Return the configuration of the residual block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        layer class name.
+
+        :return: the configuration dictionary of the residual block
+        """
+        config = super(IdentityBlock, self).get_config()
+
+        config.update(filters=self.filters,
+                      kernel_size=self.kernel_size,
+                      activation=self.activation,
+                      batch_norm=self.batch_norm,
+                      dropout_rate=self.dropout_rate,
+                      strides=self.strides,
+                      use_bias=self.use_bias)
+
+        return config
+
+
+class ASPP(Layer):
+    """TF Keras layer overriden to represent atrous spatial pyramid pooling.
+
+    For the original paper, see <https://arxiv.org/pdf/1606.00915.pdf>.
+    """
+
+    def __init__(self, filters=256, kernel_size=(3, 3),
+                 activation=k_layers.ReLU, batch_norm=True, dropout_rate=None,
+                 dilation_rates=(1, 6, 12, 18, 24), pool_dims=(16, 16),
+                 use_bias=True, name='aspp', **kwargs):
+        """Create an atrous spatial pyramid pooling block.
+
+        :param filters: number of filters for conv layers
+        :param kernel_size: an integer or tuple/list of 2 integers, specifying
+            the height and width of the 2D convolution window in the central
+            convolutional layer in the bottleneck block
+        :param activation: activation function, such as tf.nn.relu, or string
+            name of built-in activation function, such as 'relu'
+        :param batch_norm: boolean saying whether to use batch normalization
+            or not
+        :param dropout_rate: float between 0 and 1. Fraction of the input
+            units of convolutional layers to drop
+        :param dilation_rates: dilation rates used for convolutional blocks
+            (the default values correspond to the original ASPP-L model)
+        :param pool_dims: size of the pooling window for the pooling branch
+            of the ASPP
+        :param use_bias: boolean saying whether the conv layers use a bias
+            vector or not
+        :param name: string base name of the block
+        :param kwargs: supplementary kwargs for the parent __init__()
+        """
+        super(ASPP, self).__init__(name=name, **kwargs)
+
+        # set init parameters to member variables
+        self.filters = filters
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.batch_norm = batch_norm
+        self.dropout_rate = dropout_rate
+        self.dilation_rates = dilation_rates
+        self.pool_dims = pool_dims
+        self.use_bias = use_bias
+        self.base_name = name
+
+        # instantiate layers
+        self.pool_blocks = None
+        self.conv_blocks = []
+        self.concat = None
+        self.output_layer = None
+        self.instantiate_layers()
+
+    def call(self, inputs, mask=None, **kwargs):
+        """Perform the logic of applying the layer to the input tensors.
+
+        :param inputs: Input tensor, or dict/list/tuple of input tensors
+        :param mask: boolean tensor encoding masked timesteps in the input,
+            used in RNN layers (currently not used)
+        :return: output layer of the residual block
+        """
+        x_pool = inputs
+        for pool_block in self.pool_blocks:
+            x_pool = pool_block(x_pool)
+
+        block_outputs = [x_pool]
+        for conv_block in self.conv_blocks:
+            block_outputs.append(conv_block(inputs))
+
+        # concat all outputs
+        x = self.concat(block_outputs)
+
+        # last (1, 1) convolution
+        x = self.output_layer(x)
+
+        return x
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the output."""
+        self.pool_blocks = [AveragePooling2D(pool_size=(self.pool_dims[0],
+                                                        self.pool_dims[1]),
+                                             name='average_pooling'),
+                            ConvBlock(filters=(self.filters,),
+                                      kernel_sizes=((1, 1),),
+                                      activations=(self.activation, ),
+                                      paddings=('same',),
+                                      dilation_rate=1,
+                                      batch_norm=self.batch_norm,
+                                      dropout_rate=self.dropout_rate,
+                                      depth=1,
+                                      kernel_initializer='he_normal',
+                                      use_bias=self.use_bias,
+                                      name='ASPP_convblock_pool'),
+                            UpSampling2D(size=[self.pool_dims[0] // 1,
+                                               self.pool_dims[1] // 1],
+                                         interpolation='bilinear')]
+
+        for dilation_rate in self.dilation_rates:
+            if dilation_rate == 1:
+                kernel_size = (1, 1)
+            else:
+                kernel_size = self.kernel_size
+
+            self.conv_blocks.append(
+                ConvBlock(filters=(self.filters, ),
+                          kernel_sizes=(kernel_size, ),
+                          activations=(self.activation, ),
+                          paddings=('same', ),
+                          dilation_rate=dilation_rate,
+                          batch_norm=self.batch_norm,
+                          dropout_rate=self.dropout_rate,
+                          depth=1,
+                          kernel_initializer='he_normal',
+                          use_bias=self.use_bias,
+                          name=f'ASPP_convblock_d{dilation_rate}'))
+
+        # concatenation layer
+        self.concat = Concatenate(name='ASPP_concat')
+
+        # output layer
+        self.output_layer = ConvBlock(filters=(self.filters, ),
+                                      kernel_sizes=(1, ),
+                                      activations=(self.activation, ),
+                                      paddings=('same', ),
+                                      dilation_rate=1,
+                                      dropout_rate=self.dropout_rate,
+                                      depth=1,
+                                      kernel_initializer='he_normal',
+                                      use_bias=self.use_bias,
+                                      name=f'ASPP_convblock_final')
+
+    def get_config(self):
+        """Return the configuration of the residual block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        layer class name.
+
+        :return: the configuration dictionary of the residual block
+        """
+        config = super(ASPP, self).get_config()
+
+        config.update(filters=self.filters,
+                      kernel_size=self.kernel_size,
+                      activation=self.activation,
+                      batch_norm=self.batch_norm,
+                      dropout_rate=self.dropout_rate,
+                      dilation_rates=self.dilation_rates,
+                      pool_dims=self.pool_dims,
+                      use_bias=self.use_bias)
 
         return config
 
@@ -424,31 +868,36 @@ class MyMaxPooling(Layer):
             (so far not used)
         :param kwargs: TF Layer keyword arguments
         """
+        super(MyMaxPooling, self).__init__(**kwargs)
+
         self.pool_size = pool_size
         self.strides = strides
         self.padding = padding
+        self.data_format = data_format
 
-        super(MyMaxPooling, self).__init__(**kwargs)
+        # TODO: self.instantiate_layers()
 
-    def call(self, x, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         """Perform the logic of applying the layer to the input tensors.
 
-        :param x: input tensor
+        :param inputs: input tensor
         :param mask: boolean tensor encoding masked timesteps in the input,
             used in RNN layers (currently not used)
         :return: output layer of the convolutional block
         """
         ksize = (1, self.pool_size[0], self.pool_size[1], 1)
+        # TODO: Why don't I use the following strides?
         strides = (1, self.strides[0], self.strides[1], 1)
         output, argmax = tf.nn.max_pool_with_argmax(
-            x, ksize=ksize, strides=self.strides, padding=self.padding.upper(),
-            include_batch_in_index=True)
+            inputs, ksize=ksize, strides=self.strides,
+            padding=self.padding.upper(), include_batch_in_index=True)
 
         argmax = tf.cast(argmax, tf.int32)
 
         return output, argmax
 
-    def compute_output_shape(self, input_shape):
+    @staticmethod
+    def compute_output_shape(input_shape, **kwargs):
         """Compute the output shape of the layer.
 
         :param input_shape: Shape tuple (tuple of integers) or list of shape
@@ -461,7 +910,8 @@ class MyMaxPooling(Layer):
         output_shape = tuple(output_shape)
         return output_shape, output_shape
 
-    def compute_mask(self, inputs, mask=None):
+    @staticmethod
+    def compute_mask(inputs, mask=None, **kwargs):
         """Compute the output tensor mask.
 
         :param inputs: Tensor or list of tensors
@@ -479,11 +929,12 @@ class MyMaxPooling(Layer):
 
         :return: the configuration dictionary of the convolutional block
         """
-        config = super(MyMaxPooling, self).get_config().copy()
-        config.update({'pool_size': self.pool_size,
-                       'padding': self.padding,
-                       'strides': self.strides,
-                       'data_format': self.data_format})
+        config = super(MyMaxPooling, self).get_config()
+
+        config.update(pool_size=self.pool_size,
+                      padding=self.padding,
+                      strides=self.strides,
+                      data_format=self.data_format)
 
         return config
 
@@ -505,14 +956,17 @@ class MyMaxUnpooling(Layer):
             (so far not used)
         :param kwargs: TF Layer keyword arguments
         """
+        super(MyMaxUnpooling, self).__init__(**kwargs)
+
         self.pool_size = pool_size
+        self.data_format = data_format
 
         # output shape should be created during the build() call
         self.output_shape_ = (None, None, None, None)
 
-        super(MyMaxUnpooling, self).__init__(**kwargs)
+        # TODO: self.instantiate_layers()
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         """Perform the logic of applying the layer to the input tensors.
 
         :param inputs: data structure in form (layer input, indices received
@@ -551,8 +1005,10 @@ class MyMaxUnpooling(Layer):
 
         :return: the configuration dictionary of the convolutional block
         """
-        config = super(MyMaxUnpooling, self).get_config().copy()
-        config.update({'pool_size': self.pool_size})
+        config = super(MyMaxUnpooling, self).get_config()
+
+        config.update(pool_size=self.pool_size,
+                      data_format=self.data_format)
 
         return config
 
@@ -563,8 +1019,8 @@ class MyMaxUnpooling(Layer):
             tuples (one per output tensor of the layer)
         :return: list describing the layer shape
         """
-        return (input_shape[0][0], self.output_shape_[1], self.output_shape_[2],
-                self.output_shape_[3])
+        return (input_shape[0][0], self.output_shape_[1],
+                self.output_shape_[2], self.output_shape_[3])
 
     def build(self, input_shape):
         """Create the input_shape class variable and build the layer.

@@ -1,17 +1,17 @@
 #!/usr/bin/python3
 
 import os
-import glob
 import argparse
 
 import numpy as np
 import tensorflow as tf
 
-from osgeo import gdal
 from tensorflow.python.keras.callbacks import TensorBoard, ModelCheckpoint, \
     EarlyStopping
 
-from data_preparation import parse_label_code
+# imports from this package
+import utils
+
 from cnn_lib import AugmentGenerator
 from architectures import create_model
 from visualization import write_stats
@@ -23,15 +23,12 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path,
          force_dataset_generation, fit_memory, augment, tversky_alpha,
          tversky_beta, dropout_rate_input, dropout_rate_hidden,
          val_set_pct, filter_by_class):
-    print_device_info()
+    utils.print_device_info()
 
     # get nr of bands
-    images = glob.glob(os.path.join(data_dir, '*image.tif'))
-    dataset_image = gdal.Open(images[0], gdal.GA_ReadOnly)
-    nr_bands = dataset_image.RasterCount
-    dataset_image = None
+    nr_bands = utils.get_nr_of_bands(data_dir)
 
-    label_codes, label_names, id2code = get_codings(
+    label_codes, label_names, id2code = utils.get_codings(
         os.path.join(data_dir, 'label_colors.txt'))
 
     # set TensorFlow seed
@@ -46,8 +43,8 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path,
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(
         data_dir, batch_size, 'val', nr_bands, tensor_shape,
-        force_dataset_generation, fit_memory, val_set_pct=val_set_pct,
-        filter_by_class=filter_by_class)
+        force_dataset_generation, fit_memory, augment=augment,
+        val_set_pct=val_set_pct, filter_by_class=filter_by_class)
 
     # load weights if the model is supposed to do so
     if operation == 'fine-tune':
@@ -60,32 +57,6 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path,
           output_dir, visualization_path, model_fn, nr_epochs,
           initial_epoch, seed=seed, patience=patience,
           monitored_value=monitored_value)
-
-
-def print_device_info():
-    """Print info about used GPUs."""
-    print('Available GPUs:')
-    print(tf.config.list_physical_devices('GPU'))
-
-    print('Device name:')
-    print(tf.random.uniform((1, 1)).device)
-
-    print('TF executing eagerly:')
-    print(tf.executing_eagerly())
-
-
-def get_codings(description_file):
-    """Get lists of label codes and names and a an id-name mapping dictionary.
-
-    :param description_file: path to the txt file with labels and their names
-    :return: list of label codes, list of label names, id2code dictionary
-    """
-    label_codes, label_names = zip(
-        *[parse_label_code(i) for i in open(description_file)])
-    label_codes, label_names = list(label_codes), list(label_names)
-    id2code = {i: j for i, j in enumerate(label_codes)}
-
-    return label_codes, label_names, id2code
 
 
 def train(model, train_generator, val_generator, id2code, batch_size,
@@ -162,26 +133,6 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     write_stats(result, os.path.join(visualization_path, 'accu.png'))
 
 
-def _str2bool(string_val):
-    """Transform a string looking like a boolean value to a boolean value.
-
-    This is needed because using type=bool in argparse actually parses strings.
-    Such an behaviour could result in `--force_dataset_generation False` being
-    misinterpreted as True (bool('False') == True).
-
-    :param string_val: a string looking like a boolean value
-    :return: the corresponding boolean value
-    """
-    if isinstance(string_val, bool):
-        return string_val
-    elif string_val.lower() in ('true', 'yes', 't', 'y', '1'):
-        return True
-    elif string_val.lower() in ('false', 'no', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Run training or fine-tuning')
@@ -199,7 +150,7 @@ if __name__ == '__main__':
         help='Path where logs and the model will be saved')
     parser.add_argument(
         '--model', type=str, default='U-Net',
-        choices=('U-Net', 'SegNet'),
+        choices=('U-Net', 'SegNet', 'DeepLab'),
         help='Model architecture')
     parser.add_argument(
         '--model_fn', type=str,
@@ -247,16 +198,16 @@ if __name__ == '__main__':
         '--monitored_value', type=str, default='val_accuracy',
         help='Metric name to be monitored')
     parser.add_argument(
-        '--force_dataset_generation', type=_str2bool, default=False,
+        '--force_dataset_generation', type=utils.str2bool, default=False,
         help='Boolean to force the dataset structure generation')
     parser.add_argument(
-        '--fit_dataset_in_memory', type=_str2bool, default=False,
+        '--fit_dataset_in_memory', type=utils.str2bool, default=False,
         help='Boolean to load the entire dataset into memory instead '
              'of opening new files with each request - results in the '
              'reduction of I/O operations and time, but could result in huge '
              'memory needs in case of a big dataset')
     parser.add_argument(
-        '--augment_training_dataset', type=_str2bool, default=False,
+        '--augment_training_dataset', type=utils.str2bool, default=False,
         help='Boolean to augment the training dataset with rotations, '
              'shear and flips')
     parser.add_argument(
@@ -274,8 +225,8 @@ if __name__ == '__main__':
     parser.add_argument(
         '--validation_set_percentage', type=float, default=0.2,
         help='If generating the dataset - Percentage of the entire dataset to '
-             'be used for the validation or detection in the form of a decimal '
-             'number')
+             'be used for the validation or detection in the form of '
+             'a decimal number')
     parser.add_argument(
         '--filter_by_classes', type=str, default=None,
         help='If generating the dataset - Classes of interest. If specified, '
@@ -301,8 +252,8 @@ if __name__ == '__main__':
                         args.dropout_rate_hidden is not None
     if not 0 <= args.validation_set_percentage < 1:
         raise parser.error(
-            'Argument validation_set_percentage must be greater or equal to 0 '
-            'and smaller than 1')
+            'Argument validation_set_percentage must be greater or equal to '
+            '0 and smaller or equal than 1')
 
     main(args.operation, args.data_dir, args.output_dir,
          args.model, args.model_fn, args.weights_path, args.visualization_path,

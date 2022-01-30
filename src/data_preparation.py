@@ -5,7 +5,6 @@ import glob
 import shutil
 
 import numpy as np
-import tensorflow as tf
 
 from osgeo import gdal
 
@@ -13,7 +12,7 @@ from cnn_exceptions import DatasetError
 
 
 def read_images(data_dir, tensor_shape=(256, 256),
-                filter_by_class=None, verbose=1):
+                filter_by_class=None, augment=True, verbose=1):
     """Read images and return them as tensors and lists of filenames.
 
     TODO: Rewrite into a form of a generator
@@ -23,13 +22,14 @@ def read_images(data_dir, tensor_shape=(256, 256),
     :param verbose: verbosity (0=quiet, >0 verbose)
     :param filter_by_class: classes of interest (if specified, only samples
         containing at least one of them will be created)
+    :param augment: boolean saying whether to augment the dataset or not
     :return: image_tensors, masks_tensors
     """
     images_arrays = []
     masks_arrays = []
-    for i in glob.glob(os.path.join(data_dir, '*image.tif')):
+    for i in sorted(glob.glob(os.path.join(data_dir, '*image.tif'))):
         tiled = tile(i, i.replace('image.tif', 'label.tif'),
-                     tensor_shape, filter_by_class)
+                     tensor_shape, filter_by_class, augment)
         images_arrays.extend(tiled[0])
         masks_arrays.extend(tiled[1])
 
@@ -49,21 +49,9 @@ def read_images(data_dir, tensor_shape=(256, 256),
     return images_arrays, masks_arrays
 
 
-def parse_label_code(line):
-    """Parse lines in a text file into a label code and a label name.
-
-    :param line: line in the txt file
-    :return: tuple with an integer label code, a string label name
-    """
-    a, b = line.strip().split(',')
-
-    # format label_value, label_name
-    return int(a), b
-
-
 def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
                                val_set_pct=0.2, filter_by_class=None,
-                               verbose=1):
+                               augment=True, verbose=1):
     """Generate the expected dataset structure.
 
     Will generate directories train_images, train_masks, val_images and
@@ -75,18 +63,22 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     :param val_set_pct: percentage of the validation images in the dataset
     :param filter_by_class: classes of interest (if specified, only samples
         containing at least one of them will be created)
+    :param augment: boolean saying whether to augment the dataset or not
     :param verbose: verbosity (0=quiet, >0 verbose)
     """
     # function to be used while saving samples
-    def train_val_determination(val_set_pct):
-        """Return decision about the sample will be part of train or val set."""
-        pct = 0
+    def train_val_determination(pct):
+        """Return decision about the sample will be part of train or val set.
+
+        :param pct: Percentage at which a val determinator is returned
+        """
+        cur_pct = 0
         while True:
-            pct += val_set_pct
-            if pct < 1:
+            cur_pct += pct
+            if cur_pct < 1:
                 yield 'train'
             else:
-                pct -= 1
+                cur_pct -= 1
                 yield 'val'
 
     # Create folders to hold images and masks
@@ -99,7 +91,8 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
 
         os.makedirs(dir_full_path)
 
-    images, masks = read_images(data_dir, tensor_shape, filter_by_class)
+    images, masks = read_images(data_dir, tensor_shape, filter_by_class,
+                                augment)
 
     driver = gdal.GetDriverByName('GTiff')
     desired_dtype = np.int16
@@ -111,7 +104,6 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
     im_id = 0
     dir_names = train_val_determination(val_set_pct)
     for image, mask in zip(images, masks):
-        # TODO: Experiment with uint16
         # Convert tensors to numpy arrays
         # scale to 0-1
         image = image / current_dtype_max
@@ -149,7 +141,8 @@ def generate_dataset_structure(data_dir, nr_bands=12, tensor_shape=(256, 256),
         print("Saved {} images to directory {}".format(im_id, data_dir))
 
 
-def tile(scene_path, labels_path, tensor_shape, filter_by_class=None):
+def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
+         augment=True):
     """Tile the big scene into smaller samples.
 
     If filter_by_class is not None, only samples containing at least one of
@@ -160,7 +153,8 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None):
     :param tensor_shape: shape of the first two dimensions of input tensors
     :param filter_by_class: classes of interest (if specified, only samples
         containing at least one of them will be returned)
-    :return:
+    :param augment: boolean saying whether to augment the dataset or not
+    :return: TODO
     """
     import pyjeo as pj
 
@@ -214,5 +208,11 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None):
 
                 scene_nps.append(scene_np)
                 labels_nps.append(labels_np)
+
+    if augment is True:
+        for i in range(len(scene_nps)):
+            for rot_k in range(1, 4):
+                scene_nps.append(np.rot90(scene_nps[i], rot_k))
+                labels_nps.append(np.rot90(labels_nps[i], rot_k))
 
     return scene_nps, labels_nps
