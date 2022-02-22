@@ -31,9 +31,8 @@ def main(data_dir, model, in_weights_path, visualization_path, batch_size,
 
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(
-        data_dir, batch_size, 'val', nr_bands, tensor_shape,
-        force_dataset_generation, fit_memory, val_set_pct=val_set_pct,
-        filter_by_class=filter_by_class)
+        data_dir, batch_size, 'val', tensor_shape, force_dataset_generation,
+        fit_memory, val_set_pct=val_set_pct, filter_by_class=filter_by_class)
 
     # load weights if the model is supposed to do so
     model.load_weights(in_weights_path)

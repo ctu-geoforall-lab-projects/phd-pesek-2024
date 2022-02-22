@@ -11,7 +11,6 @@ ENV XERCES_VERSION 3.2.3
 ENV GEOS_VERSION 3.9.1
 ENV PROJ_VERSION 7.2.1
 ENV GDAL_VERSION 3.2.1
-ENV JEOLIB_VERSION 1.0.2
 
 RUN apt-get update
 
@@ -98,47 +97,6 @@ RUN cd /tmp/src && \
 # install pip dependecies
 COPY requirements.txt /tmp/src/requirements.txt
 RUN pip install -r /tmp/src/requirements.txt
-
-# install mialib dependencies
-RUN apt-get install -yq \
-    libgsl-dev \
-    libgsl0-dev \
-    libfann-dev \
-    libfftw3-dev \
-    libjsoncpp-dev \
-    uthash-dev \
-    doxygen \
-    libshp-dev \
-    git  # no packages available, so git clone is needed
-
-# install mialib
-RUN cd /tmp/src/ && \
-    git clone https://github.com/pesekon2/jeolib-miallib.git && \
-    cd jeolib-miallib && \
-    git checkout phd_necessary_changes && \
-    make generic && \
-    make install-generic
-
-# install jiplib dependencies
-RUN apt-get install cmake libboost-filesystem-dev libboost-serialization-dev python3-numpy -y
-
-# install jiplib
-RUN cd /tmp/src && \
-    wget https://github.com/ec-jrc/jeolib-jiplib/archive/${JEOLIB_VERSION}.tar.gz -O jeolib-jiplib-${JEOLIB_VERSION}.tar.gz && \
-    tar -zvxf jeolib-jiplib-${JEOLIB_VERSION}.tar.gz && \
-    cd jeolib-jiplib-${JEOLIB_VERSION} && \
-    mkdir build && \
-    cd build && \
-    cmake .. -DCMAKE_MODULE_PATH=/tmp/src/jeodpp-packages/jiplib/ && \
-    make -j${CPU_NR} && \
-    make install
-
-# install pyJEO
-RUN cd /tmp/src && \
-    wget https://github.com/ec-jrc/jeolib-pyjeo/archive/${JEOLIB_VERSION}.tar.gz -O jeolib-pyjeo-${JEOLIB_VERSION}.tar.gz && \
-    tar -zxvf jeolib-pyjeo-${JEOLIB_VERSION}.tar.gz && \
-    cd jeolib-pyjeo-${JEOLIB_VERSION} && \
-    python setup.py install
 
 # clean the mess
 RUN rm -r /tmp/src

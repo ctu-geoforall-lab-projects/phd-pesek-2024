@@ -20,17 +20,15 @@ class AugmentGenerator:
     """Data generator."""
 
     def __init__(self, data_dir, batch_size=5, operation='train',
-                 nr_bands=12, tensor_shape=(256, 256),
-                 force_dataset_generation=False, fit_memory=False,
-                 augment=False, onehot_encode=True, val_set_pct=0.2,
-                 filter_by_class=None):
+                 tensor_shape=(256, 256), force_dataset_generation=False,
+                 fit_memory=False, augment=False, onehot_encode=True,
+                 val_set_pct=0.2, filter_by_class=None):
         """Initialize the generator.
 
         :param data_dir: path to the directory containing images
         :param batch_size: the number of samples that will be propagated
             through the network at once
         :param operation: either 'train' or 'val'
-        :param nr_bands: number of bands of intended input images
         :param tensor_shape: shape of the first two dimensions of input tensors
         :param force_dataset_generation: boolean to force the dataset
             structure generation
@@ -54,8 +52,8 @@ class AugmentGenerator:
         # generate the dataset structure if not generated
         do_exist = [os.path.isdir(i) is True for i in (images_dir, masks_dir)]
         if force_dataset_generation is True or all(do_exist) is False:
-            generate_dataset_structure(data_dir, nr_bands, tensor_shape,
-                                       val_set_pct, filter_by_class, augment)
+            generate_dataset_structure(data_dir, tensor_shape, val_set_pct,
+                                       filter_by_class, augment)
 
         # create variables useful throughout the entire class
         self.nr_samples = len(os.listdir(images_dir))
