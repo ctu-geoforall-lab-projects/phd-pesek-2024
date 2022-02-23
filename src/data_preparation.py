@@ -46,10 +46,8 @@ def generate_dataset_structure(data_dir, tensor_shape=(256, 256),
              filter_by_class, augment, dir_names)
 
     # check if there are some training data
-    train_images_nr = len(
-        glob.glob(os.path.join(data_dir, 'train_images', '*')))
-    val_images_nr = len(
-        glob.glob(os.path.join(data_dir, 'val_images', '*')))
+    train_images_nr = len(os.listdir(os.path.join(data_dir, 'train_images')))
+    val_images_nr = len(os.listdir(os.path.join(data_dir, 'val_images')))
     if train_images_nr + val_images_nr == 0:
         raise DatasetError('No training samples created. Check the size of '
                            'the images in the data_dir or the appearance of '
