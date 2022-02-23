@@ -5,6 +5,8 @@ import argparse
 
 import tensorflow as tf
 
+from osgeo import gdal
+
 # imports from this package
 import utils
 
@@ -57,15 +59,47 @@ def detect(model, val_generator, id2code, label_codes, label_names,
     """
     testing_gen = val_generator(id2code, seed)
 
-    batch_img, batch_mask = next(testing_gen)
-    pred_all = model.predict(batch_img)
-
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    visualize_detections(batch_img, batch_mask, pred_all, id2code,
-                         label_codes, label_names, data_dir, out_dir,
-                         run_full_pred=True)
+    # get information needed to write referenced geotifs of detections
+    geoinfos = get_geoinfo(val_generator.masks_dir)
+
+    batch_size = val_generator.batch_size
+
+    for i in range(0, val_generator.nr_samples, batch_size):
+        # get a batch of data
+        batch_img, batch_mask = next(testing_gen)
+        pred_all = model.predict(batch_img)
+
+        batch_geoinfos = geoinfos[i:i + batch_size]
+
+        # visualize the natch
+        visualize_detections(batch_img, batch_mask, pred_all, id2code,
+                             label_codes, label_names, batch_geoinfos,
+                             out_dir)
+
+
+def get_geoinfo(data_dir):
+    """Get information needed to write referenced geotifs of detections.
+
+    :param data_dir: path to the directory with either val_images
+        or val_masks
+    :return: list of sets in format [(filenames, projs, geo_transforms), ...]
+    """
+    filenames = []
+    projs = []
+    geo_transforms = []
+
+    for filename in sorted(os.listdir(data_dir)):
+        src = gdal.Open(os.path.join(data_dir, filename), gdal.GA_ReadOnly)
+        filenames.append(filename)
+        projs.append(src.GetProjection())
+        geo_transforms.append(src.GetGeoTransform())
+
+        src = None
+
+    return [i for i in zip(filenames, projs, geo_transforms)]
 
 
 if __name__ == '__main__':

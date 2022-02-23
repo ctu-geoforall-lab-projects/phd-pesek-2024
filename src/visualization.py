@@ -7,6 +7,7 @@ matplotlib.use('Agg')
 import numpy as np
 import matplotlib.pyplot as plt
 
+from osgeo import gdal
 from tensorflow.math import confusion_matrix
 
 
@@ -77,44 +78,8 @@ def write_stats(result, out_path='/tmp/accu.png'):
     plt.close()
 
 
-def write_predictions(data_dir, detections, id2code, out_dir):
-    """Write predictions as geotiffs.
-
-    :param data_dir: path to the directory containing images and labels
-    :param detections: the model label predictions
-    :param id2code: dictionary mapping label ids to their codes
-    :param out_dir: directory where the output visualizations will be saved
-    """
-    import glob
-    from osgeo import gdal
-    images = sorted(
-        glob.glob(os.path.join(data_dir, '*image.tif')))
-    geo_transform = []
-    projection = []
-    driver = gdal.GetDriverByName("GTiff")
-
-    for i in range(len(detections)):
-        dataset_image = gdal.Open(images[i], gdal.GA_ReadOnly)
-        geo_transform.append(dataset_image.GetGeoTransform())
-        projection.append(dataset_image.GetProjection())
-        file_name = os.path.splitext(os.path.split(images[i])[-1])[0]
-        out = driver.Create(os.path.join(out_dir, f'{file_name}.tif'),
-                            dataset_image.RasterXSize,
-                            dataset_image.RasterYSize,
-                            1,
-                            gdal.GDT_UInt16)
-        outband = out.GetRasterBand(1)
-        outband.WriteArray(
-            onehot_decode(detections[i], id2code)[:, :, 0], 0, 0)
-        out.SetGeoTransform(geo_transform[i])
-        out.SetProjection(projection[i])
-        dataset_image = None
-        out = None
-
-
 def visualize_detections(images, ground_truths, detections, id2code,
-                         label_codes, label_names, data_dir, out_dir='/tmp',
-                         run_full_pred=True):
+                         label_codes, label_names, geoinfos, out_dir='/tmp'):
     """Create visualizations.
 
     Consist of the original image, the confusion matrix, ground truth labels
@@ -126,18 +91,21 @@ def visualize_detections(images, ground_truths, detections, id2code,
     :param id2code: dictionary mapping label ids to their codes
     :param label_codes: list with label codes
     :param label_names: list with label names
-    :param data_dir: path to the directory containing images and labels
+    :param geoinfos: list in format(filename, projection, geo_transform)
     :param out_dir: directory where the output visualizations will be saved
-    :param run_full_pred: boolean saying whether to make geotiffs with full
-        tile predictions or not
     """
     max_id = max(id2code.values())
     name_range = range(len(label_names))
 
-    if run_full_pred is True:
-        write_predictions(data_dir, detections, id2code, out_dir)
+    driver = gdal.GetDriverByName("GTiff")
 
     for i in range(0, np.shape(detections)[0]):
+        if i == len(geoinfos):
+            # the sample count is not dividable by batch_size
+            break
+
+        # THE OVERVIEW IMAGE SECTION
+
         fig = plt.figure(figsize=(17, 17))
 
         # original image
@@ -158,7 +126,8 @@ def visualize_detections(images, ground_truths, detections, id2code,
         # detections
         ax4 = fig.add_subplot(2, 2, 4)
         ax4.set_title('Predicted labels')
-        pred_labels = onehot_decode(detections[i], id2code)
+        detection_decoded = onehot_decode(detections[i], id2code)
+        pred_labels = detection_decoded
         ax4.imshow(pred_labels * 4)
 
         # confusion matrix
@@ -193,8 +162,20 @@ def visualize_detections(images, ground_truths, detections, id2code,
                 ax2.text(row, col, cm_norm[col, row], color=colour,
                          horizontalalignment='center')
 
-        # save the image
-        if not os.path.isdir(out_dir):
-            os.makedirs(out_dir)
-        plt.savefig(os.path.join(out_dir, str(i)))
+        # save the overview image
+        plt.savefig(os.path.join(out_dir, geoinfos[i][0][:-4]))
         plt.close()
+
+        # THE DETECTION TIF IMAGE SECTION
+
+        out = driver.Create(os.path.join(out_dir, f'{geoinfos[i][0]}'),
+                            np.shape(detections)[1],
+                            np.shape(detections)[2],
+                            1,
+                            gdal.GDT_Byte)
+        outband = out.GetRasterBand(1)
+        outband.WriteArray(detection_decoded[:, :, 0], 0, 0)
+        out.SetProjection(geoinfos[i][1])
+        out.SetGeoTransform(geoinfos[i][2])
+
+        out = None
