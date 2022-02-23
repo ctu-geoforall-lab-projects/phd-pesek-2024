@@ -175,7 +175,7 @@ class AugmentGenerator:
                 index += 1
 
     def get_transposed_images(self, data_dir, rescale):
-        """Get list of transposed images.
+        """Get a list of transposed images.
 
         :param data_dir: path to the directory containing images
         :param rescale: boolean saying whether to rescale images or not
