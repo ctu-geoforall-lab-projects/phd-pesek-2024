@@ -169,8 +169,8 @@ def visualize_detections(images, ground_truths, detections, id2code,
         # THE DETECTION TIF IMAGE SECTION
 
         out = driver.Create(os.path.join(out_dir, f'{geoinfos[i][0]}'),
-                            np.shape(detections)[1],
                             np.shape(detections)[2],
+                            np.shape(detections)[1],
                             1,
                             gdal.GDT_Byte)
         outband = out.GetRasterBand(1)
