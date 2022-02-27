@@ -75,6 +75,9 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
     :param augment: boolean saying whether to augment the dataset or not
     :param dir_names: a generator determining directory names (train/val)
     """
+    cols_step = tensor_shape[0]
+    rows_step = tensor_shape[1]
+
     # do we filter by classes?
     if filter_by_class is None:
         filt = False
@@ -91,14 +94,18 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
         projection = scene.GetProjection()
         data_type = scene.GetRasterBand(1).DataType
         scene = None
+
+        if cols_step == rows_step:
+            rotations = (1, 2, 3)
+        else:
+            rotations = (2, )
     else:
         driver = None
         nr_bands = None
         projection = None
         data_type = None
 
-    cols_step = tensor_shape[0]
-    rows_step = tensor_shape[1]
+        rotations = None
 
     # do not write aux.xml files
     os.environ['GDAL_PAM_ENABLED'] = 'NO'
@@ -143,10 +150,10 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
             # crop
             gdal.Translate(output_scene_path,
                            scene_path,
-                           srcWin=(j, i, cols_step, rows_step))
+                           srcWin=(i, j, rows_step, cols_step))
             gdal.Translate(output_mask_path,
                            labels_path,
-                           srcWin=(j, i, cols_step, rows_step))
+                           srcWin=(i, j, rows_step, cols_step))
 
             if augment is False:
                 # the following code is unnecessary then
@@ -169,7 +176,7 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
             src_scene = None
             src_mask = None
 
-            for rot_k in range(1, 4):
+            for rot_k in rotations:
                 dir_name = next(dir_names)
 
                 # add 'rot_{X}deg' to the filename
@@ -183,14 +190,14 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
                 # create files
                 out_scene = driver.Create(
                     rot_scene_path,
-                    cols_step,
                     rows_step,
+                    cols_step,
                     nr_bands,
                     data_type)
                 out_mask = driver.Create(
                     rot_mask_path,
-                    cols_step,
                     rows_step,
+                    cols_step,
                     1,
                     gdal.GDT_UInt16)
                 out_scene.SetGeoTransform(geo_transform)
@@ -203,7 +210,7 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
                     out_scene_band = out_scene.GetRasterBand(
                         band_i + 1)
                     out_scene_band.WriteArray(
-                        np.rot90(src_bands[band_i - 1], rot_k), 0, 0)
+                        np.rot90(src_bands[band_i], rot_k), 0, 0)
 
                 out_mask_band = out_mask.GetRasterBand(1)
                 out_mask_band.WriteArray(
