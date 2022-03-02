@@ -75,8 +75,8 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
     :param augment: boolean saying whether to augment the dataset or not
     :param dir_names: a generator determining directory names (train/val)
     """
-    cols_step = tensor_shape[0]
-    rows_step = tensor_shape[1]
+    rows_step = tensor_shape[0]
+    cols_step = tensor_shape[1]
 
     # do we filter by classes?
     if filter_by_class is None:
@@ -118,18 +118,21 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
 
     scene_dir, scene_name = os.path.split(scene_path[:-10])
 
-    for i in range(0, nr_rows, rows_step):
-        for j in range(0, nr_cols, cols_step):
+    for i in range(0, nr_cols, cols_step):
+        # if reaching the end of the image, expand the window back to
+        # avoid pixels outside the image
+        if i + cols_step > nr_cols:
+            i = nr_cols - cols_step
+
+        for j in range(0, nr_rows, rows_step):
             # if reaching the end of the image, expand the window back to
             # avoid pixels outside the image
-            if j + cols_step > nr_cols:
-                j = nr_cols - cols_step
-            if i + rows_step > nr_rows:
-                i = nr_rows - rows_step
+            if j + rows_step > nr_rows:
+                j = nr_rows - rows_step
 
             # if filtering, check if it makes sense to continue
             if filt is True:
-                labels_cropped = labels_np[j:j + cols_step, i:i + rows_step]
+                labels_cropped = labels_np[j:j + rows_step, i:i + cols_step]
                 if not any(i in labels_cropped for i in filter_by_class):
                     # no occurrence of classes to filter by - continue with
                     # next patch
@@ -150,10 +153,10 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
             # crop
             gdal.Translate(output_scene_path,
                            scene_path,
-                           srcWin=(i, j, rows_step, cols_step))
+                           srcWin=(i, j, cols_step, rows_step))
             gdal.Translate(output_mask_path,
                            labels_path,
-                           srcWin=(i, j, rows_step, cols_step))
+                           srcWin=(i, j, cols_step, rows_step))
 
             if augment is False:
                 # the following code is unnecessary then
@@ -190,14 +193,14 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
                 # create files
                 out_scene = driver.Create(
                     rot_scene_path,
-                    rows_step,
                     cols_step,
+                    rows_step,
                     nr_bands,
                     data_type)
                 out_mask = driver.Create(
                     rot_mask_path,
-                    rows_step,
                     cols_step,
+                    rows_step,
                     1,
                     gdal.GDT_UInt16)
                 out_scene.SetGeoTransform(geo_transform)
