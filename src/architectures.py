@@ -70,7 +70,7 @@ class _BaseModel(Model, ABC):
         """Check the reasonability of the architecture parameters."""
         if any([i % (2 ** 4) != 0 for i in self.tensor_shape]):
             raise ModelConfigError(
-                'The tensor height and tensor width must be devidable by 32 '
+                'The tensor height and tensor width must be divisible by 32 '
                 'for the architecture, but they are {} and {} '
                 'respectively instead'.format(self.tensor_shape[0],
                                               self.tensor_shape[1])
