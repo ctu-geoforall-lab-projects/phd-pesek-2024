@@ -95,7 +95,7 @@ RUN cd /tmp/src && \
     ldconfig
 
 # install pip dependecies
-COPY --from=builder requirements.txt /tmp/src/requirements.txt
+COPY --from=builder ./requirements.txt /tmp/src/requirements.txt
 RUN pip install -r /tmp/src/requirements.txt
 
 # clean the mess
