@@ -19,10 +19,10 @@ name: Docker
 on:
   push:
     branches:
-      - 'master'
+      - '*'
   pull_request:
     branches:
-      - 'master'
+      - '*'
 
     # env:
     #     # Additionally mentioned in docker-sha-release-latest
