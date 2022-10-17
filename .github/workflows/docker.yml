@@ -80,8 +80,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v3
         with:
-          push: true
-          pull: true
+          # push: true
+          # pull: true
           context: .
           tags: ${{ steps.meta.outputs.tags }}
           file: docker/docker-cpu/Dockerfile
