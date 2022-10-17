@@ -42,6 +42,6 @@ jobs:
           file: docker/docker-cpu/Dockerfile
       - name: Test
         run: |
-        wget -O /tmp/venus_clouds_v1.0.7z https://zenodo.org/record/7040177/files/venus_clouds_v1.0.7z?download=1
+          wget -O /tmp/venus_clouds_v1.0.7z https://zenodo.org/record/7040177/files/venus_clouds_v1.0.7z?download=1
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
