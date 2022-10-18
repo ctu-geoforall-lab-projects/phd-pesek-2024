@@ -41,3 +41,7 @@ Hopefully one day.
 
 * [Professional debate in the PDF version](professional-debate/ondrej-pesek-professional-debate-2020.pdf)
 * [The final text in progress in the TeX version](text/ondrej-pesek-phd-2020.tex)
+
+## Intermediate results
+
+* [Using Convolutional Neural Networks for Cloud Detection on VENμS Images over Multiple Land-Cover Types](https://www.mdpi.com/2072-4292/14/20/5210)
