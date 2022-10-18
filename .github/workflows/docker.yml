@@ -12,6 +12,7 @@ jobs:
   docker-branch-os-matrix:
     name: build docker and run tests
     runs-on: ubuntu-latest
+    timeout-minutes: 120
 
     strategy:
       fail-fast: false
