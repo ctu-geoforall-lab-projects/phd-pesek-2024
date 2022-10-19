@@ -30,15 +30,17 @@ jobs:
         #   # with:
         #   #   username: ${{ secrets.DOCKERHUB_USERNAME }}
         #   #   password: ${{ secrets.DOCKERHUB_TOKEN  }}
+        # - name: Build
+        #   id: docker_build
+        #   uses: docker/build-push-action@v3
+        #   with:
+        #     context: .
+        #     tags: docker-cpu:1.0
+        #     file: docker/docker-cpu/Dockerfile
+        # - name: Image digest
+        #   run: echo ${{ steps.docker_build.outputs.digest }}
       - name: Build
-        id: docker_build
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          tags: docker-cpu:1.0
-          file: docker/docker-cpu/Dockerfile
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+        run: docker build docker/docker-cpu -t docker-cpu:1.0
       - name: Test
         run: |
           pip install zenodo_get pytest && \
