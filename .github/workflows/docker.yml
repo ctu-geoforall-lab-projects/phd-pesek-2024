@@ -41,6 +41,8 @@ jobs:
         #   run: echo ${{ steps.docker_build.outputs.digest }}
       - name: Build
         run: docker build docker/docker-cpu -t docker-cpu:1.0
+        with:
+          context: .
       - name: Test
         run: |
           pip install zenodo_get pytest && \
