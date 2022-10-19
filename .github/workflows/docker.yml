@@ -42,4 +42,7 @@ jobs:
       - name: Test
         run: |
           pip install zenodo_get && \
-          zenodo_get 7040177 -o /tmp/
+          zenodo_get 7040177 -o /tmp/ && \
+          7z x /tmp/venus_clouds_v1.0.7z -o/tmp/training_data && \
+          rm /tmp/training_data/training_set_clouds_multiclass/s05* && \
+          rm /tmp/training_data/training_set_clouds_multiclass/w07*
