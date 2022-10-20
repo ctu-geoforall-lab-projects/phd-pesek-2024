@@ -47,9 +47,8 @@ jobs:
         run: |
           ls src && \
           echo "***" && \
-          ls /src && \
           echo $pwd && \
-          echo $cwd && \
+          echo ${GITHUB_WORKSPACE} && \
           echo "***" && \
           pip install zenodo_get && \
           zenodo_get 7040177 -o /tmp/ && \
