@@ -46,7 +46,8 @@ class TestCmd:
         # TODO: Add augment, continue, val_losses
         for architecture in 'U-Net', 'SegNet', 'DeepLab':
             for dropout in (0, 0.5):
-                train(model=architecture,
+                train(operation='train',
+                      model=architecture,
                       data_dir='/tmp/training_data/training_set_clouds_multiclass',
                       output_dir=f'/tmp/output_{architecture.lower()}_{dropout}',
                       model_fn=f'/tmp/output_{architecture.lower()}_{dropout}/model.h5',

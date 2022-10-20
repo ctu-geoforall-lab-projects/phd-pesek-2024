@@ -17,12 +17,12 @@ from architectures import create_model
 from visualization import write_stats
 
 
-def main(operation, data_dir, output_dir, model, model_fn, in_weights_path,
-         visualization_path, nr_epochs, initial_epoch, batch_size,
-         loss_function, seed, patience, tensor_shape, monitored_value,
-         force_dataset_generation, fit_memory, augment, tversky_alpha,
-         tversky_beta, dropout_rate_input, dropout_rate_hidden,
-         val_set_pct, filter_by_class):
+def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
+         visualization_path='/tmp', nr_epochs=1, initial_epoch=0, batch_size=1,
+         loss_function='dice', seed=1, patience=100, tensor_shape=(256, 256), monitored_value='val_accuracy',
+         force_dataset_generation=False, fit_memory=False, augment=False,
+         tversky_alpha=None, tversky_beta=None, dropout_rate_input=None,
+         dropout_rate_hidden=None, val_set_pct=0.2, filter_by_class=None):
     utils.print_device_info()
 
     # get nr of bands
