@@ -43,6 +43,9 @@ jobs:
         run: docker build docker/docker-cpu -t docker-cpu:1.0
         # with:
         #   context: .
+      - name: Print
+        run: |
+          ls 
       - name: Test
         run: |
           pip install zenodo_get && \
