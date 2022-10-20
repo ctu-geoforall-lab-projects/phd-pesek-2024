@@ -47,6 +47,7 @@ jobs:
         run: |
           ls src && \
           echo "***" && \
+          ls /src && \
           echo $pwd && \
           echo $cwd && \
           echo "***" && \
@@ -54,13 +55,13 @@ jobs:
           zenodo_get 7040177 -o /tmp/ && \
           7z x /tmp/venus_clouds_v1.0.7z -o/tmp/training_data && \
           rm /tmp/training_data/training_set_clouds_multiclass/s* && \
-          docker run --rm -v /tmp:/tmp:rw -v src:/src:ro docker-cpu:1.0 ls && \
-          docker run --rm -v /tmp:/tmp:rw -v src:/src:ro docker-cpu:1.0 ls / && \
+          docker run --rm -v /tmp:/tmp:rw -v /src:/src:ro docker-cpu:1.0 ls && \
+          docker run --rm -v /tmp:/tmp:rw -v /src:/src:ro docker-cpu:1.0 ls / && \
           echo "***" && \
-          docker run --rm -v /tmp:/tmp:rw -v src:/src:ro docker-cpu:1.0 ls src && \
-          docker run --rm -v /tmp:/tmp:rw -v src:/src:ro docker-cpu:1.0 ls /src && \
+          docker run --rm -v /tmp:/tmp:rw -v /src:/src:ro docker-cpu:1.0 ls src && \
+          docker run --rm -v /tmp:/tmp:rw -v /src:/src:ro docker-cpu:1.0 ls /src && \
           echo "***" && \
-          docker run --rm -v /tmp:/tmp:rw -v src:/src:ro docker-cpu:1.0 ls /tmp && \
+          docker run --rm -v /tmp:/tmp:rw -v /src:/src:ro docker-cpu:1.0 ls /tmp && \
           echo "***" && \
           docker run --rm -v /tmp:/tmp:rw -v /src:/src:ro docker-cpu:1.0 ls /src/test
           # docker run --rm -v /tmp:/tmp:rw -v src:/src:ro docker-cpu:1.0 pytest src/test/consistency_test.py
