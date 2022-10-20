@@ -93,10 +93,10 @@ RUN mkdir /tmp/src
 #     make -j${CPU_NR} && \
 #     make install && \
 #     ldconfig
-# 
-# # install pip dependecies
-# COPY requirements.txt /tmp/src/requirements.txt
-# # COPY docker/docker-cpu/requirements.txt /tmp/src/requirements.txt
+
+# install pip dependecies
+COPY requirements.txt /tmp/src/requirements.txt
+# COPY docker/docker-cpu/requirements.txt /tmp/src/requirements.txt
 RUN pip install -r /tmp/src/requirements.txt
 
 # clean the mess
