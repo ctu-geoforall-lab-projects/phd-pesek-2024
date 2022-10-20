@@ -45,6 +45,8 @@ jobs:
         #   context: .
       - name: Test
         run: |
+          ls src && \
+          echo && \
           pip install zenodo_get && \
           zenodo_get 7040177 -o /tmp/ && \
           7z x /tmp/venus_clouds_v1.0.7z -o/tmp/training_data && \
