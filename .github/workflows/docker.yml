@@ -43,13 +43,10 @@ jobs:
         run: docker build docker/docker-cpu -t docker-cpu:1.0
         # with:
         #   context: .
-      - name: Print
-        run: |
-          ls 
       - name: Test
         run: |
           pip install zenodo_get && \
           zenodo_get 7040177 -o /tmp/ && \
           7z x /tmp/venus_clouds_v1.0.7z -o/tmp/training_data && \
           rm /tmp/training_data/training_set_clouds_multiclass/s* && \
-          docker run --rm -v /tmp:/tmp:rw -v src:/src:ro docker-cpu:1.0 pytest /src/tests/consistency_test.py
+          docker run --rm -v /tmp:/tmp:rw -v src:/src:ro docker-cpu:1.0 pytest /src/test/consistency_test.py
