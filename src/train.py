@@ -23,7 +23,7 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
          force_dataset_generation=False, fit_memory=False, augment=False,
          tversky_alpha=None, tversky_beta=None, dropout_rate_input=None,
          dropout_rate_hidden=None, val_set_pct=0.2, filter_by_class=None):
-    tf.config.threading.set_inter_op_parallelism_threads(10)
+    tf.config.threading.set_inter_op_parallelism_threads(3)
     utils.print_device_info()
 
     # get nr of bands
