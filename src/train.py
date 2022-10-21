@@ -121,6 +121,7 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     validation_steps = np.ceil(val_generator.nr_samples / batch_size)
 
     # train
+    tf.config.threading.set_inter_op_parallelism_threads(10)
     result = model.fit(
         train_generator(id2code, seed),
         validation_data=val_generator(id2code, seed),
