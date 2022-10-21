@@ -23,13 +23,6 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
          force_dataset_generation=False, fit_memory=False, augment=False,
          tversky_alpha=None, tversky_beta=None, dropout_rate_input=None,
          dropout_rate_hidden=None, val_set_pct=0.2, filter_by_class=None):
-    tf.config.threading.set_inter_op_parallelism_threads(3)
-    N = 3
-    os.environ["OMP_NUM_THREADS"] = f"{N}"
-    os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
-    os.environ['TF_NUM_INTRAOP_THREADS'] = f"{N}"
-    utils.print_device_info()
-
     # get nr of bands
     nr_bands = utils.get_nr_of_bands(data_dir)
 
@@ -44,6 +37,13 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
         alpha=tversky_alpha, beta=tversky_beta,
         dropout_rate_input=dropout_rate_input,
         dropout_rate_hidden=dropout_rate_hidden)
+
+    # tf.config.threading.set_inter_op_parallelism_threads(3)
+    # N = 3
+    # os.environ["OMP_NUM_THREADS"] = f"{N}"
+    # os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
+    # os.environ['TF_NUM_INTRAOP_THREADS'] = f"{N}"
+    # utils.print_device_info()
 
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(
