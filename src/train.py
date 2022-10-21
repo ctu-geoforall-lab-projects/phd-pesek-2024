@@ -100,6 +100,13 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     else:
         early_stop_mode = 'min'
 
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+    N = 1
+    os.environ["OMP_NUM_THREADS"] = f"{N}"
+    os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
+    os.environ['TF_NUM_INTRAOP_THREADS'] = f"{N}"
+    utils.print_device_info()
+
     # set up monitoring
     tb = TensorBoard(log_dir=log_dir, write_graph=True)
     mc = ModelCheckpoint(
@@ -117,13 +124,6 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     # not when they are not (our own generator is used)
     steps_per_epoch = np.ceil(train_generator.nr_samples / batch_size)
     validation_steps = np.ceil(val_generator.nr_samples / batch_size)
-
-    # tf.config.threading.set_inter_op_parallelism_threads(1)
-    N = 1
-    os.environ["OMP_NUM_THREADS"] = f"{N}"
-    os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
-    os.environ['TF_NUM_INTRAOP_THREADS'] = f"{N}"
-    utils.print_device_info()
 
     # train
     result = model.fit(

@@ -49,4 +49,4 @@ jobs:
           zenodo_get 7040177 -o /tmp/ && \
           7z x /tmp/venus_clouds_v1.0.7z -o/tmp/training_data && \
           rm /tmp/training_data/training_set_clouds_multiclass/s* && \
-          docker run --rm -v /tmp:/tmp:rw -v ${GITHUB_WORKSPACE}/src:/src:ro -e PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages:/src --cpus=2 docker-cpu:1.0 pytest src/test/consistency_test.py
+          docker run --rm -v /tmp:/tmp:rw -v ${GITHUB_WORKSPACE}/src:/src:ro -e PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages:/src --cpus=1 docker-cpu:1.0 pytest src/test/consistency_test.py
