@@ -118,7 +118,7 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     steps_per_epoch = np.ceil(train_generator.nr_samples / batch_size)
     validation_steps = np.ceil(val_generator.nr_samples / batch_size)
 
-    tf.config.threading.set_inter_op_parallelism_threads(1)
+    # tf.config.threading.set_inter_op_parallelism_threads(1)
     N = 1
     os.environ["OMP_NUM_THREADS"] = f"{N}"
     os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
