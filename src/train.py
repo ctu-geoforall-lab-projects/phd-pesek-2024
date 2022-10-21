@@ -38,13 +38,6 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
         dropout_rate_input=dropout_rate_input,
         dropout_rate_hidden=dropout_rate_hidden)
 
-    # tf.config.threading.set_inter_op_parallelism_threads(3)
-    # N = 3
-    # os.environ["OMP_NUM_THREADS"] = f"{N}"
-    # os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
-    # os.environ['TF_NUM_INTRAOP_THREADS'] = f"{N}"
-    # utils.print_device_info()
-
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(
         data_dir, batch_size, 'val', tensor_shape, force_dataset_generation,
@@ -124,6 +117,13 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     # not when they are not (our own generator is used)
     steps_per_epoch = np.ceil(train_generator.nr_samples / batch_size)
     validation_steps = np.ceil(val_generator.nr_samples / batch_size)
+
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+    N = 1
+    os.environ["OMP_NUM_THREADS"] = f"{N}"
+    os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
+    os.environ['TF_NUM_INTRAOP_THREADS'] = f"{N}"
+    utils.print_device_info()
 
     # train
     result = model.fit(
