@@ -48,6 +48,13 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
     if operation == 'fine-tune':
         model.load_weights(in_weights_path)
 
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+    N = 1
+    os.environ["OMP_NUM_THREADS"] = f"{N}"
+    os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
+    os.environ['TF_NUM_INTRAOP_THREADS'] = f"{N}"
+    utils.print_device_info()
+
     train_generator = AugmentGenerator(
         data_dir, batch_size, 'train', fit_memory=fit_memory,
         augment=augment)
@@ -99,13 +106,6 @@ def train(model, train_generator, val_generator, id2code, batch_size,
         early_stop_mode = 'max'
     else:
         early_stop_mode = 'min'
-
-    # tf.config.threading.set_inter_op_parallelism_threads(1)
-    # N = 1
-    # os.environ["OMP_NUM_THREADS"] = f"{N}"
-    # os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
-    # os.environ['TF_NUM_INTRAOP_THREADS'] = f"{N}"
-    # utils.print_device_info()
 
     # set up monitoring
     tb = TensorBoard(log_dir=log_dir, write_graph=True)
