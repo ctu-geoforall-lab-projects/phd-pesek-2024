@@ -58,10 +58,10 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
     train_generator = AugmentGenerator(
         data_dir, batch_size, 'train', fit_memory=fit_memory,
         augment=augment)
-    # train(model, train_generator, val_generator, id2code, batch_size,
-    #       output_dir, visualization_path, model_fn, nr_epochs,
-    #       initial_epoch, seed=seed, patience=patience,
-    #       monitored_value=monitored_value)
+    train(model, train_generator, val_generator, id2code, batch_size,
+          output_dir, visualization_path, model_fn, nr_epochs,
+          initial_epoch, seed=seed, patience=patience,
+          monitored_value=monitored_value)
 
 
 def train(model, train_generator, val_generator, id2code, batch_size,
@@ -126,16 +126,16 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     validation_steps = np.ceil(val_generator.nr_samples / batch_size)
 
     # train
-    result = model.fit(
-        train_generator(id2code, seed),
-        validation_data=val_generator(id2code, seed),
-        steps_per_epoch=steps_per_epoch,
-        validation_steps=validation_steps,
-        epochs=nr_epochs,
-        initial_epoch=initial_epoch,
-        callbacks=callbacks)
+    # result = model.fit(
+    #     train_generator(id2code, seed),
+    #     validation_data=val_generator(id2code, seed),
+    #     steps_per_epoch=steps_per_epoch,
+    #     validation_steps=validation_steps,
+    #     epochs=nr_epochs,
+    #     initial_epoch=initial_epoch,
+    #     callbacks=callbacks)
 
-    write_stats(result, os.path.join(visualization_path, 'accu.png'))
+    # write_stats(result, os.path.join(visualization_path, 'accu.png'))
 
 
 if __name__ == '__main__':
