@@ -126,14 +126,14 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     validation_steps = np.ceil(val_generator.nr_samples / batch_size)
 
     # train
-    # result = model.fit(
-    #     train_generator(id2code, seed),
-    #     validation_data=val_generator(id2code, seed),
-    #     steps_per_epoch=steps_per_epoch,
-    #     validation_steps=validation_steps,
-    #     epochs=nr_epochs,
-    #     initial_epoch=initial_epoch,
-    #     callbacks=callbacks)
+    result = model.fit(
+        train_generator(id2code, seed),
+        validation_data=val_generator(id2code, seed),
+        steps_per_epoch=steps_per_epoch,
+        validation_steps=validation_steps,
+        epochs=nr_epochs,
+        initial_epoch=initial_epoch,
+        callbacks=callbacks)
 
     # write_stats(result, os.path.join(visualization_path, 'accu.png'))
 
