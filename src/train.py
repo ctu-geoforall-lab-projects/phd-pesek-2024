@@ -32,12 +32,12 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
     # set TensorFlow seed
     tf.random.set_seed(seed)
 
-    tf.config.threading.set_inter_op_parallelism_threads(1)
-    N = 1
-    os.environ["OMP_NUM_THREADS"] = f"{N}"
-    os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
-    os.environ['TF_NUM_INTRAOP_THREADS'] = f"{N}"
-    utils.print_device_info()
+    # tf.config.threading.set_inter_op_parallelism_threads(1)
+    # N = 1
+    # os.environ["OMP_NUM_THREADS"] = f"{N}"
+    # os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
+    # os.environ['TF_NUM_INTRAOP_THREADS'] = f"{N}"
+    # utils.print_device_info()
 
     model = create_model(
         model, len(id2code), nr_bands, tensor_shape, loss=loss_function,
@@ -58,10 +58,10 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
     train_generator = AugmentGenerator(
         data_dir, batch_size, 'train', fit_memory=fit_memory,
         augment=augment)
-    train(model, train_generator, val_generator, id2code, batch_size,
-          output_dir, visualization_path, model_fn, nr_epochs,
-          initial_epoch, seed=seed, patience=patience,
-          monitored_value=monitored_value)
+    # train(model, train_generator, val_generator, id2code, batch_size,
+    #       output_dir, visualization_path, model_fn, nr_epochs,
+    #       initial_epoch, seed=seed, patience=patience,
+    #       monitored_value=monitored_value)
 
 
 def train(model, train_generator, val_generator, id2code, batch_size,
