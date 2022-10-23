@@ -43,8 +43,8 @@ class TestCmd:
     def test_001_clouds(self):
         """Test the consistency of a small cloud classification sample."""
 
-        # TODO: Add augment, continue, val_losses
-        for architecture in 'U-Net', 'SegNet', 'DeepLab':
+        # TODO: Add augment, continue, val_losses, architectures
+        for architecture in ('DeepLab',):
             for dropout in (0, 0.5):
                 train(operation='train',
                       model=architecture,
