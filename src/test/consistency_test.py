@@ -58,5 +58,6 @@ class TestCmd:
                       monitored_value='val_loss',
                       loss_function='dice',
                       tensor_shape=(256, 256),
+                      filter_by_class=(1, 2),
                       seed=1)
 
