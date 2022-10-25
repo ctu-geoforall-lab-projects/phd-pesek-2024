@@ -57,7 +57,7 @@ class TestCmd:
                       dropout_rate_hidden=dropout,
                       monitored_value='val_loss',
                       loss_function='dice',
-                      tensor_shape=(256, 256),
+                      tensor_shape=(126, 126),
                       filter_by_class='1,2',
                       seed=1)
 
