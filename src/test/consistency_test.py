@@ -53,11 +53,11 @@ class TestCmd:
                       output_dir=f'/tmp/output_{architecture.lower()}_{dropout}',
                       model_fn=f'/tmp/output_{architecture.lower()}_{dropout}/model.h5',
                       visualization_path=f'/tmp/output_{architecture.lower()}_{dropout}/visualizations/',
-                      nr_epochs=3,
+                      nr_epochs=2,
                       dropout_rate_hidden=dropout,
                       monitored_value='val_loss',
                       loss_function='dice',
-                      tensor_shape=(64, 64),
+                      tensor_shape=(32, 32),
                       filter_by_class='1,2',
                       seed=1)
 
