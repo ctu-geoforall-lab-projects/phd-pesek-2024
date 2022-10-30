@@ -62,3 +62,8 @@ class TestCmd:
                       filter_by_class='1,2',
                       seed=1)
 
+        cap = capsys.readouterr()
+        
+        with open('/tmp/out.out', 'w') as out:
+            out.write(cap.out)
+
