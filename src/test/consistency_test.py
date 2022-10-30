@@ -60,7 +60,7 @@ class TestCmd:
                       # tensor_shape=(32, 32),
                       tensor_shape=(256, 256),
                       filter_by_class='1,2',
-                      seed=2)
+                      seed=1)
 
         cap = capsys.readouterr()
         
