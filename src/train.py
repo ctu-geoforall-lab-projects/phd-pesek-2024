@@ -30,6 +30,7 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
         os.path.join(data_dir, 'label_colors.txt'))
 
     # set TensorFlow seed
+    os.environ['PYTHONHASHSEED']=str(seed)
     tf.keras.utils.set_random_seed(seed)
 
     # tf.config.threading.set_inter_op_parallelism_threads(1)
