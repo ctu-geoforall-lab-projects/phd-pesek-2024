@@ -56,7 +56,7 @@ class TestCmd:
                       dropout_rate_hidden=dropout,
                       val_set_pct=0.5,
                       monitored_value='val_loss',
-                      loss_function='dice',
+                      loss_function='categorical_crossentropy',
                       # tensor_shape=(32, 32),
                       tensor_shape=(256, 256),
                       filter_by_class='1,2',
