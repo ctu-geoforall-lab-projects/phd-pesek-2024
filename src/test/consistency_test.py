@@ -42,7 +42,7 @@ def are_dir_trees_equal(dir1, dir2):
 class TestCmd:
     def test_001_clouds(self, capsys):
         """Test the consistency of a small cloud classification sample."""
-        # TODO: Add augment, continue, val_losses, architectures
+        # TODO: Add augment, continue, val_losses
         # for architecture in ('U-Net', 'SegNet', 'DeepLab',):
         for architecture in ('DeepLab',):
             for dropout in (0, 0.5):
