@@ -46,7 +46,7 @@ class TestCmd:
         # for architecture in ('U-Net', 'SegNet', 'DeepLab',):
         for architecture in ('DeepLab',):
             # for dropout in (0, 0.5):
-            for dropout in (0):
+            for dropout in (0,):
                 train(operation='train',
                       model=architecture,
                       data_dir='/tmp/training_data/training_set_clouds_multiclass',
