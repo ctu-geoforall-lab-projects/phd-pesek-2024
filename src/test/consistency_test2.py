@@ -7,7 +7,7 @@ import pytest
 from shutil import rmtree
 from pathlib import Path
 
-from train import main as train
+# from train import main as train
 
 
 def are_dir_trees_equal(dir1, dir2):
@@ -45,25 +45,27 @@ class TestCmd:
 
         # TODO: Add augment, continue, val_losses, architectures
         # for architecture in ('U-Net', 'SegNet', 'DeepLab',):
-        for architecture in ('U-Net',):
-            for dropout in (0, 0.5):
-                train(operation='train',
-                      model=architecture,
-                      data_dir='/tmp/training_data/training_set_clouds_multiclass',
-                      output_dir=f'/tmp/output_{architecture.lower()}_{dropout}',
-                      model_fn=f'/tmp/output_{architecture.lower()}_{dropout}/model.h5',
-                      visualization_path=f'/tmp/output_{architecture.lower()}_{dropout}/visualizations/',
-                      nr_epochs=3,
-                      dropout_rate_hidden=dropout,
-                      val_set_pct=0.5,
-                      monitored_value='val_loss',
-                      loss_function='dice',
-                      tensor_shape=(256, 256),
-                      filter_by_class='1,2',
-                      seed=1)
+        for i in range(100):
+            print(i)
+        # for architecture in ('U-Net',):
+        #     for dropout in (0, 0.5):
+        #         train(operation='train',
+        #               model=architecture,
+        #               data_dir='/tmp/training_data/training_set_clouds_multiclass',
+        #               output_dir=f'/tmp/output_{architecture.lower()}_{dropout}',
+        #               model_fn=f'/tmp/output_{architecture.lower()}_{dropout}/model.h5',
+        #               visualization_path=f'/tmp/output_{architecture.lower()}_{dropout}/visualizations/',
+        #               nr_epochs=3,
+        #               dropout_rate_hidden=dropout,
+        #               val_set_pct=0.5,
+        #               monitored_value='val_loss',
+        #               loss_function='dice',
+        #               tensor_shape=(256, 256),
+        #               filter_by_class='1,2',
+        #               seed=1)
 
-        cap = capsys.readouterr()
-        
-        with open('/tmp/out.out', 'w') as out:
-            out.write(cap.out)
+            cap = capsys.readouterr()
+                
+            with open('/tmp/out.out', 'w') as out:
+                out.write(cap.out)
 

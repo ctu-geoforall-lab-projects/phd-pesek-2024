@@ -115,7 +115,7 @@ def train(model, train_generator, val_generator, id2code, batch_size,
         mode=early_stop_mode, filepath=out_model_path,
         monitor=monitored_value, save_best_only='True',
         save_weights_only='True',
-        verbose=verbose)
+        verbose=1)
     # TODO: check custom earlystopping to monitor multiple metrics
     #       https://stackoverflow.com/questions/64556120/early-stopping-with-multiple-conditions
     es = EarlyStopping(mode=early_stop_mode, monitor=monitored_value,
