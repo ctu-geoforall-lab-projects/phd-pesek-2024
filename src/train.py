@@ -19,10 +19,11 @@ from visualization import write_stats
 
 def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
          visualization_path='/tmp', nr_epochs=1, initial_epoch=0, batch_size=1,
-         loss_function='dice', seed=1, patience=100, tensor_shape=(256, 256), monitored_value='val_accuracy',
-         force_dataset_generation=False, fit_memory=False, augment=False,
-         tversky_alpha=None, tversky_beta=None, dropout_rate_input=None,
-         dropout_rate_hidden=None, val_set_pct=0.2, filter_by_class=None):
+         loss_function='dice', seed=1, patience=100, tensor_shape=(256, 256),
+         monitored_value='val_accuracy', force_dataset_generation=False,
+         fit_memory=False, augment=False, tversky_alpha=None,
+         tversky_beta=None, dropout_rate_input=None, dropout_rate_hidden=None,
+         val_set_pct=0.2, filter_by_class=None, verbose=1):
     # get nr of bands
     nr_bands = utils.get_nr_of_bands(data_dir)
 
@@ -62,13 +63,13 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
     train(model, train_generator, val_generator, id2code, batch_size,
           output_dir, visualization_path, model_fn, nr_epochs,
           initial_epoch, seed=seed, patience=patience,
-          monitored_value=monitored_value)
+          monitored_value=monitored_value, verbose=verbose)
 
 
 def train(model, train_generator, val_generator, id2code, batch_size,
           output_dir, visualization_path, model_fn, nr_epochs,
           initial_epoch=0, seed=1, patience=100,
-          monitored_value='val_accuracy'):
+          monitored_value='val_accuracy', verbose=1):
     """Run model training.
 
     :param model: model to be used for the detection
@@ -114,11 +115,11 @@ def train(model, train_generator, val_generator, id2code, batch_size,
         mode=early_stop_mode, filepath=out_model_path,
         monitor=monitored_value, save_best_only='True',
         save_weights_only='True',
-        verbose=1)
+        verbose=verbose)
     # TODO: check custom earlystopping to monitor multiple metrics
     #       https://stackoverflow.com/questions/64556120/early-stopping-with-multiple-conditions
     es = EarlyStopping(mode=early_stop_mode, monitor=monitored_value,
-                       patience=patience, verbose=1, restore_best_weights=True)
+                       patience=patience, verbose=verbose, restore_best_weights=True)
     callbacks = [tb, mc, es]
 
     # steps per epoch not needed to be specified if the data are augmented, but
@@ -134,7 +135,7 @@ def train(model, train_generator, val_generator, id2code, batch_size,
         validation_steps=validation_steps,
         epochs=nr_epochs,
         initial_epoch=initial_epoch,
-        verbose=0,
+        verbose=verbose,
         callbacks=callbacks)
 
     # write_stats(result, os.path.join(visualization_path, 'accu.png'))

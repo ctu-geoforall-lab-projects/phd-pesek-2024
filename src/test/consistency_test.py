@@ -43,10 +43,8 @@ class TestCmd:
     def test_001_clouds(self, capsys):
         """Test the consistency of a small cloud classification sample."""
         # TODO: Add augment, continue, val_losses
-        # for architecture in ('U-Net', 'SegNet', 'DeepLab',):
-        for architecture in ('DeepLab',):
-            # for dropout in (0, 0.5):
-            for dropout in (0,):
+        for architecture in ('U-Net', 'SegNet', 'DeepLab',):
+            for dropout in (0, 0.5):
                 train(operation='train',
                       model=architecture,
                       data_dir='/tmp/training_data/training_set_clouds_multiclass',
@@ -61,7 +59,8 @@ class TestCmd:
                       # tensor_shape=(32, 32),
                       tensor_shape=(256, 256),
                       filter_by_class='1,2',
-                      seed=1)
+                      seed=1,
+                      verbose=0)
 
         cap = capsys.readouterr()
         
