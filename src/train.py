@@ -134,6 +134,7 @@ def train(model, train_generator, val_generator, id2code, batch_size,
         validation_steps=validation_steps,
         epochs=nr_epochs,
         initial_epoch=initial_epoch,
+        verbose=2,
         callbacks=callbacks)
 
     # write_stats(result, os.path.join(visualization_path, 'accu.png'))
