@@ -67,4 +67,4 @@ class TestCmd:
                 with open(f'/tmp/{architecture}_{dropout}.txt', 'w') as out:
                     out.write(cap.out)
 
-                assert filecmp.cmp(f'/tmp/{architecture}_{dropout}.txt', '/src/test/consistency_outputs/{architecture}_{dropout}.txt')
+                assert filecmp.cmp(f'/tmp/{architecture}_{dropout}.txt', 'src/test/consistency_outputs/{architecture}_{dropout}.txt')
