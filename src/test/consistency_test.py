@@ -48,9 +48,9 @@ class TestCmd:
                 train(operation='train',
                       model=architecture,
                       data_dir='/tmp/training_data/training_set_clouds_multiclass',
-                      output_dir=f'/tmp/output_{architecture.lower()}_{dropout}',
-                      model_fn=f'/tmp/output_{architecture.lower()}_{dropout}/model.h5',
-                      visualization_path=f'/tmp/output_{architecture.lower()}_{dropout}/visualizations/',
+                      output_dir=f'/tmp/output_{architecture}_{dropout}',
+                      model_fn=f'/tmp/output_{architecture)}_{dropout}/model.h5',
+                      visualization_path=f'/tmp/output_{architecture}_{dropout}/visualizations/',
                       nr_epochs=3,
                       dropout_rate_hidden=dropout,
                       val_set_pct=0.5,
@@ -62,8 +62,9 @@ class TestCmd:
                       seed=1,
                       verbose=0)
 
-        cap = capsys.readouterr()
-        
-        with open('/tmp/out.out', 'w') as out:
-            out.write(cap.out)
+                cap = capsys.readouterr()
 
+                with open(f'/tmp/{architecture}_{dropout}.txt', 'w') as out:
+                    out.write(cap.out)
+
+                assert filecmp.cmp(f'/tmp/{architecture}_{dropout}.txt', '/src/test/consistency_outputs/{architecture}_{dropout}.txt')
