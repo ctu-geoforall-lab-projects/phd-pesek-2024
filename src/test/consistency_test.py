@@ -50,27 +50,26 @@ class TestCmd:
         # TODO: Add augment, continue, val_losses
         for architecture in ('U-Net', 'SegNet', 'DeepLab',):
             for dropout in (0, 0.5):
-                # train(operation='train',
-                #       model=architecture,
-                #       data_dir='/tmp/training_data/training_set_clouds_multiclass',
-                #       output_dir=f'/tmp/output_{architecture}_{dropout}',
-                #       model_fn=f'/tmp/output_{architecture}_{dropout}/model.h5',
-                #       visualization_path=f'/tmp/output_{architecture}_{dropout}/visualizations/',
-                #       nr_epochs=3,
-                #       dropout_rate_hidden=dropout,
-                #       val_set_pct=0.5,
-                #       monitored_value='val_loss',
-                #       loss_function='categorical_crossentropy',
-                #       # tensor_shape=(32, 32),
-                #       tensor_shape=(256, 256),
-                #       filter_by_class='1,2',
-                #       seed=1,
-                #       verbose=0)
+                train(operation='train',
+                      model=architecture,
+                      data_dir='/tmp/training_data/training_set_clouds_multiclass',
+                      output_dir=f'/tmp/output_{architecture}_{dropout}',
+                      model_fn=f'/tmp/output_{architecture}_{dropout}/model.h5',
+                      visualization_path=f'/tmp/output_{architecture}_{dropout}/visualizations/',
+                      nr_epochs=3,
+                      dropout_rate_hidden=dropout,
+                      val_set_pct=0.5,
+                      monitored_value='val_loss',
+                      loss_function='categorical_crossentropy',
+                      # tensor_shape=(32, 32),
+                      tensor_shape=(256, 256),
+                      filter_by_class='1,2',
+                      seed=1,
+                      verbose=0)
 
-                # cap = capsys.readouterr()
+                cap = capsys.readouterr()
 
-                # with open(f'/tmp/{architecture}_drop{dropout}.txt', 'w') as out:
-                #     out.write(cap.out)
+                with open(f'/tmp/{architecture}_drop{dropout}.txt', 'w') as out:
+                    out.write(cap.out)
 
-                # assert filecmp.cmp(f'/tmp/{architecture}_drop{dropout}.txt', f'src/test/consistency_outputs/{architecture}_drop{dropout}.txt'), print_file(f'src/test/consistency_outputs/{architecture}_drop{dropout}.txt')
-                assert False, print_file(f'src/test/consistency_outputs/{architecture}_drop{dropout}.txt')
+                assert filecmp.cmp(f'/tmp/{architecture}_drop{dropout}.txt', f'src/test/consistency_outputs/{architecture}_drop{dropout}.txt'), print_file(f'/tmp/{architecture}_drop{dropout}.txt')
