@@ -54,7 +54,7 @@ class TestCmd:
                       model=architecture,
                       data_dir='/tmp/training_data/training_set_clouds_multiclass',
                       output_dir=f'/tmp/output_{architecture}_{dropout}',
-                      model_fn=f'/tmp/output_{architecture}_{dropout}/model.h5',
+                      model_fn=f'/tmp/output_{architecture.lower()}_{dropout}/model.h5',
                       visualization_path=f'/tmp/output_{architecture}_{dropout}/visualizations/',
                       nr_epochs=3,
                       dropout_rate_hidden=dropout,
