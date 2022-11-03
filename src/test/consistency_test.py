@@ -7,7 +7,7 @@ import pytest
 from shutil import rmtree
 from pathlib import Path
 
-# from train import main as train
+from train import main as train
 
 
 def are_dir_trees_equal(dir1, dir2):
