@@ -357,7 +357,7 @@ class ConvBlock(Layer):
         super(ConvBlock, self).__init__(name=name, **kwargs)
 
         # set init parameters to member variables
-        self.filters = filters
+        self.filters = filters // 2
         self.kernel_sizes = kernel_sizes
         self.activations = activations
         self.paddings = paddings
