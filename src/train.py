@@ -88,6 +88,7 @@ def train(model, train_generator, val_generator, id2code, batch_size,
     :param patience: number of epochs with no improvement after which training
         will be stopped
     :param monitored_value: metric name to be monitored
+    :param verbose: 
     """
     # set up model_path
     if model_fn is None:
