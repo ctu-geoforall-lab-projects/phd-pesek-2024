@@ -23,7 +23,11 @@ def report_file(identifier):
 
 class TestCmd:
     def test_001_clouds(self, capsys):
-        """Test the consistency of a small cloud classification sample."""
+        """Test the consistency of a small cloud classification sample.
+
+        :param capsys: a builtin pytest fixture that ispassed into any test to
+                       capture stdin/stdout
+        """
         # TODO: Add augment, continue, val_losses
         training_data_dir = '/tmp/training_data/training_set_clouds_multiclass'
 
