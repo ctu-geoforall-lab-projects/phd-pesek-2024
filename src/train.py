@@ -143,7 +143,7 @@ def train(model, train_generator, val_generator, id2code, batch_size,
         verbose=verbose,
         callbacks=callbacks)
 
-    # write_stats(result, os.path.join(visualization_path, 'accu.png'))
+    write_stats(result, os.path.join(visualization_path, 'accu.png'))
 
 
 if __name__ == '__main__':
