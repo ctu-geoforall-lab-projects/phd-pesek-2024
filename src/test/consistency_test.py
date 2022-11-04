@@ -5,6 +5,13 @@ from train import main as train
 
 
 def report_file(identifier):
+    """Report the new training output with the message that it is inconsistent.
+
+    To be called when output comparison assert fails.
+
+    :param identifier: identifier of the training setting
+    :return: string message reporting the content of the new output
+    """
     default_message = f'Output for setting {identifier} not consistent with' \
                        'the stored results. The new output is as follows:\n\n'
 
@@ -39,7 +46,7 @@ class TestCmd:
                       seed=1,
                       verbose=0)
 
-                cap = capsys.readouterr()
+        cap = capsys.readouterr()
 
         # with open(f'/tmp/{identifier}.txt', 'w') as out:
         with open(f'/tmp/out.txt', 'w') as out:
