@@ -5,9 +5,9 @@ on:
     branches:
       - '*'
     paths:
-      - src
-      - docker
-      - .github
+      - 'src/**'
+      - 'docker/**'
+      - '.github/**'
   pull_request:
     branches:
       - '*'
