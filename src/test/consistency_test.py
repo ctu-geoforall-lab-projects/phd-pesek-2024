@@ -12,13 +12,14 @@ def report_file(identifier):
     :param identifier: identifier of the training setting
     :return: string message reporting the content of the new output
     """
-    default_message = f'Output for setting {identifier} not consistent with' \
-                       'the stored results. The new output is as follows:\n\n'
+    sys.stdout.write(f'Output for setting {identifier} not consistent with' \
+                      'the stored results. The diff is as follows:\n\n')
 
-    with open(f'/tmp/{identifier}.txt') as open_file:
-        output = f'{default_message}{open_file.read()}'
+    with open(f'/tmp/{identifier}.txt') as left:
+        with open(f'src/test/consistency_outputs/{identifier}.txt') as right:
+            sys.stdout.writelines(unified_diff(left.readlines(), right.readlines()))
 
-    return output
+    return 'Inconsistency in outputs of setting {identifier}'
 
 
 class TestCmd:
