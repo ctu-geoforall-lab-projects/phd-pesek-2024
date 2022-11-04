@@ -4,9 +4,14 @@ import filecmp
 from train import main as train
 
 
-def print_file(file):
-    with open(file) as open_file:
-        return open_file.read()
+def report_file(identifier):
+    default_message = f'Output for setting {identifier} not consistent with' \
+                       'the stored results. The new output is as follows:\n\n'
+
+    with open(f'/tmp/{identifier}.txt') as open_file:
+        output = f'{default_message}{open_file.read()}'
+
+    return output
 
 
 class TestCmd:
@@ -40,5 +45,5 @@ class TestCmd:
         with open(f'/tmp/out.txt', 'w') as out:
             out.write(cap.out)
 
-#                 assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), print_file(f'/tmp/{identifier}.txt')
+#                 assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), print_file(identifier)
 
