@@ -87,8 +87,8 @@ Trainable params: 31,048,835
 Non-trainable params: 11,776
 __________________________________________________________________________________________________
 
-Epoch 00001: val_loss improved from inf to 171.72054, saving model to /tmp/output_u-net_0.5/model.h5
+Epoch 00001: val_loss improved from inf to 171.72054, saving model to /tmp/output_u-net_drop0.5/model.h5
 
-Epoch 00002: val_loss improved from 171.72054 to 19.23990, saving model to /tmp/output_u-net_0.5/model.h5
+Epoch 00002: val_loss improved from 171.72054 to 19.23990, saving model to /tmp/output_u-net_drop0.5/model.h5
 
-Epoch 00003: val_loss improved from 19.23990 to 0.29746, saving model to /tmp/output_u-net_0.5/model.h5
+Epoch 00003: val_loss improved from 19.23990 to 0.29746, saving model to /tmp/output_u-net_drop0.5/model.h5

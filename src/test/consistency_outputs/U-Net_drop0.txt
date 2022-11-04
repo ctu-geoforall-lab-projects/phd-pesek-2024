@@ -88,8 +88,8 @@ Non-trainable params: 11,776
 __________________________________________________________________________________________________
 Created 74 training and 74 validation samples from 3 provided image(s).
 
-Epoch 00001: val_loss improved from inf to 67.13223, saving model to /tmp/output_u-net_0/model.h5
+Epoch 00001: val_loss improved from inf to 67.13223, saving model to /tmp/output_u-net_drop0/model.h5
 
 Epoch 00002: val_loss did not improve from 67.13223
 
-Epoch 00003: val_loss improved from 67.13223 to 7.85261, saving model to /tmp/output_u-net_0/model.h5
+Epoch 00003: val_loss improved from 67.13223 to 7.85261, saving model to /tmp/output_u-net_drop0/model.h5

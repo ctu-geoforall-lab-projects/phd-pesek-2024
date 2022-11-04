@@ -34,8 +34,8 @@ Trainable params: 17,826,259
 Non-trainable params: 34,784
 __________________________________________________________________________________________________
 
-Epoch 00001: val_loss improved from inf to 1.20147, saving model to /tmp/output_deeplab_0.5/model.h5
+Epoch 00001: val_loss improved from inf to 1.20147, saving model to /tmp/output_deeplab_drop0.5/model.h5
 
-Epoch 00002: val_loss improved from 1.20147 to 0.33720, saving model to /tmp/output_deeplab_0.5/model.h5
+Epoch 00002: val_loss improved from 1.20147 to 0.33720, saving model to /tmp/output_deeplab_drop0.5/model.h5
 
 Epoch 00003: val_loss did not improve from 0.33720
