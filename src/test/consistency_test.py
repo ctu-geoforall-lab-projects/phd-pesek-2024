@@ -55,5 +55,5 @@ class TestCmd:
                 with open(f'/tmp/{identifier}.txt', 'w') as out:
                     out.write(cap.out)
 
-                assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), print_file(identifier)
+                assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), report_file(identifier)
 
