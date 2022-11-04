@@ -96,7 +96,6 @@ RUN cd /tmp/src && \
 
 # install pip dependecies
 COPY requirements.txt /tmp/src/requirements.txt
-# COPY docker/docker-cpu/requirements.txt /tmp/src/requirements.txt
 RUN pip install -r /tmp/src/requirements.txt
 
 # clean the mess
