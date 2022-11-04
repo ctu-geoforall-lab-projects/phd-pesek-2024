@@ -4,9 +4,17 @@ on:
   push:
     branches:
       - '*'
+    paths:
+      - src
+      - docker
+      - .github
   pull_request:
     branches:
       - '*'
+    paths:
+      - src
+      - docker
+      - .github
 
 jobs:
   docker-branch-os-matrix:
