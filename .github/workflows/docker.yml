@@ -32,7 +32,7 @@ jobs:
       - name: Build CPU docker
         run: docker build docker/docker-cpu -t docker-cpu:1.0
       - name: Build GPU docker
-        run: docker build docker/docker-cpu -t docker-gpu:1.0
+        run: docker build docker/docker-gpu -t docker-gpu:1.0
       - name: Download test data
         run: |
           pip install zenodo_get && \
