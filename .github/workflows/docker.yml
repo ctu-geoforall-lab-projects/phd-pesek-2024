@@ -3,7 +3,7 @@ name: consistency_test
 on:
   push:
     branches:
-      - '*'
+      - 'master'
     paths:
       - 'src/**'
       - 'docker/**'
