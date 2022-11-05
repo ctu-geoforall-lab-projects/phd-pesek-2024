@@ -60,7 +60,7 @@ jobs:
         run: |
           docker run --rm -v /tmp:/tmp:rw -v ${GITHUB_WORKSPACE}/src:/src:ro -e PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages:/src --cpus=2 -m 20g docker-cpu:1.0 pytest src/test/consistency_test.py
   consistency-test-gpu-docker:
-    name: build docker for GPU computations and run tests (beware: docker run still does not have access to GPUS on GH actions)
+    name: build docker for GPU computations and run tests - beware that docker run still does not have access to GPUS on GH actions
     runs-on: ubuntu-latest
     needs: [download-test-data]
 
