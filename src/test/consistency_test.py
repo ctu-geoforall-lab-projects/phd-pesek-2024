@@ -2,6 +2,8 @@ import sys
 import pytest
 import filecmp
 
+from difflib import unified_diff
+
 from train import main as train
 
 
@@ -13,7 +15,7 @@ def report_file(identifier):
     :param identifier: identifier of the training setting
     :return: string message reporting the content of the new output
     """
-    sys.stdout.write(f'Output for setting {identifier} not consistent with' \
+    sys.stdout.write(f'Output for setting {identifier} not consistent with ' \
                       'the stored results. The diff is as follows:\n\n')
 
     with open(f'/tmp/{identifier}.txt') as left:
