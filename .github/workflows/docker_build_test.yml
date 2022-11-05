@@ -7,16 +7,12 @@ on:
     paths:
       - 'docker/**'
       - '.github/**'
-    paths-ignore:
-      - '**.md'
   pull_request:
     branches:
       - '*'
     paths:
       - 'docker/**'
       - '.github/**'
-    paths-ignore:
-      - '**.md'
 
 jobs:
   docker-cpu:
