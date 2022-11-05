@@ -37,14 +37,6 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
     if seed is not None:
         tf.keras.utils.set_random_seed(seed)
 
-    # os.environ['PYTHONHASHSEED']=str(seed)
-    # tf.config.threading.set_inter_op_parallelism_threads(1)
-    # N = 1
-    # os.environ["OMP_NUM_THREADS"] = f"{N}"
-    # os.environ['TF_NUM_INTEROP_THREADS'] = f"{N}"
-    # os.environ['TF_NUM_INTRAOP_THREADS'] = f"{N}"
-    # utils.print_device_info()
-
     model = create_model(
         model, len(id2code), nr_bands, tensor_shape, loss=loss_function,
         alpha=tversky_alpha, beta=tversky_beta,

@@ -8,7 +8,7 @@ from train import main as train
 
 
 def report_file(identifier):
-    """Report the new training output with the message that it is inconsistent.
+    """Report the inconsistency of two files.
 
     To be called when output comparison assert fails.
 
