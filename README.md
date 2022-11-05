@@ -25,6 +25,7 @@ from the field of remote sensing.
 ## Student
 
 Ing. Ondřej Pešek
+fdsafdsafs
 
 ## Supervisors
 
