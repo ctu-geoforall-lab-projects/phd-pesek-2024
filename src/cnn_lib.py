@@ -22,7 +22,7 @@ class AugmentGenerator:
     def __init__(self, data_dir, batch_size=5, operation='train',
                  tensor_shape=(256, 256), force_dataset_generation=False,
                  fit_memory=False, augment=False, onehot_encode=True,
-                 val_set_pct=0.2, filter_by_class=None):
+                 val_set_pct=0.2, filter_by_class=None, verbose=1):
         """Initialize the generator.
 
         :param data_dir: path to the directory containing images
@@ -40,6 +40,7 @@ class AugmentGenerator:
         :param filter_by_class: classes of interest (for the case of dataset
             generation - if specified, only samples containing at least one of
             them will be created)
+        :param verbose: verbosity (0=quiet, >0 verbose)
         """
         if operation not in ('train', 'val'):
             raise AttributeError('Only values "train" and "val" supported as '
@@ -53,7 +54,8 @@ class AugmentGenerator:
         do_exist = [os.path.isdir(i) is True for i in (images_dir, masks_dir)]
         if force_dataset_generation is True or all(do_exist) is False:
             generate_dataset_structure(data_dir, tensor_shape, val_set_pct,
-                                       filter_by_class, augment)
+                                       filter_by_class, augment,
+                                       verbose=verbose)
 
         # create variables useful throughout the entire class
         self.nr_samples = len(os.listdir(images_dir))

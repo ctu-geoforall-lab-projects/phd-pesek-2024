@@ -55,7 +55,7 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
     val_generator = AugmentGenerator(
         data_dir, batch_size, 'val', tensor_shape, force_dataset_generation,
         fit_memory, augment=augment, val_set_pct=val_set_pct,
-        filter_by_class=filter_by_class)
+        filter_by_class=filter_by_class, verbose=verbose)
 
     # load weights if the model is supposed to do so
     if operation == 'fine-tune':
