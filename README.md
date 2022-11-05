@@ -1,6 +1,7 @@
 # phd-pesek-2022
 
 [![consistency\_test](https://github.com/ctu-geoforall-lab-projects/phd-pesek-2022/actions/workflows/consistency_test.yml/badge.svg?branch=master)](https://github.com/ctu-geoforall-lab-projects/phd-pesek-2022/actions/workflows/consistency_test.yml)
+[![docker\_build](https://github.com/ctu-geoforall-lab-projects/phd-pesek-2022/actions/workflows/docker_build.yml/badge.svg?branch=master)](https://github.com/ctu-geoforall-lab-projects/phd-pesek-2022/actions/workflows/docker_build.yml)
 
 ## Title
 
