@@ -29,8 +29,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Build CPU docker
-        run: docker build docker/docker-cpu -t docker-cpu:1.0
+            # - name: Build CPU docker
+            #   run: docker build docker/docker-cpu -t docker-cpu:1.0
       - name: Build GPU docker
         run: docker build docker/docker-gpu -t docker-gpu:1.0
       - name: Download test data
@@ -39,9 +39,9 @@ jobs:
           zenodo_get 7040177 -o /tmp/ && \
           7z x /tmp/venus_clouds_v1.0.7z -o/tmp/training_data && \
           rm /tmp/training_data/training_set_clouds_multiclass/s*
-      - name: pytest_cpu
-        run: |
-          docker run --rm -v /tmp:/tmp:rw -v ${GITHUB_WORKSPACE}/src:/src:ro -e PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages:/src --cpus=2 -m 20g docker-cpu:1.0 pytest src/test/consistency_test.py
+          # - name: pytest_cpu
+          #   run: |
+          #     docker run --rm -v /tmp:/tmp:rw -v ${GITHUB_WORKSPACE}/src:/src:ro -e PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages:/src --cpus=2 -m 20g docker-cpu:1.0 pytest src/test/consistency_test.py
       - name: pytest_gpu
         run: |
-          docker run --rm -v /tmp:/tmp:rw -v ${GITHUB_WORKSPACE}/src:/src:ro -e PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages:/src --cpus=2 -m 20g docker-gpu:1.0 pytest src/test/consistency_test.py
+          docker run --rm --gpus all -v /tmp:/tmp:rw -v ${GITHUB_WORKSPACE}/src:/src:ro -e PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages:/src --cpus=2 -m 20g docker-gpu:1.0 pytest src/test/consistency_test.py
