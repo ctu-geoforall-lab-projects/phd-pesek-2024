@@ -8,6 +8,8 @@ on:
       - 'src/**'
       - 'docker/**'
       - '.github/**'
+    paths-ignore:
+      - '**.md'
   pull_request:
     branches:
       - '*'
@@ -15,6 +17,8 @@ on:
       - 'src/**'
       - 'docker/**'
       - '.github/**'
+    paths-ignore:
+      - '**.md'
 
 jobs:
   consistency-test:
