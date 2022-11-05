@@ -22,7 +22,7 @@ def report_file(identifier):
         with open(f'src/test/consistency_outputs/{identifier}.txt') as right:
             sys.stdout.writelines(unified_diff(left.readlines(), right.readlines()))
 
-    return 'Inconsistency in outputs of setting {identifier}'
+    return f'Inconsistency in outputs of setting {identifier}'
 
 
 class TestCmd:
