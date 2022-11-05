@@ -86,7 +86,6 @@ Total params: 31,060,611
 Trainable params: 31,048,835
 Non-trainable params: 11,776
 __________________________________________________________________________________________________
-Created 74 training and 74 validation samples from 3 provided image(s).
 
 Epoch 00001: val_loss improved from inf to 67.13223, saving model to /tmp/output_u-net_drop0/model.h5
 
