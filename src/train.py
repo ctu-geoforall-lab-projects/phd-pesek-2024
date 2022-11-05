@@ -36,9 +36,12 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
     # set TensorFlow seed
     if seed is not None:
         import sys
+        print('*' * 80)
         if int(tf.__version__.split('.')[1]) < 4:
             tf.random.set_seed(seed)
+            print('set_seed')
         else:
+            print('set_random_seed')
             tf.keras.utils.set_random_seed(seed)
 
     model = create_model(
