@@ -86,7 +86,7 @@ class TestCmd:
                   model_fn=f'/tmp/output_{identifier}/model.h5',
                   visualization_path=f'/tmp/output_{identifier}',
                   nr_epochs=2,
-                  dropout_rate_hidden=dropout,
+                  dropout_rate_hidden=0,
                   val_set_pct=0.5,
                   monitored_value='val_loss',
                   loss_function=loss,
