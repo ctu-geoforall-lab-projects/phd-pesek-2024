@@ -1,0 +1,45 @@
+name: docker_build
+
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'docker/**'
+      - '.github/**'
+  pull_request:
+    branches:
+      - '*'
+    paths:
+      - 'docker/**'
+      - '.github/**'
+
+jobs:
+  docker-cpu:
+    name: build docker-CPU
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Build docker
+        run: docker build docker/docker-cpu -t docker-cpu:1.0
+  docker-gpu:
+    name: build docker-GPU
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Build GPU docker
+        run: docker build docker/docker-gpu -t docker-gpu:1.0

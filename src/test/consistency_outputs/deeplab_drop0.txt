@@ -1,0 +1,41 @@
+Model: "model_4"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_5 (InputLayer)           [(None, 256, 256, 1  0           []                               
+                                2)]                                                               
+                                                                                                  
+ res_net (ResNet)               [(None, 64, 64, 256  8617408     ['input_5[0][0]']                
+                                ),                                                                
+                                 (None, 16, 16, 102                                               
+                                4)]                                                               
+                                                                                                  
+ aspp (ASPP)                    (None, 16, 16, 256)  7937536     ['res_net[0][1]']                
+                                                                                                  
+ aspp_upsample (UpSampling2D)   (None, 64, 64, 256)  0           ['aspp[0][0]']                   
+                                                                                                  
+ low_level_conv_block (ConvBloc  (None, 64, 64, 48)  12528       ['res_net[0][0]']                
+ k)                                                                                               
+                                                                                                  
+ decoder_concat (Concatenate)   (None, 64, 64, 304)  0           ['aspp_upsample[0][0]',          
+                                                                  'low_level_conv_block[0][0]']   
+                                                                                                  
+ decoder_conv_blocks (ConvBlock  (None, 64, 64, 256)  1292800    ['decoder_concat[0][0]']         
+ )                                                                                                
+                                                                                                  
+ decoder_final_upsample (UpSamp  (None, 256, 256, 25  0          ['decoder_conv_blocks[0][0]']    
+ ling2D)                        6)                                                                
+                                                                                                  
+ classifier_layer (Conv2D)      (None, 256, 256, 3)  771         ['decoder_final_upsample[0][0]'] 
+                                                                                                  
+==================================================================================================
+Total params: 17,861,043
+Trainable params: 17,826,259
+Non-trainable params: 34,784
+__________________________________________________________________________________________________
+
+Epoch 00001: val_loss improved from inf to 481.89386, saving model to /tmp/output_deeplab_drop0/model.h5
+
+Epoch 00002: val_loss improved from 481.89386 to 24.78655, saving model to /tmp/output_deeplab_drop0/model.h5
+
+Epoch 00003: val_loss improved from 24.78655 to 1.72349, saving model to /tmp/output_deeplab_drop0/model.h5

@@ -1,0 +1,104 @@
+Model: "model_3"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_4 (InputLayer)           [(None, 256, 256, 1  0           []                               
+                                2)]                                                               
+                                                                                                  
+ tf.cast_3 (TFOpLambda)         (None, 256, 256, 12  0           ['input_4[0][0]']                
+                                )                                                                 
+                                                                                                  
+ downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['tf.cast_3[0][0]']              
+ )                              )                                                                 
+                                                                                                  
+ my_max_pooling_5 (MyMaxPooling  ((None, 128, 128, 6  0          ['downsampling_block0[0][0]']    
+ )                              4),                                                               
+                                 (None, 128, 128, 6                                               
+                                4))                                                               
+                                                                                                  
+ downsampling_block1 (ConvBlock  (None, 128, 128, 12  222464     ['my_max_pooling_5[0][0]']       
+ )                              8)                                                                
+                                                                                                  
+ my_max_pooling_6 (MyMaxPooling  ((None, 64, 64, 128  0          ['downsampling_block1[0][0]']    
+ )                              ),                                                                
+                                 (None, 64, 64, 128                                               
+                                ))                                                                
+                                                                                                  
+ downsampling_block2 (ConvBlock  (None, 64, 64, 256)  1478400    ['my_max_pooling_6[0][0]']       
+ )                                                                                                
+                                                                                                  
+ my_max_pooling_7 (MyMaxPooling  ((None, 32, 32, 256  0          ['downsampling_block2[0][0]']    
+ )                              ),                                                                
+                                 (None, 32, 32, 256                                               
+                                ))                                                                
+                                                                                                  
+ downsampling_block3 (ConvBlock  (None, 32, 32, 512)  5905920    ['my_max_pooling_7[0][0]']       
+ )                                                                                                
+                                                                                                  
+ my_max_pooling_8 (MyMaxPooling  ((None, 16, 16, 512  0          ['downsampling_block3[0][0]']    
+ )                              ),                                                                
+                                 (None, 16, 16, 512                                               
+                                ))                                                                
+                                                                                                  
+ downsampling_block4 (ConvBlock  (None, 16, 16, 1024  23608320   ['my_max_pooling_8[0][0]']       
+ )                              )                                                                 
+                                                                                                  
+ my_max_pooling_9 (MyMaxPooling  ((None, 8, 8, 1024)  0          ['downsampling_block4[0][0]']    
+ )                              , (None, 8, 8, 1024                                               
+                                ))                                                                
+                                                                                                  
+ my_max_unpooling_5 (MyMaxUnpoo  (None, 16, 16, 1024  0          ['my_max_pooling_9[0][0]',       
+ ling)                          )                                 'my_max_pooling_9[0][1]']       
+                                                                                                  
+ upsampling_block4_2 (ConvBlock  (None, 16, 16, 1024  18884608   ['my_max_unpooling_5[0][0]']     
+ )                              )                                                                 
+                                                                                                  
+ upsampling_block4_1 (ConvBlock  (None, 16, 16, 512)  4721152    ['upsampling_block4_2[0][0]']    
+ )                                                                                                
+                                                                                                  
+ my_max_unpooling_6 (MyMaxUnpoo  (None, 32, 32, 512)  0          ['upsampling_block4_1[0][0]',    
+ ling)                                                            'my_max_pooling_8[0][1]']       
+                                                                                                  
+ upsampling_block3_2 (ConvBlock  (None, 32, 32, 512)  4723712    ['my_max_unpooling_6[0][0]']     
+ )                                                                                                
+                                                                                                  
+ upsampling_block3_1 (ConvBlock  (None, 32, 32, 256)  1180928    ['upsampling_block3_2[0][0]']    
+ )                                                                                                
+                                                                                                  
+ my_max_unpooling_7 (MyMaxUnpoo  (None, 64, 64, 256)  0          ['upsampling_block3_1[0][0]',    
+ ling)                                                            'my_max_pooling_7[0][1]']       
+                                                                                                  
+ upsampling_block2_2 (ConvBlock  (None, 64, 64, 256)  1182208    ['my_max_unpooling_7[0][0]']     
+ )                                                                                                
+                                                                                                  
+ upsampling_block2_1 (ConvBlock  (None, 64, 64, 128)  295552     ['upsampling_block2_2[0][0]']    
+ )                                                                                                
+                                                                                                  
+ my_max_unpooling_8 (MyMaxUnpoo  (None, 128, 128, 12  0          ['upsampling_block2_1[0][0]',    
+ ling)                          8)                                'my_max_pooling_6[0][1]']       
+                                                                                                  
+ upsampling_block1_2 (ConvBlock  (None, 128, 128, 12  148096     ['my_max_unpooling_8[0][0]']     
+ )                              8)                                                                
+                                                                                                  
+ upsampling_block1_1 (ConvBlock  (None, 128, 128, 64  74048      ['upsampling_block1_2[0][0]']    
+ )                              )                                                                 
+                                                                                                  
+ my_max_unpooling_9 (MyMaxUnpoo  (None, 256, 256, 64  0          ['upsampling_block1_1[0][0]',    
+ ling)                          )                                 'my_max_pooling_5[0][1]']       
+                                                                                                  
+ upsampling_block0 (ConvBlock)  (None, 256, 256, 64  37184       ['my_max_unpooling_9[0][0]']     
+                                )                                                                 
+                                                                                                  
+ classifier_layer (Conv2D)      (None, 256, 256, 3)  195         ['upsampling_block0[0][0]']      
+                                                                                                  
+==================================================================================================
+Total params: 62,507,203
+Trainable params: 62,486,211
+Non-trainable params: 20,992
+__________________________________________________________________________________________________
+
+Epoch 00001: val_loss improved from inf to 5763.66357, saving model to /tmp/output_segnet_drop0.5/model.h5
+
+Epoch 00002: val_loss improved from 5763.66357 to 5.23784, saving model to /tmp/output_segnet_drop0.5/model.h5
+
+Epoch 00003: val_loss did not improve from 5.23784
