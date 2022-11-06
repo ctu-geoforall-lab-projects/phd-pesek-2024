@@ -1,3 +1,4 @@
+import os
 import sys
 import pytest
 import filecmp
@@ -32,8 +33,9 @@ class TestCmd:
         :param capsys: a builtin pytest fixture that ispassed into any test to
                        capture stdin/stdout
         """
+        training_data_dir = os.path.join('/tmp', 'training_data',
+                                         'training_set_clouds_multiclass')
         # TODO: Add augment, continue, val_losses
-        training_data_dir = '/tmp/training_data/training_set_clouds_multiclass'
 
         for architecture in ('U-Net', 'SegNet', 'DeepLab',):
             for dropout in (0, 0.5):
