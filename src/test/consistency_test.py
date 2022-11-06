@@ -77,7 +77,7 @@ class TestCmd:
                                          'training_set_clouds_multiclass')
         # TODO: Add binary loss
 
-        for loss in ('categorical_crossentropy', 'dice', 'tversky'):
+        for loss in ('categorical_crossentropy', 'dice'):
             identifier = f'u-net_drop0_{loss}'
             train(operation='train',
                   model='U-Net',
@@ -93,6 +93,27 @@ class TestCmd:
                   tensor_shape=(256, 256),
                   filter_by_class='1,2',
                   seed=1,
+                  verbose=0)
+
+        # test tversky
+        for alpha, beta in ((0.3, 0.7), 0.7, 0.3):
+            identifier = f'u-net_drop0_{loss}'
+            train(operation='train',
+                  model='U-Net',
+                  data_dir=training_data_dir,
+                  output_dir=f'/tmp/output_{identifier}',
+                  model_fn=f'/tmp/output_{identifier}/model.h5',
+                  visualization_path=f'/tmp/output_{identifier}',
+                  nr_epochs=2,
+                  dropout_rate_hidden=0,
+                  val_set_pct=0.5,
+                  monitored_value='val_loss',
+                  loss_function='tversky',
+                  tensor_shape=(256, 256),
+                  filter_by_class='1,2',
+                  seed=1,
+                  tversky_alpha=alpha,
+                  tversky_beta=beta,
                   verbose=0)
 
         cap = capsys.readouterr()

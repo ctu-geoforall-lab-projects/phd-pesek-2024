@@ -21,8 +21,8 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
          visualization_path='/tmp', nr_epochs=1, initial_epoch=0, batch_size=1,
          loss_function='dice', seed=1, patience=100, tensor_shape=(256, 256),
          monitored_value='val_accuracy', force_dataset_generation=False,
-         fit_memory=False, augment=False, tversky_alpha=None,
-         tversky_beta=None, dropout_rate_input=None, dropout_rate_hidden=None,
+         fit_memory=False, augment=False, tversky_alpha=0.5,
+         tversky_beta=0.5, dropout_rate_input=None, dropout_rate_hidden=None,
          val_set_pct=0.2, filter_by_class=None, verbose=1):
     if verbose > 0:
         utils.print_device_info()
