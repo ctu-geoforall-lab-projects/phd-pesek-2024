@@ -56,7 +56,6 @@ class _BaseModel(Model, ABC):
         self.dropout_rate_input = dropout_rate_input
         self.dropout_rate_hidden = dropout_rate_hidden
         self.use_bias = use_bias
-        self.name = name
         # TODO: Maybe use_bias should be by default == False, see:
         #       https://arxiv.org/pdf/1502.03167.pdf
 
