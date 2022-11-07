@@ -96,7 +96,7 @@ class TestCmd:
                   verbose=0)
 
         # test tversky
-        for alpha, beta in ((0.3, 0.7), 0.7, 0.3):
+        for alpha, beta in ((0.3, 0.7), (0.7, 0.3)):
             identifier = f'u-net_drop0_{loss}'
             train(operation='train',
                   model='U-Net',
