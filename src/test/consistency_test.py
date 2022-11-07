@@ -124,6 +124,8 @@ class TestCmd:
                   name=identifier,
                   verbose=0)
 
+            cap = capsys.readouterr()
+
             with open(f'/tmp/{identifier}.txt', 'w') as out:
                 out.write(cap.out)
 

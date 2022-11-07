@@ -97,6 +97,6 @@ Trainable params: 62,486,211
 Non-trainable params: 20,992
 __________________________________________________________________________________________________
 
-Epoch 00001: val_loss improved from inf to 5763.66357, saving model to /tmp/output_segnet_drop0.5/model.h5
+Epoch 00001: val_loss improved from inf to 5763.66357, saving model to /tmp/output_segnet_drop0.5_categorical_crossentropy/model.h5
 
-Epoch 00002: val_loss improved from 5763.66357 to 5.23784, saving model to /tmp/output_segnet_drop0.5/model.h5
+Epoch 00002: val_loss improved from 5763.66357 to 5.23784, saving model to /tmp/output_segnet_drop0.5_categorical_crossentropy/model.h5
