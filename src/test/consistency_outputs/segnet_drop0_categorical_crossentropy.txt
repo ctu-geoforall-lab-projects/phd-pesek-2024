@@ -1,4 +1,4 @@
-Model: "model_2"
+Model: "segnet_drop0_categorical_crossentropy"
 __________________________________________________________________________________________________
  Layer (type)                   Output Shape         Param #     Connected to                     
 ==================================================================================================
@@ -100,5 +100,3 @@ ________________________________________________________________________________
 Epoch 00001: val_loss improved from inf to 46.83357, saving model to /tmp/output_segnet_drop0/model.h5
 
 Epoch 00002: val_loss did not improve from 46.83357
-
-Epoch 00003: val_loss improved from 46.83357 to 7.68914, saving model to /tmp/output_segnet_drop0/model.h5

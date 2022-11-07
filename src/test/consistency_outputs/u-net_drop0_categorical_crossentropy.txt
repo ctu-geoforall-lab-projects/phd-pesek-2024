@@ -1,0 +1,92 @@
+Model: "u-net_drop0_categorical_crossentropy"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_1 (InputLayer)           [(None, 256, 256, 1  0           []                               
+                                2)]                                                               
+                                                                                                  
+ tf.cast (TFOpLambda)           (None, 256, 256, 12  0           ['input_1[0][0]']                
+                                )                                                                 
+                                                                                                  
+ downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['tf.cast[0][0]']                
+ )                              )                                                                 
+                                                                                                  
+ downsampling_pooling0 (MaxPool  (None, 128, 128, 64  0          ['downsampling_block0[0][0]']    
+ ing2D)                         )                                                                 
+                                                                                                  
+ downsampling_block1 (ConvBlock  (None, 128, 128, 12  222464     ['downsampling_pooling0[0][0]']  
+ )                              8)                                                                
+                                                                                                  
+ downsampling_pooling1 (MaxPool  (None, 64, 64, 128)  0          ['downsampling_block1[0][0]']    
+ ing2D)                                                                                           
+                                                                                                  
+ downsampling_block2 (ConvBlock  (None, 64, 64, 256)  887296     ['downsampling_pooling1[0][0]']  
+ )                                                                                                
+                                                                                                  
+ downsampling_pooling2 (MaxPool  (None, 32, 32, 256)  0          ['downsampling_block2[0][0]']    
+ ing2D)                                                                                           
+                                                                                                  
+ downsampling_block3 (ConvBlock  (None, 32, 32, 512)  3544064    ['downsampling_pooling2[0][0]']  
+ )                                                                                                
+                                                                                                  
+ downsampling_pooling3 (MaxPool  (None, 16, 16, 512)  0          ['downsampling_block3[0][0]']    
+ ing2D)                                                                                           
+                                                                                                  
+ middle_block (ConvBlock)       (None, 16, 16, 1024  14166016    ['downsampling_pooling3[0][0]']  
+                                )                                                                 
+                                                                                                  
+ upsampling_pool3 (UpSampling2D  (None, 32, 32, 1024  0          ['middle_block[0][0]']           
+ )                              )                                                                 
+                                                                                                  
+ upsampling_conv3 (Conv2D)      (None, 32, 32, 512)  2097664     ['upsampling_pool3[0][0]']       
+                                                                                                  
+ upsampling_concat3 (Concatenat  (None, 32, 32, 1024  0          ['upsampling_conv3[0][0]',       
+ e)                             )                                 'downsampling_block3[0][0]']    
+                                                                                                  
+ upsampling_block3 (ConvBlock)  (None, 32, 32, 512)  7083008     ['upsampling_concat3[0][0]']     
+                                                                                                  
+ upsampling_pool2 (UpSampling2D  (None, 64, 64, 512)  0          ['upsampling_block3[0][0]']      
+ )                                                                                                
+                                                                                                  
+ upsampling_conv2 (Conv2D)      (None, 64, 64, 256)  524544      ['upsampling_pool2[0][0]']       
+                                                                                                  
+ upsampling_concat2 (Concatenat  (None, 64, 64, 512)  0          ['upsampling_conv2[0][0]',       
+ e)                                                               'downsampling_block2[0][0]']    
+                                                                                                  
+ upsampling_block2 (ConvBlock)  (None, 64, 64, 256)  1772032     ['upsampling_concat2[0][0]']     
+                                                                                                  
+ upsampling_pool1 (UpSampling2D  (None, 128, 128, 25  0          ['upsampling_block2[0][0]']      
+ )                              6)                                                                
+                                                                                                  
+ upsampling_conv1 (Conv2D)      (None, 128, 128, 12  131200      ['upsampling_pool1[0][0]']       
+                                8)                                                                
+                                                                                                  
+ upsampling_concat1 (Concatenat  (None, 128, 128, 25  0          ['upsampling_conv1[0][0]',       
+ e)                             6)                                'downsampling_block1[0][0]']    
+                                                                                                  
+ upsampling_block1 (ConvBlock)  (None, 128, 128, 12  443648      ['upsampling_concat1[0][0]']     
+                                8)                                                                
+                                                                                                  
+ upsampling_pool0 (UpSampling2D  (None, 256, 256, 12  0          ['upsampling_block1[0][0]']      
+ )                              8)                                                                
+                                                                                                  
+ upsampling_conv0 (Conv2D)      (None, 256, 256, 64  32832       ['upsampling_pool0[0][0]']       
+                                )                                                                 
+                                                                                                  
+ upsampling_concat0 (Concatenat  (None, 256, 256, 12  0          ['upsampling_conv0[0][0]',       
+ e)                             8)                                'downsampling_block0[0][0]']    
+                                                                                                  
+ upsampling_block0 (ConvBlock)  (None, 256, 256, 64  111232      ['upsampling_concat0[0][0]']     
+                                )                                                                 
+                                                                                                  
+ classifier_layer (Conv2D)      (None, 256, 256, 3)  195         ['upsampling_block0[0][0]']      
+                                                                                                  
+==================================================================================================
+Total params: 31,060,611
+Trainable params: 31,048,835
+Non-trainable params: 11,776
+__________________________________________________________________________________________________
+
+Epoch 00001: val_loss improved from inf to 67.13223, saving model to /tmp/output_u-net_drop0/model.h5
+
+Epoch 00002: val_loss did not improve from 67.13223

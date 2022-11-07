@@ -1,4 +1,4 @@
-Model: "model_4"
+Model: "deeplab_drop0_categorical_crossentropy"
 __________________________________________________________________________________________________
  Layer (type)                   Output Shape         Param #     Connected to                     
 ==================================================================================================
@@ -37,5 +37,3 @@ ________________________________________________________________________________
 Epoch 00001: val_loss improved from inf to 481.89386, saving model to /tmp/output_deeplab_drop0/model.h5
 
 Epoch 00002: val_loss improved from 481.89386 to 24.78655, saving model to /tmp/output_deeplab_drop0/model.h5
-
-Epoch 00003: val_loss improved from 24.78655 to 1.72349, saving model to /tmp/output_deeplab_drop0/model.h5

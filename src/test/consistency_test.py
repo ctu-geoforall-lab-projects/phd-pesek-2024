@@ -59,12 +59,12 @@ class TestCmd:
                       name=identifier,
                       verbose=0)
 
-        cap = capsys.readouterr()
+                cap = capsys.readouterr()
 
-                # with open(f'/tmp/{identifier}.txt', 'w') as out:
-                #     out.write(cap.out)
+                with open(f'/tmp/{identifier}.txt', 'w') as out:
+                    out.write(cap.out)
 
-        #         assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), report_file(identifier)
+                assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), report_file(identifier)
 
     def test_002_loss(self, capsys):
         """Test the consistency of a small cloud classification sample.
@@ -97,9 +97,14 @@ class TestCmd:
                   name=identifier,
                   verbose=0)
 
+            with open(f'/tmp/{identifier}.txt', 'w') as out:
+                out.write(cap.out)
+
+            assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), report_file(identifier)
+
         # test tversky
         for alpha, beta in ((0.3, 0.7), (0.7, 0.3)):
-            identifier = f'u-net_drop0_{loss}'
+            identifier = f'u-net_drop0_{loss}_{alpha}_{beta}'
             train(operation='train',
                   model='U-Net',
                   data_dir=training_data_dir,
@@ -116,14 +121,11 @@ class TestCmd:
                   seed=1,
                   tversky_alpha=alpha,
                   tversky_beta=beta,
+                  name=identifier,
                   verbose=0)
 
-        cap = capsys.readouterr()
-        with open(f'/tmp/out.txt', 'w') as out:
-            out.write(cap.out)
+            with open(f'/tmp/{identifier}.txt', 'w') as out:
+                out.write(cap.out)
 
-                # with open(f'/tmp/{identifier}.txt', 'w') as out:
-                #     out.write(cap.out)
-
-                # assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), report_file(identifier)
+            assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), report_file(identifier)
 
