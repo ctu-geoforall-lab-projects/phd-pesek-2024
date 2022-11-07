@@ -21,7 +21,7 @@ class _BaseModel(Model, ABC):
                  dilation_rate=1, tensor_shape=(256, 256),
                  activation=k_layers.ReLU,
                  padding='same', dropout_rate_input=None,
-                 dropout_rate_hidden=None, use_bias=True, name=name, **kwargs):
+                 dropout_rate_hidden=None, use_bias=True, name='model', **kwargs):
         """Model constructor.
 
         :param nr_classes: number of classes to be predicted
@@ -56,7 +56,7 @@ class _BaseModel(Model, ABC):
         self.dropout_rate_input = dropout_rate_input
         self.dropout_rate_hidden = dropout_rate_hidden
         self.use_bias = use_bias
-        self.name=name
+        self.name = name
         # TODO: Maybe use_bias should be by default == False, see:
         #       https://arxiv.org/pdf/1502.03167.pdf
 
