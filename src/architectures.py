@@ -21,7 +21,7 @@ class _BaseModel(Model, ABC):
                  dilation_rate=1, tensor_shape=(256, 256),
                  activation=k_layers.ReLU,
                  padding='same', dropout_rate_input=None,
-                 dropout_rate_hidden=None, use_bias=True, **kwargs):
+                 dropout_rate_hidden=None, use_bias=True, name=name, **kwargs):
         """Model constructor.
 
         :param nr_classes: number of classes to be predicted
@@ -40,9 +40,10 @@ class _BaseModel(Model, ABC):
             units of the input layer to drop
         :param dropout_rate_hidden: float between 0 and 1. Fraction of
             the input
+        :param name: The name of the model
         :param use_bias: Boolean, whether the layer uses a bias vector
         """
-        super(_BaseModel, self).__init__()
+        super(_BaseModel, self).__init__(name=name, **kwargs)
 
         self.nr_classes = nr_classes
         self.nr_bands = nr_bands
@@ -55,6 +56,7 @@ class _BaseModel(Model, ABC):
         self.dropout_rate_input = dropout_rate_input
         self.dropout_rate_hidden = dropout_rate_hidden
         self.use_bias = use_bias
+        self.name=name
         # TODO: Maybe use_bias should be by default == False, see:
         #       https://arxiv.org/pdf/1502.03167.pdf
 
@@ -127,8 +129,8 @@ class _BaseModel(Model, ABC):
         """
         inputs = Input((self.tensor_shape[0], self.tensor_shape[1],
                         self.nr_bands))
-        model = Model(inputs=[inputs],
-                      outputs=self.call(inputs))
+        model = Model(inputs=[inputs], outputs=self.call(inputs),
+                      name=self.name)
         return model.summary()
 
     @abstractmethod
