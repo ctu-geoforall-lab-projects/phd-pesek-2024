@@ -56,6 +56,7 @@ class TestCmd:
                       tensor_shape=(256, 256),
                       filter_by_class='1,2',
                       seed=1,
+                      name=identifier,
                       verbose=0)
 
         cap = capsys.readouterr()
@@ -93,6 +94,7 @@ class TestCmd:
                   tensor_shape=(256, 256),
                   filter_by_class='1,2',
                   seed=1,
+                  name=identifier,
                   verbose=0)
 
         # test tversky

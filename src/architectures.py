@@ -910,7 +910,8 @@ class DeepLabv3Plus(_BaseModel):
 def create_model(model, nr_classes, nr_bands, tensor_shape,
                  nr_filters=64, optimizer='adam', loss='dice', metrics=None,
                  activation='relu', padding='same', verbose=1, alpha=None,
-                 beta=None, dropout_rate_input=None, dropout_rate_hidden=None):
+                 beta=None, dropout_rate_input=None, dropout_rate_hidden=None,
+                 name='model'):
     """Create intended model.
 
     :param model: model architecture
@@ -937,6 +938,7 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
         units of the input layer to drop
     :param dropout_rate_hidden: float between 0 and 1. Fraction of the input
         units of the hidden layers to drop
+    :param name: The name of the model
     :return: compiled model
     """
     model_classes = {'U-Net': UNet, 'SegNet': SegNet, 'DeepLab': DeepLabv3Plus}
@@ -952,7 +954,8 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
                                  activation=activations[activation],
                                  padding=padding,
                                  dropout_rate_input=dropout_rate_input,
-                                 dropout_rate_hidden=dropout_rate_hidden)
+                                 dropout_rate_hidden=dropout_rate_hidden,
+                                 name=name)
 
     # get loss functions corresponding to non-TF losses
     if loss == 'dice':
