@@ -8,7 +8,7 @@ ________________________________________________________________________________
  type_cast (TFOpLambda)         (None, 256, 256, 12  0           ['input_3[0][0]']                
                                 )                                                                 
                                                                                                   
- downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['tf.cast_2[0][0]']              
+ downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['type_cast[0][0]']              
  )                              )                                                                 
                                                                                                   
  my_max_pooling (MyMaxPooling)  ((None, 128, 128, 6  0           ['downsampling_block0[0][0]']    

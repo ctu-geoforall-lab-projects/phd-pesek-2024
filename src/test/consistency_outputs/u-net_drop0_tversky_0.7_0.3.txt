@@ -2,13 +2,13 @@ Model: "u-net_drop0_tversky_0.3_0.7"
 __________________________________________________________________________________________________
  Layer (type)                   Output Shape         Param #     Connected to                     
 ==================================================================================================
- input_10 (InputLayer)          [(None, 256, 256, 1  0           []                               
+ input    (InputLayer)          [(None, 256, 256, 1  0           []                               
                                 2)]                                                               
                                                                                                   
- tf.cast_7 (TFOpLambda)         (None, 256, 256, 12  0           ['input_10[0][0]']               
+ type_cast (TFOpLambda)         (None, 256, 256, 12  0           ['input_10[0][0]']               
                                 )                                                                 
                                                                                                   
- downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['tf.cast_7[0][0]']              
+ downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['type_cast[0][0]']              
  )                              )                                                                 
                                                                                                   
  downsampling_pooling0 (MaxPool  (None, 128, 128, 64  0          ['downsampling_block0[0][0]']    
