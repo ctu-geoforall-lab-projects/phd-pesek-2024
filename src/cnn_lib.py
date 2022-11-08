@@ -892,7 +892,7 @@ class MyMaxPooling(Layer):
             inputs, ksize=ksize, strides=self.strides,
             padding=self.padding.upper(), include_batch_in_index=True)
 
-        argmax = tf.cast(argmax, tf.int32)
+        argmax = tf.cast(argmax, tf.int32, name='cast_maxpooling')
 
         return output, argmax
 
