@@ -285,8 +285,8 @@ def categorical_tversky(ground_truth_onehot, predictions, alpha=0.5,
     :return: dice loss value averaged for all classes
     """
     weight_tensor = tf.constant(weights, dtype=tf.float32)
-    predictions = tf.cast(predictions, tf.float32)
-    ground_truth_onehot = tf.cast(ground_truth_onehot, tf.float32)
+    predictions = tf.cast(predictions, tf.float32, name='tversky_cast')
+    ground_truth_onehot = tf.cast(ground_truth_onehot, tf.float32, name='tversky_cast_gt')
 
     # compute true positives, false negatives and false positives
     true_pos = ground_truth_onehot * predictions
