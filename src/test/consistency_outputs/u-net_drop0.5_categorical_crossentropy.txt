@@ -5,10 +5,10 @@ ________________________________________________________________________________
  input (InputLayer)             [(None, 256, 256, 1  0           []                               
                                 2)]                                                               
                                                                                                   
- type_cast (TFOpLambda)         (None, 256, 256, 12  0           ['input_2[0][0]']                
+ cast_input (TFOpLambda)        (None, 256, 256, 12  0           ['input_2[0][0]']                
                                 )                                                                 
                                                                                                   
- downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['tf.cast_1[0][0]']              
+ downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['cast_input[0][0]']             
  )                              )                                                                 
                                                                                                   
  downsampling_pooling0 (MaxPool  (None, 128, 128, 64  0          ['downsampling_block0[0][0]']    
