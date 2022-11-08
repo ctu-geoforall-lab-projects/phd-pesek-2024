@@ -2,10 +2,10 @@ Model: "segnet_drop0.5_categorical_crossentropy"
 __________________________________________________________________________________________________
  Layer (type)                   Output Shape         Param #     Connected to                     
 ==================================================================================================
- input_4 (InputLayer)           [(None, 256, 256, 1  0           []                               
+ input (InputLayer)             [(None, 256, 256, 1  0           []                               
                                 2)]                                                               
                                                                                                   
- tf.cast_3 (TFOpLambda)         (None, 256, 256, 12  0           ['input_4[0][0]']                
+ type_cast (TFOpLambda)         (None, 256, 256, 12  0           ['input_4[0][0]']                
                                 )                                                                 
                                                                                                   
  downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['tf.cast_3[0][0]']              

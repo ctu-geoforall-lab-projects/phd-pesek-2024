@@ -2,10 +2,10 @@ Model: "u-net_drop0.5_categorical_crossentropy"
 __________________________________________________________________________________________________
  Layer (type)                   Output Shape         Param #     Connected to                     
 ==================================================================================================
- input_2 (InputLayer)           [(None, 256, 256, 1  0           []                               
+ input (InputLayer)             [(None, 256, 256, 1  0           []                               
                                 2)]                                                               
                                                                                                   
- tf.cast_1 (TFOpLambda)         (None, 256, 256, 12  0           ['input_2[0][0]']                
+ type_cast (TFOpLambda)         (None, 256, 256, 12  0           ['input_2[0][0]']                
                                 )                                                                 
                                                                                                   
  downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['tf.cast_1[0][0]']              

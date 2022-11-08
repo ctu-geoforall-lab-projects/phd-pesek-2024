@@ -2,10 +2,10 @@ Model: "deeplab_drop0_categorical_crossentropy"
 __________________________________________________________________________________________________
  Layer (type)                   Output Shape         Param #     Connected to                     
 ==================================================================================================
- input_5 (InputLayer)           [(None, 256, 256, 1  0           []                               
+ input (InputLayer)             [(None, 256, 256, 1  0           []                               
                                 2)]                                                               
                                                                                                   
- res_net (ResNet)               [(None, 64, 64, 256  8617408     ['input_5[0][0]']                
+ resnet (ResNet)                [(None, 64, 64, 256  8617408     ['input_5[0][0]']                
                                 ),                                                                
                                  (None, 16, 16, 102                                               
                                 4)]                                                               

@@ -127,7 +127,7 @@ class _BaseModel(Model, ABC):
         :return: printed string summary of the network
         """
         inputs = Input((self.tensor_shape[0], self.tensor_shape[1],
-                        self.nr_bands))
+                        self.nr_bands), name='input')
         model = Model(inputs=[inputs], outputs=self.call(inputs),
                       name=self.name)
         return model.summary()
@@ -204,7 +204,7 @@ class UNet(_BaseModel):
         :param mask: A mask or list of masks
         :return: the output of the classifier layer
         """
-        x = self.dropout_in(tf.cast(inputs, tf.float16))
+        x = self.dropout_in(tf.cast(inputs, tf.float16, name='type_cast'))
 
         # downsampling
         x, concat_layers = self.run_downsampling_section(x)
@@ -363,7 +363,7 @@ class SegNet(_BaseModel):
         :param mask: A mask or list of masks
         :return: the output of the classifier layer
         """
-        x = self.dropout_in(tf.cast(inputs, tf.float16))
+        x = self.dropout_in(tf.cast(inputs, tf.float16, name='type_cast'))
 
         # downsampling
         x, pool_indices = self.run_downsampling_section(x)
@@ -581,7 +581,7 @@ class ResNet(_BaseModel):
         :return: the output of the last layer
             (either classifier or pooling for the case of the backbone usage)
         """
-        x = self.dropout_in(tf.cast(inputs, tf.float16))
+        x = self.dropout_in(tf.cast(inputs, tf.float16, name='type_cast'))
 
         # run resnet
         return_outputs = []  # used if self.return_layers is not None
@@ -834,7 +834,8 @@ class DeepLabv3Plus(_BaseModel):
                                use_bias=self.use_bias,
                                dropout_rate_hidden=self.dropout_rate_hidden,
                                return_layers=('id_block_2_3',
-                                              self.resnet_2_out))
+                                              self.resnet_2_out),
+                               name='resnet')
 
         backbone_out_1_pooled = 4
         if 'block_4' in self.resnet_2_out:
