@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from tensorflow.keras import layers as k_layers
 from tensorflow.keras.layers import MaxPooling2D, Conv2D, Input, \
     UpSampling2D, Concatenate, Dropout, ZeroPadding2D, \
-    GlobalAveragePooling2D, GlobalMaxPooling2D, Dense, Lambda
+    GlobalAveragePooling2D, GlobalMaxPooling2D, Dense
 from tensorflow.keras.models import Model
 
 from cnn_lib import ConvBlock, MyMaxPooling, MyMaxUnpooling, \
@@ -97,7 +97,7 @@ class _BaseModel(Model, ABC):
         if self.dropout_rate_input is not None:
             x = Dropout(rate=self.dropout_rate_input, name='dropout_input')
         else:
-            x = Lambda(lambda a: a, name='cast_input')
+            x = lambda a: a
 
         return x
 
@@ -127,7 +127,7 @@ class _BaseModel(Model, ABC):
         :return: printed string summary of the network
         """
         inputs = Input((self.tensor_shape[0], self.tensor_shape[1],
-                        self.nr_bands), dtype=tf.float32, name='input')
+                        self.nr_bands), dtype=tf.float16, name='input')
         model = Model(inputs=[inputs], outputs=self.call(inputs),
                       name=self.name)
         return model.summary()

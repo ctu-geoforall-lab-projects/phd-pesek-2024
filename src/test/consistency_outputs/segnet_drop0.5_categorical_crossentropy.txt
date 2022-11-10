@@ -5,10 +5,7 @@ ________________________________________________________________________________
  input (InputLayer)             [(None, 256, 256, 1  0           []                               
                                 2)]                                                               
                                                                                                   
- cast_input (TFOpLambda)        (None, 256, 256, 12  0           ['input_4[0][0]']                
-                                )                                                                 
-                                                                                                  
- downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['cast_input[0][0]']             
+ downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['input[0][0]']                  
  )                              )                                                                 
                                                                                                   
  my_max_pooling_5 (MyMaxPooling  ((None, 128, 128, 6  0          ['downsampling_block0[0][0]']    
