@@ -40,7 +40,7 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
             tf.random.set_seed(seed)
         else:
             tf.keras.utils.set_random_seed(seed)
-    tf.keras.backend.set_floatx('float16')`
+    tf.keras.backend.set_floatx('float16')
 
     model = create_model(
         model, len(id2code), nr_bands, tensor_shape, loss=loss_function,
