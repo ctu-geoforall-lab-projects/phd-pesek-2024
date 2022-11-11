@@ -127,7 +127,7 @@ class _BaseModel(Model, ABC):
         :return: printed string summary of the network
         """
         inputs = Input((self.tensor_shape[0], self.tensor_shape[1],
-                        self.nr_bands), dtype=tf.float16, name='input')
+                        self.nr_bands), dtype=tf.float32, name='input')
         model = Model(inputs=[inputs], outputs=self.call(inputs),
                       name=self.name)
         return model.summary()
