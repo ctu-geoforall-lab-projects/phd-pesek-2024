@@ -202,7 +202,8 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
                     cols_step,
                     rows_step,
                     1,
-                    gdal.GDT_UInt16)
+                    # gdal.GDT_UInt16)
+                    gdal.GDT_Float32)
                 out_scene.SetGeoTransform(geo_transform)
                 out_mask.SetGeoTransform(geo_transform)
                 out_scene.SetProjection(projection)
