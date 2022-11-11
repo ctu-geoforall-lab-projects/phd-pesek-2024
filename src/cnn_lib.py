@@ -236,7 +236,7 @@ class AugmentGenerator:
         """
         num_classes = len(colormap)
         shape = orig_image.shape[:2] + (num_classes,)
-        encoded_image = np.empty(shape, dtype=np.uint8)
+        encoded_image = np.empty(shape, dtype=np.float32)
 
         # reshape to the shape used inside the onehot matrix
         reshaped = orig_image.reshape((-1, 1))
