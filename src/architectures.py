@@ -204,7 +204,7 @@ class UNet(_BaseModel):
         :param mask: A mask or list of masks
         :return: the output of the classifier layer
         """
-        x = self.dropout_in(tf.cast(inputs, tf.float16, name='type_cast'))
+        x = self.dropout_in(tf.cast(inputs, tf.float32, name='type_cast'))
 
         # downsampling
         x, concat_layers = self.run_downsampling_section(x)
