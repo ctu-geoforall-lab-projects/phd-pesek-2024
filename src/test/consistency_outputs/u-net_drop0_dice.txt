@@ -2,7 +2,7 @@ Model: "u-net_drop0_dice"
 __________________________________________________________________________________________________
  Layer (type)                   Output Shape         Param #     Connected to                     
 ==================================================================================================
- input   (InputLayer)           [(None, 256, 256, 1  0           []                               
+ input (InputLayer)             [(None, 256, 256, 1  0           []                               
                                 2)]                                                               
                                                                                                   
  downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['input[0][0]']                  
