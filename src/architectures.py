@@ -365,7 +365,9 @@ class SegNet(_BaseModel):
         :param mask: A mask or list of masks
         :return: the output of the classifier layer
         """
-        x = self.dropout_in(tf.cast(inputs, tf.float16, name='type_cast'))
+        # x = self.dropout_in(tf.cast(inputs, tf.float16, name='type_cast'))
+        # x = tf.cast(inputs, tf.float32, name='type_cast')
+        x = self.dropout_in(inputs)
 
         # downsampling
         x, pool_indices = self.run_downsampling_section(x)
@@ -583,7 +585,9 @@ class ResNet(_BaseModel):
         :return: the output of the last layer
             (either classifier or pooling for the case of the backbone usage)
         """
-        x = self.dropout_in(tf.cast(inputs, tf.float16, name='type_cast'))
+        # x = self.dropout_in(tf.cast(inputs, tf.float16, name='type_cast'))
+        # x = tf.cast(inputs, tf.float32, name='type_cast')
+        x = self.dropout_in(inputs)
 
         # run resnet
         return_outputs = []  # used if self.return_layers is not None
