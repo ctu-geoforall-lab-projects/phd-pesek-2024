@@ -106,7 +106,7 @@ class TestCmd:
 
         # test tversky
         for alpha, beta in ((0.3, 0.7), (0.7, 0.3)):
-            identifier = f'u-net_drop0_{loss}_{alpha}_{beta}'
+            identifier = f'u-net_drop0_tversky_{alpha}_{beta}'
             train(operation='train',
                   model='U-Net',
                   data_dir=training_data_dir,
