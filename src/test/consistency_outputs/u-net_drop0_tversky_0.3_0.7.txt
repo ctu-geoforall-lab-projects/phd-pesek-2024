@@ -84,6 +84,6 @@ Trainable params: 31,048,835
 Non-trainable params: 11,776
 __________________________________________________________________________________________________
 
-Epoch 00001: val_loss improved from inf to 0.55478, saving model to /tmp/output_u-net_drop0_dice/model.h5
+Epoch 00001: val_loss improved from inf to 0.55478, saving model to /tmp/output_u-net_drop0_tversky_0.3_0.7/model.h5
 
 Epoch 00002: val_loss did not improve from 0.55478
