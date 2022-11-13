@@ -110,7 +110,7 @@ class AugmentGenerator:
                     self.onehot_encode(x2i[x, :, :, :], id2code) for x in
                     range(x2i.shape[0])]
 
-            yield x1i.astype(np.float32), np.asarray(x2i)
+            yield x1i, np.asarray(x2i)
 
     def generate_augmented(self, id2code, seed):
         """Generate batches of data using TF Keras augmenting class.
