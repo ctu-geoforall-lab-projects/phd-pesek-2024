@@ -5,16 +5,16 @@ ________________________________________________________________________________
  input (InputLayer)             [(None, 256, 256, 1  0           []                               
                                 2)]                                                               
                                                                                                   
- resnet_1 (ResNet)              [(None, 64, 64, 256  8617408     ['input_6[0][0]']                
+ resnet (ResNet)                [(None, 64, 64, 256  8617408     ['input[0][0]']                  
                                 ),                                                                
                                  (None, 16, 16, 102                                               
                                 4)]                                                               
                                                                                                   
- aspp (ASPP)                    (None, 16, 16, 256)  7937536     ['res_net_1[0][1]']              
+ aspp (ASPP)                    (None, 16, 16, 256)  7937536     ['resnet[0][1]']                 
                                                                                                   
  aspp_upsample (UpSampling2D)   (None, 64, 64, 256)  0           ['aspp[0][0]']                   
                                                                                                   
- low_level_conv_block (ConvBloc  (None, 64, 64, 48)  12528       ['res_net_1[0][0]']              
+ low_level_conv_block (ConvBloc  (None, 64, 64, 48)  12528       ['resnet[0][0]']                 
  k)                                                                                               
                                                                                                   
  decoder_concat (Concatenate)   (None, 64, 64, 304)  0           ['aspp_upsample[0][0]',          
