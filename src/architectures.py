@@ -128,7 +128,6 @@ class _BaseModel(Model, ABC):
         """
         inputs = Input((self.tensor_shape[0], self.tensor_shape[1],
                         self.nr_bands), name='input')
-                        # self.nr_bands), dtype=tf.float32, name='input')
         model = Model(inputs=[inputs], outputs=self.call(inputs),
                       name=self.name)
         return model.summary()
@@ -205,8 +204,6 @@ class UNet(_BaseModel):
         :param mask: A mask or list of masks
         :return: the output of the classifier layer
         """
-        # x = self.dropout_in(tf.cast(inputs, tf.float16, name='type_cast'))
-        # x = tf.cast(inputs, tf.float32, name='type_cast')
         x = self.dropout_in(inputs)
 
         # downsampling
@@ -366,8 +363,6 @@ class SegNet(_BaseModel):
         :param mask: A mask or list of masks
         :return: the output of the classifier layer
         """
-        # x = self.dropout_in(tf.cast(inputs, tf.float16, name='type_cast'))
-        # x = tf.cast(inputs, tf.float32, name='type_cast')
         x = self.dropout_in(inputs)
 
         # downsampling

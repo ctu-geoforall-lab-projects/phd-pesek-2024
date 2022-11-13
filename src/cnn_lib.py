@@ -237,7 +237,6 @@ class AugmentGenerator:
         num_classes = len(colormap)
         shape = orig_image.shape[:2] + (num_classes,)
         encoded_image = np.empty(shape, dtype=np.uint8)
-        # encoded_image = np.empty(shape, dtype=np.float32)
 
         # reshape to the shape used inside the onehot matrix
         reshaped = orig_image.reshape((-1, 1))
@@ -286,7 +285,7 @@ def categorical_tversky(ground_truth_onehot, predictions, alpha=0.5,
     :return: dice loss value averaged for all classes
     """
     weight_tensor = tf.constant(weights, dtype=tf.float32)
-    predictions = tf.cast(predictions, tf.float32, name='tversky_cast')
+    predictions = tf.cast(predictions, tf.float32, name='tversky_cast_pred')
     ground_truth_onehot = tf.cast(ground_truth_onehot, tf.float32, name='tversky_cast_gt')
 
     # compute true positives, false negatives and false positives
@@ -894,7 +893,6 @@ class MyMaxPooling(Layer):
             padding=self.padding.upper(), include_batch_in_index=True)
 
         argmax = tf.cast(argmax, tf.int32, name='cast_maxpooling')
-        # argmax = tf.cast(argmax, tf.float32, name='cast_maxpooling')
 
         return output, argmax
 
