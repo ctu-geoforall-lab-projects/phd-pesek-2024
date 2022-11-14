@@ -166,8 +166,7 @@ class TestCmd:
 
         cap = capsys.readouterr()
 
-        # with open(f'/tmp/{identifier}.txt', 'w') as out:
-        with open(f'/tmp/out.txt', 'w') as out:
+        with open(f'/tmp/{identifier}.txt', 'w') as out:
             out.write(cap.out)
 
-        # assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), report_file(identifier)
+        assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), report_file(identifier)
