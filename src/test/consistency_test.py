@@ -159,7 +159,7 @@ class TestCmd:
               tensor_shape=(256, 256),
               filter_by_class='1,2',
               seed=1,
-              augment_training_dataset=True,
+              augment=True,
               force_dataset_generation=True,
               name=identifier,
               verbose=0)
