@@ -110,7 +110,7 @@ class AugmentGenerator:
                     self.onehot_encode(x2i[x, :, :, :], id2code) for x in
                     range(x2i.shape[0])]
 
-            yield x1i, np.asarray(x2i)
+            yield x1i.astype(np.float32), np.asarray(x2i)
 
     def generate_augmented(self, id2code, seed):
         """Generate batches of data using TF Keras augmenting class.
@@ -285,8 +285,8 @@ def categorical_tversky(ground_truth_onehot, predictions, alpha=0.5,
     :return: dice loss value averaged for all classes
     """
     weight_tensor = tf.constant(weights, dtype=tf.float32)
-    predictions = tf.cast(predictions, tf.float32)
-    ground_truth_onehot = tf.cast(ground_truth_onehot, tf.float32)
+    predictions = tf.cast(predictions, tf.float32, name='tversky_cast_pred')
+    ground_truth_onehot = tf.cast(ground_truth_onehot, tf.float32, name='tversky_cast_gt')
 
     # compute true positives, false negatives and false positives
     true_pos = ground_truth_onehot * predictions
@@ -892,7 +892,7 @@ class MyMaxPooling(Layer):
             inputs, ksize=ksize, strides=self.strides,
             padding=self.padding.upper(), include_batch_in_index=True)
 
-        argmax = tf.cast(argmax, tf.int32)
+        argmax = tf.cast(argmax, tf.int32, name='cast_maxpooling')
 
         return output, argmax
 

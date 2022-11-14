@@ -21,7 +21,7 @@ class _BaseModel(Model, ABC):
                  dilation_rate=1, tensor_shape=(256, 256),
                  activation=k_layers.ReLU,
                  padding='same', dropout_rate_input=None,
-                 dropout_rate_hidden=None, use_bias=True, **kwargs):
+                 dropout_rate_hidden=None, use_bias=True, name='model', **kwargs):
         """Model constructor.
 
         :param nr_classes: number of classes to be predicted
@@ -40,9 +40,10 @@ class _BaseModel(Model, ABC):
             units of the input layer to drop
         :param dropout_rate_hidden: float between 0 and 1. Fraction of
             the input
+        :param name: The name of the model
         :param use_bias: Boolean, whether the layer uses a bias vector
         """
-        super(_BaseModel, self).__init__()
+        super(_BaseModel, self).__init__(name=name, **kwargs)
 
         self.nr_classes = nr_classes
         self.nr_bands = nr_bands
@@ -126,9 +127,9 @@ class _BaseModel(Model, ABC):
         :return: printed string summary of the network
         """
         inputs = Input((self.tensor_shape[0], self.tensor_shape[1],
-                        self.nr_bands))
-        model = Model(inputs=[inputs],
-                      outputs=self.call(inputs))
+                        self.nr_bands), name='input')
+        model = Model(inputs=[inputs], outputs=self.call(inputs),
+                      name=self.name)
         return model.summary()
 
     @abstractmethod
@@ -203,7 +204,7 @@ class UNet(_BaseModel):
         :param mask: A mask or list of masks
         :return: the output of the classifier layer
         """
-        x = self.dropout_in(tf.cast(inputs, tf.float16))
+        x = self.dropout_in(inputs)
 
         # downsampling
         x, concat_layers = self.run_downsampling_section(x)
@@ -362,7 +363,7 @@ class SegNet(_BaseModel):
         :param mask: A mask or list of masks
         :return: the output of the classifier layer
         """
-        x = self.dropout_in(tf.cast(inputs, tf.float16))
+        x = self.dropout_in(inputs)
 
         # downsampling
         x, pool_indices = self.run_downsampling_section(x)
@@ -580,7 +581,7 @@ class ResNet(_BaseModel):
         :return: the output of the last layer
             (either classifier or pooling for the case of the backbone usage)
         """
-        x = self.dropout_in(tf.cast(inputs, tf.float16))
+        x = self.dropout_in(inputs)
 
         # run resnet
         return_outputs = []  # used if self.return_layers is not None
@@ -833,7 +834,8 @@ class DeepLabv3Plus(_BaseModel):
                                use_bias=self.use_bias,
                                dropout_rate_hidden=self.dropout_rate_hidden,
                                return_layers=('id_block_2_3',
-                                              self.resnet_2_out))
+                                              self.resnet_2_out),
+                               name='resnet')
 
         backbone_out_1_pooled = 4
         if 'block_4' in self.resnet_2_out:
@@ -910,7 +912,8 @@ class DeepLabv3Plus(_BaseModel):
 def create_model(model, nr_classes, nr_bands, tensor_shape,
                  nr_filters=64, optimizer='adam', loss='dice', metrics=None,
                  activation='relu', padding='same', verbose=1, alpha=None,
-                 beta=None, dropout_rate_input=None, dropout_rate_hidden=None):
+                 beta=None, dropout_rate_input=None, dropout_rate_hidden=None,
+                 name='model'):
     """Create intended model.
 
     :param model: model architecture
@@ -937,6 +940,7 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
         units of the input layer to drop
     :param dropout_rate_hidden: float between 0 and 1. Fraction of the input
         units of the hidden layers to drop
+    :param name: The name of the model
     :return: compiled model
     """
     model_classes = {'U-Net': UNet, 'SegNet': SegNet, 'DeepLab': DeepLabv3Plus}
@@ -952,7 +956,8 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
                                  activation=activations[activation],
                                  padding=padding,
                                  dropout_rate_input=dropout_rate_input,
-                                 dropout_rate_hidden=dropout_rate_hidden)
+                                 dropout_rate_hidden=dropout_rate_hidden,
+                                 name=name)
 
     # get loss functions corresponding to non-TF losses
     if loss == 'dice':

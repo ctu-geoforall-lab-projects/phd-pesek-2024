@@ -1,14 +1,11 @@
-Model: "model_2"
+Model: "segnet_drop0_categorical_crossentropy"
 __________________________________________________________________________________________________
  Layer (type)                   Output Shape         Param #     Connected to                     
 ==================================================================================================
- input_3 (InputLayer)           [(None, 256, 256, 1  0           []                               
+ input (InputLayer)             [(None, 256, 256, 1  0           []                               
                                 2)]                                                               
                                                                                                   
- tf.cast_2 (TFOpLambda)         (None, 256, 256, 12  0           ['input_3[0][0]']                
-                                )                                                                 
-                                                                                                  
- downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['tf.cast_2[0][0]']              
+ downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['input[0][0]']                  
  )                              )                                                                 
                                                                                                   
  my_max_pooling (MyMaxPooling)  ((None, 128, 128, 6  0           ['downsampling_block0[0][0]']    
@@ -97,8 +94,6 @@ Trainable params: 62,486,211
 Non-trainable params: 20,992
 __________________________________________________________________________________________________
 
-Epoch 00001: val_loss improved from inf to 46.83357, saving model to /tmp/output_segnet_drop0/model.h5
+Epoch 00001: val_loss improved from inf to 46.83357, saving model to /tmp/output_segnet_drop0_categorical_crossentropy/model.h5
 
 Epoch 00002: val_loss did not improve from 46.83357
-
-Epoch 00003: val_loss improved from 46.83357 to 7.68914, saving model to /tmp/output_segnet_drop0/model.h5

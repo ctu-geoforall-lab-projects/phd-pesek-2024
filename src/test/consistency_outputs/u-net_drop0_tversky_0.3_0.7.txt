@@ -1,14 +1,11 @@
-Model: "model_1"
+Model: "u-net_drop0_tversky_0.3_0.7"
 __________________________________________________________________________________________________
  Layer (type)                   Output Shape         Param #     Connected to                     
 ==================================================================================================
- input_2 (InputLayer)           [(None, 256, 256, 1  0           []                               
+ input (InputLayer)             [(None, 256, 256, 1  0           []                               
                                 2)]                                                               
                                                                                                   
- tf.cast_1 (TFOpLambda)         (None, 256, 256, 12  0           ['input_2[0][0]']                
-                                )                                                                 
-                                                                                                  
- downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['tf.cast_1[0][0]']              
+ downsampling_block0 (ConvBlock  (None, 256, 256, 64  44416      ['input[0][0]']                  
  )                              )                                                                 
                                                                                                   
  downsampling_pooling0 (MaxPool  (None, 128, 128, 64  0          ['downsampling_block0[0][0]']    
@@ -87,8 +84,6 @@ Trainable params: 31,048,835
 Non-trainable params: 11,776
 __________________________________________________________________________________________________
 
-Epoch 00001: val_loss improved from inf to 171.72054, saving model to /tmp/output_u-net_drop0.5/model.h5
+Epoch 00001: val_loss improved from inf to 0.55478, saving model to /tmp/output_u-net_drop0_tversky_0.3_0.7/model.h5
 
-Epoch 00002: val_loss improved from 171.72054 to 19.23990, saving model to /tmp/output_u-net_drop0.5/model.h5
-
-Epoch 00003: val_loss improved from 19.23990 to 0.29746, saving model to /tmp/output_u-net_drop0.5/model.h5
+Epoch 00002: val_loss did not improve from 0.55478
