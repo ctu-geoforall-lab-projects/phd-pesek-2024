@@ -924,7 +924,7 @@ class DeepLabv3Plus(_BaseModel):
         :return: layer identifier string
         """
         resnet_stages_depths = ResNet.get_stage_depths(resnet_depth)
-        desired_stage_depth = resnet_stage_depths[out_stage - 1]
+        desired_stage_depth = resnet_stages_depths[out_stage - 1]
 
         return f'id_block_{out_stage}_{desired_stage_depth}'
 
