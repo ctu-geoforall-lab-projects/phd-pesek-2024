@@ -913,7 +913,7 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
                  nr_filters=64, optimizer='adam', loss='dice', metrics=None,
                  activation='relu', padding='same', verbose=1, alpha=None,
                  beta=None, dropout_rate_input=None, dropout_rate_hidden=None,
-                 name='model'):
+                 backbone=None, name='model', **kwargs):
     """Create intended model.
 
     :param model: model architecture
@@ -950,6 +950,11 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
     if metrics is None:
         metrics = ['accuracy']
 
+    if backbone is not None:
+        # so far, only ResNet backbones
+        resnet_depth = int(backbone.split('ResNet')[1])
+        kwargs.update({'resnet_depth': resnet_depth})
+
     model = model_classes[model](nr_classes, nr_bands=nr_bands,
                                  nr_filters=nr_filters,
                                  tensor_shape=tensor_shape,
@@ -957,7 +962,8 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
                                  padding=padding,
                                  dropout_rate_input=dropout_rate_input,
                                  dropout_rate_hidden=dropout_rate_hidden,
-                                 name=name)
+                                 name=name,
+                                 **kwargs)
 
     # get loss functions corresponding to non-TF losses
     if loss == 'dice':
