@@ -96,7 +96,8 @@ def tile(scene_path, labels_path, tensor_shape, filter_by_class=None,
         scene = None
 
         if cols_step == rows_step:
-            rotations = (1, 2, 3)
+            # rotations = (1, 2, 3)
+            rotations = (1, 2)
         else:
             rotations = (2, )
     else:
