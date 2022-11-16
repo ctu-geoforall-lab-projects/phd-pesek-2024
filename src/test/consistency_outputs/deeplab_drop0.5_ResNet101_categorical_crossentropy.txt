@@ -1,11 +1,11 @@
-Model: "deeplab_drop0.5_categorical_crossentropy"
+Model: "deeplab_drop0.5_ResNet101_categorical_crossentropy"
 __________________________________________________________________________________________________
  Layer (type)                   Output Shape         Param #     Connected to                     
 ==================================================================================================
  input (InputLayer)             [(None, 256, 256, 1  0           []                               
                                 2)]                                                               
                                                                                                   
- resnet (ResNet)                [(None, 64, 64, 256  8617408     ['input[0][0]']                  
+ resnet (ResNet)                [(None, 64, 64, 256  27687872    ['input[0][0]']                  
                                 ),                                                                
                                  (None, 16, 16, 102                                               
                                 4)]                                                               
@@ -29,11 +29,11 @@ ________________________________________________________________________________
  classifier_layer (Conv2D)      (None, 256, 256, 3)  771         ['decoder_final_upsample[0][0]'] 
                                                                                                   
 ==================================================================================================
-Total params: 17,861,043
-Trainable params: 17,826,259
-Non-trainable params: 34,784
+Total params: 36,931,507
+Trainable params: 36,844,499
+Non-trainable params: 87,008
 __________________________________________________________________________________________________
 
-Epoch 00001: val_loss improved from inf to 1.20147, saving model to /tmp/output_deeplab_drop0.5_categorical_crossentropy/model.h5
+Epoch 00001: val_loss improved from inf to 0.56379, saving model to /tmp/output_deeplab_drop0.5_ResNet101_categorical_crossentropy/model.h5
 
-Epoch 00002: val_loss improved from 1.20147 to 0.33720, saving model to /tmp/output_deeplab_drop0.5_categorical_crossentropy/model.h5
+Epoch 00002: val_loss improved from 0.56379 to 0.38903, saving model to /tmp/output_deeplab_drop0.5_ResNet101_categorical_crossentropy/model.h5

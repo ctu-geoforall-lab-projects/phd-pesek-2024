@@ -23,7 +23,8 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
          monitored_value='val_accuracy', force_dataset_generation=False,
          fit_memory=False, augment=False, tversky_alpha=0.5,
          tversky_beta=0.5, dropout_rate_input=None, dropout_rate_hidden=None,
-         val_set_pct=0.2, filter_by_class=None, name='model', verbose=1):
+         val_set_pct=0.2, filter_by_class=None, backbone=None, name='model',
+         verbose=1):
     if verbose > 0:
         utils.print_device_info()
 
@@ -45,7 +46,7 @@ def main(operation, data_dir, output_dir, model, model_fn, in_weights_path=None,
         model, len(id2code), nr_bands, tensor_shape, loss=loss_function,
         alpha=tversky_alpha, beta=tversky_beta,
         dropout_rate_input=dropout_rate_input,
-        dropout_rate_hidden=dropout_rate_hidden, name=name)
+        dropout_rate_hidden=dropout_rate_hidden, backbone=backbone, name=name)
 
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(
@@ -242,6 +243,10 @@ if __name__ == '__main__':
              'only samples containing at least one of them will be created. '
              'If filtering by multiple classes, specify their values '
              'comma-separated (e.g. "1,2,6" to filter by classes 1, 2 and 6)')
+    parser.add_argument(
+        '--backbone', type=str, default=None,
+        choices=('ResNet50', 'ResNet101', 'ResNet152'),
+        help='Backbone architecture')
 
     args = parser.parse_args()
 
@@ -273,4 +278,4 @@ if __name__ == '__main__':
          args.augment_training_dataset, args.tversky_alpha,
          args.tversky_beta, args.dropout_rate_input,
          args.dropout_rate_hidden, args.validation_set_percentage,
-         args.filter_by_classes)
+         args.filter_by_classes, args.backbone)

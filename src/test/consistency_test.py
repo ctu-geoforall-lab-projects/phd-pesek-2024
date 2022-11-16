@@ -39,7 +39,8 @@ class TestCmd:
                                          'training_set_clouds_multiclass')
         # TODO: Add continue
 
-        for architecture in ('U-Net', 'SegNet', 'DeepLab',):
+        # tests for architectures without backbone models
+        for architecture in ('U-Net', 'SegNet'):
             for dropout in (0, 0.5):
                 identifier = f'{architecture.lower()}_drop{dropout}_categorical_crossentropy'
                 train(operation='train',
@@ -56,6 +57,36 @@ class TestCmd:
                       tensor_shape=(256, 256),
                       filter_by_class='1,2',
                       seed=1,
+                      name=identifier,
+                      verbose=0)
+
+                cap = capsys.readouterr()
+
+                with open(f'/tmp/{identifier}.txt', 'w') as out:
+                    out.write(cap.out)
+
+                assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), report_file(identifier)
+
+        # tests for architectures with backbone models
+        architecture = 'DeepLab'
+        for backbone in ('ResNet50', 'ResNet101', 'ResNet152'):
+            for dropout in (0, 0.5):
+                identifier = f'{architecture.lower()}_drop{dropout}_{backbone}_categorical_crossentropy'
+                train(operation='train',
+                      model=architecture,
+                      data_dir=training_data_dir,
+                      output_dir=f'/tmp/output_{identifier}',
+                      model_fn=f'/tmp/output_{identifier}/model.h5',
+                      visualization_path=f'/tmp/output_{identifier}',
+                      nr_epochs=2,
+                      dropout_rate_hidden=dropout,
+                      val_set_pct=0.5,
+                      monitored_value='val_loss',
+                      loss_function='categorical_crossentropy',
+                      tensor_shape=(256, 256),
+                      filter_by_class='1,2',
+                      seed=1,
+                      backbone=backbone,
                       name=identifier,
                       verbose=0)
 

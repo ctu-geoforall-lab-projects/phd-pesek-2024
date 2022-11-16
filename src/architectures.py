@@ -755,7 +755,7 @@ class DeepLabv3Plus(_BaseModel):
     """
 
     def __init__(self, *args, resnet_pooling='avg', resnet_depth=50,
-                 resnet_2_out='id_block_4_6', **kwargs):
+                 resnet_2_out=None, **kwargs):
         """Model constructor.
 
         :param nr_classes: number of classes to be predicted
@@ -778,12 +778,18 @@ class DeepLabv3Plus(_BaseModel):
         :param resnet_pooling: global pooling mode for feature extraction
             in the backbone ResNet model (must be 'avg' or 'max')
         :param resnet_2_out: ResNet layer to be passed into ASPP
+            (if not set, corresponding level of the fourth stage chosen)
         :param resnet_depth: depth of the ResNet backbone model
             (must be 50, 101, or 152)
         """
         self.resnet_pooling = resnet_pooling
         self.resnet_depth = resnet_depth
-        self.resnet_2_out = resnet_2_out
+
+        if resnet_2_out is None:
+            self.resnet_2_out = self.get_resnet_2_out(resnet_depth,
+                                                      out_stage=4)
+        else:
+            self.resnet_2_out = resnet_2_out
 
         super(DeepLabv3Plus, self).__init__(*args, **kwargs)
 
@@ -908,12 +914,26 @@ class DeepLabv3Plus(_BaseModel):
 
         return config
 
+    @staticmethod
+    def get_resnet_2_out(resnet_depth, out_stage):
+        """Get identifier of the backbone intermediate output layer.
+
+        :param resnet_depth: Depth of the ResNet backbone model
+            (must be 50, 101, or 152)
+        :param out_stage: Backbone stage at which to find the last level
+        :return: layer identifier string
+        """
+        resnet_stages_depths = ResNet.get_stage_depths(resnet_depth)
+        desired_stage_depth = resnet_stages_depths[out_stage - 1]
+
+        return f'id_block_{out_stage}_{desired_stage_depth}'
+
 
 def create_model(model, nr_classes, nr_bands, tensor_shape,
                  nr_filters=64, optimizer='adam', loss='dice', metrics=None,
                  activation='relu', padding='same', verbose=1, alpha=None,
                  beta=None, dropout_rate_input=None, dropout_rate_hidden=None,
-                 name='model'):
+                 backbone=None, name='model', **kwargs):
     """Create intended model.
 
     :param model: model architecture
@@ -950,6 +970,11 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
     if metrics is None:
         metrics = ['accuracy']
 
+    if backbone is not None:
+        # so far, only ResNet backbones
+        resnet_depth = int(backbone.split('ResNet')[1])
+        kwargs.update({'resnet_depth': resnet_depth})
+
     model = model_classes[model](nr_classes, nr_bands=nr_bands,
                                  nr_filters=nr_filters,
                                  tensor_shape=tensor_shape,
@@ -957,7 +982,8 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
                                  padding=padding,
                                  dropout_rate_input=dropout_rate_input,
                                  dropout_rate_hidden=dropout_rate_hidden,
-                                 name=name)
+                                 name=name,
+                                 **kwargs)
 
     # get loss functions corresponding to non-TF losses
     if loss == 'dice':

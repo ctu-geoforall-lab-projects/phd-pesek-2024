@@ -1,0 +1,39 @@
+Model: "deeplab_drop0_ResNet101_categorical_crossentropy"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input (InputLayer)             [(None, 256, 256, 1  0           []                               
+                                2)]                                                               
+                                                                                                  
+ resnet (ResNet)                [(None, 64, 64, 256  27687872    ['input[0][0]']                  
+                                ),                                                                
+                                 (None, 16, 16, 102                                               
+                                4)]                                                               
+                                                                                                  
+ aspp (ASPP)                    (None, 16, 16, 256)  7937536     ['resnet[0][1]']                 
+                                                                                                  
+ aspp_upsample (UpSampling2D)   (None, 64, 64, 256)  0           ['aspp[0][0]']                   
+                                                                                                  
+ low_level_conv_block (ConvBloc  (None, 64, 64, 48)  12528       ['resnet[0][0]']                 
+ k)                                                                                               
+                                                                                                  
+ decoder_concat (Concatenate)   (None, 64, 64, 304)  0           ['aspp_upsample[0][0]',          
+                                                                  'low_level_conv_block[0][0]']   
+                                                                                                  
+ decoder_conv_blocks (ConvBlock  (None, 64, 64, 256)  1292800    ['decoder_concat[0][0]']         
+ )                                                                                                
+                                                                                                  
+ decoder_final_upsample (UpSamp  (None, 256, 256, 25  0          ['decoder_conv_blocks[0][0]']    
+ ling2D)                        6)                                                                
+                                                                                                  
+ classifier_layer (Conv2D)      (None, 256, 256, 3)  771         ['decoder_final_upsample[0][0]'] 
+                                                                                                  
+==================================================================================================
+Total params: 36,931,507
+Trainable params: 36,844,499
+Non-trainable params: 87,008
+__________________________________________________________________________________________________
+
+Epoch 00001: val_loss improved from inf to 22214.63281, saving model to /tmp/output_deeplab_drop0_ResNet101_categorical_crossentropy/model.h5
+
+Epoch 00002: val_loss improved from 22214.63281 to 298.50507, saving model to /tmp/output_deeplab_drop0_ResNet101_categorical_crossentropy/model.h5
