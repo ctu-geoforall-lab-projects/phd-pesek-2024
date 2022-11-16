@@ -39,7 +39,8 @@ class TestCmd:
                                          'training_set_clouds_multiclass')
         # TODO: Add continue
 
-        for architecture in ('U-Net', 'SegNet', 'DeepLab',):
+        # tests for architectures without backbone models
+        for architecture in ('U-Net', 'SegNet'):
             for dropout in (0, 0.5):
                 identifier = f'{architecture.lower()}_drop{dropout}_categorical_crossentropy'
                 train(operation='train',
@@ -66,6 +67,7 @@ class TestCmd:
 
                 assert filecmp.cmp(f'/tmp/{identifier}.txt', f'src/test/consistency_outputs/{identifier}.txt'), report_file(identifier)
 
+        # tests for architectures with backbone models
         architecture = 'DeepLab'
         for backbone in ('ResNet50', 'ResNet101', 'ResNet152'):
             for dropout in (0, 0.5):
