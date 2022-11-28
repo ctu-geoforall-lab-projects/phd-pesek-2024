@@ -48,3 +48,5 @@ Hopefully one day.
 ## Intermediate results
 
 * [Using Convolutional Neural Networks for Cloud Detection on VENμS Images over Multiple Land-Cover Types](https://www.mdpi.com/2072-4292/14/20/5210)
+
+![Cloud cover detection](text/pictures/cloud-cover.png?raw=true "Binary detection of clouds on a patch of an S05 VENμS tile from various architecture settings: (a\) RGB representation of a patch of an S05 VENμS tile; (b\) ground-truth mask; (c\) U-Net—Dropout 0 %; (d\) U-Net—Dropout 50%; (e\) SegNet—Dropout 0%; (f\) SegNet—Dropout 50%; (g\) DeeplabV3+ with ResNet-50—Dropout 0%; (h\) DeeplabV3+ with ResNet-50—Dropout 50%; (i\) DeeplabV3+ with ResNet-101—Dropout 0%; (j\) DeeplabV3+ with ResNet-101—Dropout 50%; (k\) DeeplabV3+ with ResNet-152—Dropout 0%; (l\) DeeplabV3+ with ResNet-152—Dropout 50%.")
