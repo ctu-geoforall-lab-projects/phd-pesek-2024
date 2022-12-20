@@ -1,4 +1,4 @@
-name: consistency_test
+name: coverage
 
 on:
   push:
