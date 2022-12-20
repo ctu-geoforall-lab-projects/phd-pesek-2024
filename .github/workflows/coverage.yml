@@ -21,8 +21,7 @@ jobs:
     name: build docker and run tests
     runs-on: ubuntu-latest
 
-    strategy:
-      continue-on-error: true
+    continue-on-error: true
 
     steps:
       - name: Checkout
