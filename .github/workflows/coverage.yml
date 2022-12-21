@@ -1,0 +1,46 @@
+name: coverage
+
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'src/**'
+      - 'docker/**'
+      - '.github/**'
+  pull_request:
+    branches:
+      - '*'
+    paths:
+      - 'src/**'
+      - 'docker/**'
+      - '.github/**'
+
+jobs:
+  consistency-test:
+    name: build docker and run tests
+    runs-on: ubuntu-latest
+
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Download test data
+        run: |
+          pip install zenodo_get && \
+          zenodo_get 7040177 -o /tmp/ && \
+          7z x /tmp/venus_clouds_v1.0.7z -o/tmp/training_data && \
+          rm /tmp/training_data/training_set_clouds_multiclass/s*
+      - name: Build docker
+        run: docker build docker/docker-cpu -t docker-cpu:1.0
+      - name: pytest
+        run: |
+          docker run --rm -v /tmp:/tmp:rw -v ${GITHUB_WORKSPACE}/src:/src:ro -e PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages:/src --cpus=2 -m 20g docker-cpu:1.0 pytest  --cov-report=term-missing:skip-covered --junitxml=/tmp/pytest.xml --cov=src --cov-config=src/test/.coveragerc src/test/consistency_test.py | tee /tmp/pytest-coverage.txt
+      - name: Pytest coverage comment
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-coverage-path: /tmp/pytest-coverage.txt
+          junitxml-path: /tmp/pytest.xml
