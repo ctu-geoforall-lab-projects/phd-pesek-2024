@@ -56,7 +56,7 @@ class TestCmd:
                       monitored_value='val_loss',
                       loss_function='categorical_crossentropy',
                       # tensor_shape=(256, 256),
-                      tensor_shape=(32, 32),
+                      tensor_shape=(160, 160),
                       filter_by_class='1,2',
                       seed=1,
                       name=identifier,
