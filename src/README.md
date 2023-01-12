@@ -87,6 +87,7 @@ usage: train.py [-h] [--operation {train,fine-tune}] --data_dir DATA_DIR
                 [--dropout_rate_hidden DROPOUT_RATE_HIDDEN]
                 [--validation_set_percentage VALIDATION_SET_PERCENTAGE]
                 [--filter_by_classes FILTER_BY_CLASSES]
+                [--backbone {ResNet50,ResNet101,ResNet152}]
 
 Run training or fine-tuning
 
@@ -158,6 +159,8 @@ optional arguments:
                         them will be created. If filtering by multiple
                         classes, specify their values comma-separated (e.g.
                         "1,2,6" to filter by classes 1, 2 and 6)
+  --backbone {ResNet50,ResNet101,ResNet152}
+                        Backbone architecture
 ```
 
 ## Detection
@@ -175,6 +178,7 @@ usage: detect.py [-h] --data_dir DATA_DIR [--model {U-Net,SegNet,DeepLab}]
                  [--fit_dataset_in_memory FIT_DATASET_IN_MEMORY]
                  [--validation_set_percentage VALIDATION_SET_PERCENTAGE]
                  [--filter_by_classes FILTER_BY_CLASSES]
+                 [--backbone {ResNet50,ResNet101,ResNet152}]
 
 Run detection
 
@@ -213,4 +217,6 @@ optional arguments:
                         them will be created. If filtering by multiple
                         classes, specify their values comma-separated (e.g.
                         "1,2,6" to filter by classes 1, 2 and 6)
+  --backbone {ResNet50,ResNet101,ResNet152}
+                        Backbone architecture
 ```
