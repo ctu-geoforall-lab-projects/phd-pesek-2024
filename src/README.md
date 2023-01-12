@@ -70,7 +70,7 @@ below:
 
 ```
 usage: train.py [-h] [--operation {train,fine-tune}] --data_dir DATA_DIR
-                --output_dir OUTPUT_DIR [--model {U-Net,SegNet}]
+                --output_dir OUTPUT_DIR [--model {U-Net,SegNet,DeepLab}]
                 [--model_fn MODEL_FN] [--weights_path WEIGHTS_PATH]
                 [--visualization_path VISUALIZATION_PATH]
                 [--nr_epochs NR_EPOCHS] [--initial_epoch INITIAL_EPOCH]
@@ -98,7 +98,7 @@ optional arguments:
   --data_dir DATA_DIR   Path to the directory containing images and labels
   --output_dir OUTPUT_DIR
                         Path where logs and the model will be saved
-  --model {U-Net,SegNet}
+  --model {U-Net,SegNet,DeepLab}
                         Model architecture
   --model_fn MODEL_FN   Output model filename
   --weights_path WEIGHTS_PATH
@@ -166,7 +166,7 @@ Once you have a trained model, you can run the detection using the script
 `detect.py`.
 
 ```
-usage: detect.py [-h] --data_dir DATA_DIR [--model {U-Net,SegNet}]
+usage: detect.py [-h] --data_dir DATA_DIR [--model {U-Net,SegNet,DeepLab}]
                  [--weights_path WEIGHTS_PATH]
                  [--visualization_path VISUALIZATION_PATH]
                  [--batch_size BATCH_SIZE] [--seed SEED]
@@ -181,7 +181,7 @@ Run detection
 optional arguments:
   -h, --help            show this help message and exit
   --data_dir DATA_DIR   Path to the directory containing images and labels
-  --model {U-Net,SegNet}
+  --model {U-Net,SegNet,DeepLab}
                         Model architecture
   --weights_path WEIGHTS_PATH
                         Input weights path
