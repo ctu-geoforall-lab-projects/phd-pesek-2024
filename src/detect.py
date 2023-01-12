@@ -17,7 +17,7 @@ from visualization import visualize_detections
 
 def main(data_dir, model, in_weights_path, visualization_path, batch_size,
          seed, tensor_shape, force_dataset_generation, fit_memory, val_set_pct,
-         filter_by_class):
+         filter_by_class, backbone=None):
     utils.print_device_info()
 
     # get nr of bands
@@ -29,7 +29,8 @@ def main(data_dir, model, in_weights_path, visualization_path, batch_size,
     # set TensorFlow seed
     tf.random.set_seed(seed)
 
-    model = create_model(model, len(id2code), nr_bands, tensor_shape)
+    model = create_model(model, len(id2code), nr_bands, tensor_shape,
+                         backbone=backbone)
 
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(
@@ -152,6 +153,10 @@ if __name__ == '__main__':
              'only samples containing at least one of them will be created. '
              'If filtering by multiple classes, specify their values '
              'comma-separated (e.g. "1,2,6" to filter by classes 1, 2 and 6)')
+    parser.add_argument(
+        '--backbone', type=str, default=None,
+        choices=('ResNet50', 'ResNet101', 'ResNet152'),
+        help='Backbone architecture')
 
     args = parser.parse_args()
 
@@ -167,4 +172,4 @@ if __name__ == '__main__':
     main(args.data_dir, args.model, args.weights_path, args.visualization_path,
          args.batch_size, args.seed, (args.tensor_height, args.tensor_width),
          args.force_dataset_generation, args.fit_dataset_in_memory,
-         args.validation_set_percentage, args.filter_by_classes)
+         args.validation_set_percentage, args.filter_by_classes, args.backbone)

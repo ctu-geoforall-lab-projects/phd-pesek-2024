@@ -970,7 +970,7 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
     if metrics is None:
         metrics = ['accuracy']
 
-    if backbone is not None:
+    if model == 'DeepLab':
         # so far, only ResNet backbones
         resnet_depth = int(backbone.split('ResNet')[1])
         kwargs.update({'resnet_depth': resnet_depth})
