@@ -98,6 +98,7 @@ def visualize_detections(images, ground_truths, detections, id2code,
     name_range = range(len(label_names))
 
     driver = gdal.GetDriverByName("GTiff")
+    plt.rcParams['figure.dpi'] = 300
 
     for i in range(0, np.shape(detections)[0]):
         if i == len(geoinfos):
