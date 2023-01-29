@@ -164,7 +164,7 @@ def visualize_detections(images, ground_truths, detections, id2code,
                          horizontalalignment='center')
 
         # save the overview image
-        plt.savefig(os.path.join(out_dir, geoinfos[i][0][:-4]))
+        plt.savefig(os.path.join(out_dir, geoinfos[i][0][:-4]), bbox_inches='tight')
         plt.close()
 
         # THE DETECTION TIF IMAGE SECTION
