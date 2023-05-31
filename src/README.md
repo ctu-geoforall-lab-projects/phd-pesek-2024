@@ -209,8 +209,8 @@ optional arguments:
                         result in huge memory needs in case of a big dataset
   --validation_set_percentage VALIDATION_SET_PERCENTAGE
                         If generating the dataset - Percentage of the entire
-                        dataset to be used for the validation or detection in
-                        the form of a decimal number
+                        dataset to be used for the detection in the form of
+                        a decimal number
   --filter_by_classes FILTER_BY_CLASSES
                         If generating the dataset - Classes of interest. If
                         specified, only samples containing at least one of
