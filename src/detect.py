@@ -13,12 +13,19 @@ import utils
 from cnn_lib import AugmentGenerator
 from architectures import create_model
 from visualization import visualize_detections
+from cnn_exceptions import DatasetError
 
 
 def main(data_dir, model, in_weights_path, visualization_path, batch_size,
          seed, tensor_shape, force_dataset_generation, fit_memory, val_set_pct,
          filter_by_class, backbone=None, ignore_masks=False):
     utils.print_device_info()
+
+    if ignore_masks is False:
+        # check if labels are provided
+        import glob
+        if len(glob.glob(os.path.join(data_dir, '*label.tif'))) == 0:
+            raise DatasetError('No labels provided in the dataset.')
 
     # get nr of bands
     nr_bands = utils.get_nr_of_bands(data_dir)

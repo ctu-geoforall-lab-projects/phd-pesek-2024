@@ -67,6 +67,7 @@ class AugmentGenerator:
         self.fit_memory = fit_memory
         self.augment = augment
         self.perform_onehot_encoding = onehot_encode
+        self.ignore_masks = ignore_masks
 
     def __call__(self, id2code, seed=1):
         """Generate batches of data.
@@ -104,13 +105,16 @@ class AugmentGenerator:
 
         while True:
             x1i = next(image_generator)
-            x2i = next(mask_generator)
+            if self.ignore_masks is False:
+                x2i = next(mask_generator)
 
-            if self.perform_onehot_encoding is True:
-                # one hot encode masks
-                x2i = [
-                    self.onehot_encode(x2i[x, :, :, :], id2code) for x in
-                    range(x2i.shape[0])]
+                if self.perform_onehot_encoding is True:
+                    # one hot encode masks
+                    x2i = [
+                        self.onehot_encode(x2i[x, :, :, :], id2code) for x in
+                        range(x2i.shape[0])]
+            else:
+                x2i = 0
 
             yield x1i.astype(np.float32), np.asarray(x2i)
 
