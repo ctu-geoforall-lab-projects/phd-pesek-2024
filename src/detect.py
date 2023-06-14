@@ -13,12 +13,19 @@ import utils
 from cnn_lib import AugmentGenerator
 from architectures import create_model
 from visualization import visualize_detections
+from cnn_exceptions import DatasetError
 
 
 def main(data_dir, model, in_weights_path, visualization_path, batch_size,
          seed, tensor_shape, force_dataset_generation, fit_memory, val_set_pct,
-         filter_by_class, backbone=None):
+         filter_by_class, backbone=None, ignore_masks=False):
     utils.print_device_info()
+
+    if ignore_masks is False:
+        # check if labels are provided
+        import glob
+        if len(glob.glob(os.path.join(data_dir, '*label.tif'))) == 0:
+            raise DatasetError('No labels provided in the dataset.')
 
     # get nr of bands
     nr_bands = utils.get_nr_of_bands(data_dir)
@@ -35,18 +42,20 @@ def main(data_dir, model, in_weights_path, visualization_path, batch_size,
     # val generator used for both the training and the detection
     val_generator = AugmentGenerator(
         data_dir, batch_size, 'val', tensor_shape, force_dataset_generation,
-        fit_memory, val_set_pct=val_set_pct, filter_by_class=filter_by_class)
+        fit_memory, val_set_pct=val_set_pct, filter_by_class=filter_by_class,
+        ignore_masks=ignore_masks)
 
     # load weights if the model is supposed to do so
     model.load_weights(in_weights_path)
     model.set_weights(utils.model_replace_nans(model.get_weights()))
 
     detect(model, val_generator, id2code, [i for i in label_codes],
-           label_names, data_dir, seed, visualization_path)
+           label_names, data_dir, seed, visualization_path,
+           ignore_masks=ignore_masks)
 
 
 def detect(model, val_generator, id2code, label_codes, label_names,
-           data_dir, seed=1, out_dir='/tmp'):
+           data_dir, seed=1, out_dir='/tmp', ignore_masks=False):
     """Run detection.
 
     :param model: model to be used for the detection
@@ -57,6 +66,8 @@ def detect(model, val_generator, id2code, label_codes, label_names,
     :param data_dir: path to the directory containing images and labels
     :param seed: the generator seed
     :param out_dir: directory where the output visualizations will be saved
+    :param ignore_masks: if computing average statistics (True) or running only
+        prediction (False)
     """
     testing_gen = val_generator(id2code, seed)
 
@@ -64,7 +75,7 @@ def detect(model, val_generator, id2code, label_codes, label_names,
         os.makedirs(out_dir)
 
     # get information needed to write referenced geotifs of detections
-    geoinfos = get_geoinfo(val_generator.masks_dir)
+    geoinfos = get_geoinfo(val_generator.images_dir)
 
     batch_size = val_generator.batch_size
 
@@ -78,7 +89,7 @@ def detect(model, val_generator, id2code, label_codes, label_names,
         # visualize the natch
         visualize_detections(batch_img, batch_mask, pred_all, id2code,
                              label_codes, label_names, batch_geoinfos,
-                             out_dir)
+                             out_dir, ignore_masks=ignore_masks)
 
 
 def get_geoinfo(data_dir):
@@ -156,6 +167,10 @@ if __name__ == '__main__':
         '--backbone', type=str, default=None,
         choices=('ResNet50', 'ResNet101', 'ResNet152'),
         help='Backbone architecture')
+    parser.add_argument(
+        '--ignore_masks', type=utils.str2bool, default=False,
+        help='Boolean to decide if computing also average statstics based on '
+             'grand truth data or running only the prediction')
 
     args = parser.parse_args()
 
@@ -171,4 +186,5 @@ if __name__ == '__main__':
     main(args.data_dir, args.model, args.weights_path, args.visualization_path,
          args.batch_size, args.seed, (args.tensor_height, args.tensor_width),
          args.force_dataset_generation, args.fit_dataset_in_memory,
-         args.validation_set_percentage, args.filter_by_classes, args.backbone)
+         args.validation_set_percentage, args.filter_by_classes,
+         args.backbone, args.ignore_masks)

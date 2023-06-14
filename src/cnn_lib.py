@@ -22,7 +22,8 @@ class AugmentGenerator:
     def __init__(self, data_dir, batch_size=5, operation='train',
                  tensor_shape=(256, 256), force_dataset_generation=False,
                  fit_memory=False, augment=False, onehot_encode=True,
-                 val_set_pct=0.2, filter_by_class=None, verbose=1):
+                 val_set_pct=0.2, filter_by_class=None, ignore_masks=False,
+                 verbose=1):
         """Initialize the generator.
 
         :param data_dir: path to the directory containing images
@@ -40,6 +41,7 @@ class AugmentGenerator:
         :param filter_by_class: classes of interest (for the case of dataset
             generation - if specified, only samples containing at least one of
             them will be created)
+        :param ignore_masks: do not create nor return masks
         :param verbose: verbosity (0=quiet, >0 verbose)
         """
         if operation not in ('train', 'val'):
@@ -54,7 +56,7 @@ class AugmentGenerator:
         do_exist = [os.path.isdir(i) is True for i in (images_dir, masks_dir)]
         if force_dataset_generation is True or all(do_exist) is False:
             generate_dataset_structure(data_dir, tensor_shape, val_set_pct,
-                                       filter_by_class, augment,
+                                       filter_by_class, augment, ignore_masks,
                                        verbose=verbose)
 
         # create variables useful throughout the entire class
@@ -65,6 +67,7 @@ class AugmentGenerator:
         self.fit_memory = fit_memory
         self.augment = augment
         self.perform_onehot_encoding = onehot_encode
+        self.ignore_masks = ignore_masks
 
     def __call__(self, id2code, seed=1):
         """Generate batches of data.
@@ -102,13 +105,16 @@ class AugmentGenerator:
 
         while True:
             x1i = next(image_generator)
-            x2i = next(mask_generator)
+            if self.ignore_masks is False:
+                x2i = next(mask_generator)
 
-            if self.perform_onehot_encoding is True:
-                # one hot encode masks
-                x2i = [
-                    self.onehot_encode(x2i[x, :, :, :], id2code) for x in
-                    range(x2i.shape[0])]
+                if self.perform_onehot_encoding is True:
+                    # one hot encode masks
+                    x2i = [
+                        self.onehot_encode(x2i[x, :, :, :], id2code) for x in
+                        range(x2i.shape[0])]
+            else:
+                x2i = 0
 
             yield x1i.astype(np.float32), np.asarray(x2i)
 

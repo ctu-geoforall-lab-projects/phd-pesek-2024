@@ -79,7 +79,8 @@ def write_stats(result, out_path='/tmp/accu.png'):
 
 
 def visualize_detections(images, ground_truths, detections, id2code,
-                         label_codes, label_names, geoinfos, out_dir='/tmp'):
+                         label_codes, label_names, geoinfos, out_dir='/tmp',
+                         ignore_masks=False):
     """Create visualizations.
 
     Consist of the original image, the confusion matrix, ground truth labels
@@ -93,6 +94,8 @@ def visualize_detections(images, ground_truths, detections, id2code,
     :param label_names: list with label names
     :param geoinfos: list in format(filename, projection, geo_transform)
     :param out_dir: directory where the output visualizations will be saved
+    :param ignore_masks: if computing average statistics (True) or running only
+        prediction (False)
     """
     max_id = max(id2code.values())
     name_range = range(len(label_names))
@@ -117,13 +120,6 @@ def visualize_detections(images, ground_truths, detections, id2code,
         ax1.imshow((255 / a.max() * a).astype(np.uint8))
         ax1.title.set_text('Actual image')
 
-        # ground truths
-        ax3 = fig.add_subplot(2, 2, 3)
-        ax3.set_title('Ground truth labels')
-        gt_labels = ground_truths[i]
-        gt_labels = onehot_decode(gt_labels, id2code)
-        ax3.imshow(gt_labels * 4)
-
         # detections
         ax4 = fig.add_subplot(2, 2, 4)
         ax4.set_title('Predicted labels')
@@ -131,37 +127,47 @@ def visualize_detections(images, ground_truths, detections, id2code,
         pred_labels = detection_decoded
         ax4.imshow(pred_labels * 4)
 
-        # confusion matrix
-        ax2 = fig.add_subplot(2, 2, 2)
-        ax2.set_title('Confusion matrix')
-        conf_matrix = confusion_matrix(
-            gt_labels[:, :, 0].flatten(), pred_labels[:, :, 0].flatten(),
-            max_id + 1)
-        # subset to existing classes
-        conf_matrix = conf_matrix.numpy()[label_codes][:, label_codes]
-        # normalize the confusion matrix
-        row_sums = conf_matrix.sum(axis=1)[:, np.newaxis]
-        # TODO: solve division by 0
-        cm_norm = np.around(conf_matrix.astype('float') / row_sums, decimals=2)
-        # visualize
-        ax2.imshow(cm_norm, cmap=plt.cm.Blues)
-        y_labels = ['{}\n{}'.format(label_names[j], row_sums[j]) for j in
-                    name_range]
-        plt.xticks(name_range, label_names)
-        plt.yticks(name_range, y_labels)
-        plt.xlabel('Predicted label')
-        plt.ylabel('True label')
-        # write percentage values (0.00 -- 1.00) into the confusion matrix
-        threshold = cm_norm.max() / 2.  # used to decide for the font colour
-        for row in range(len(conf_matrix)):
-            for col in range(len(conf_matrix)):
-                if cm_norm[col, row] > threshold:
-                    colour = 'white'
-                else:
-                    colour = 'black'
-                # TODO: class names, not codes
-                ax2.text(row, col, cm_norm[col, row], color=colour,
-                         horizontalalignment='center')
+        if ignore_masks is False:
+            # ground truths
+            ax3 = fig.add_subplot(2, 2, 3)
+            ax3.set_title('Ground truth labels')
+            gt_labels = ground_truths[i]
+            gt_labels = onehot_decode(gt_labels, id2code)
+            ax3.imshow(gt_labels * 4)
+
+            # confusion matrix
+            ax2 = fig.add_subplot(2, 2, 2)
+            ax2.set_title('Confusion matrix')
+            conf_matrix = confusion_matrix(
+                gt_labels[:, :, 0].flatten(), pred_labels[:, :, 0].flatten(),
+                max_id + 1)
+            # subset to existing classes
+            conf_matrix = conf_matrix.numpy()[label_codes][:, label_codes]
+            # normalize the confusion matrix
+            row_sums = conf_matrix.sum(axis=1)[:, np.newaxis]
+            # TODO: solve division by 0
+            cm_norm = np.around(
+                conf_matrix.astype('float') / row_sums, decimals=2
+            )
+            # visualize
+            ax2.imshow(cm_norm, cmap=plt.cm.Blues)
+            y_labels = ['{}\n{}'.format(label_names[j], row_sums[j]) for j in
+                        name_range]
+            plt.xticks(name_range, label_names)
+            plt.yticks(name_range, y_labels)
+            plt.xlabel('Predicted label')
+            plt.ylabel('True label')
+            # write percentage values (0.00 -- 1.00) into the confusion matrix
+            threshold = cm_norm.max() / 2.  # used to decide for the font colour
+            for row in range(len(conf_matrix)):
+                for col in range(len(conf_matrix)):
+                    if cm_norm[col, row] > threshold:
+                        colour = 'white'
+                    else:
+                        colour = 'black'
+                    # TODO: class names, not codes
+                    ax2.text(row, col, cm_norm[col, row], color=colour,
+                             horizontalalignment='center')
 
         # save the overview image
         plt.savefig(os.path.join(out_dir, geoinfos[i][0][:-4]), bbox_inches='tight')
