@@ -166,7 +166,7 @@ if __name__ == '__main__':
         '--model_fn', type=str,
         help='Output model filename')
     parser.add_argument(
-        '--weights_path', type=str, default=None,
+        '--model_path', type=str, default=None,
         help='ONLY FOR OPERATION == FINE-TUNE: Input weights path')
     parser.add_argument(
         '--visualization_path', type=str, default='/tmp',
@@ -270,7 +270,7 @@ if __name__ == '__main__':
             '0 and smaller or equal than 1')
 
     main(args.operation, args.data_dir, args.output_dir,
-         args.model, args.model_fn, args.weights_path, args.visualization_path,
+         args.model, args.model_fn, args.model_path, args.visualization_path,
          args.nr_epochs, args.initial_epoch, args.batch_size,
          args.loss_function, args.seed, args.patience,
          (args.tensor_height, args.tensor_width), args.monitored_value,
