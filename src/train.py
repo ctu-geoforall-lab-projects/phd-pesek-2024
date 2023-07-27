@@ -166,7 +166,7 @@ if __name__ == '__main__':
         '--model_fn', type=str,
         help='Output model filename')
     parser.add_argument(
-        '--model_path', type=str, default=None,
+        '--weights_path', type=str, default=None,
         help='ONLY FOR OPERATION == FINE-TUNE: Input weights path')
     parser.add_argument(
         '--visualization_path', type=str, default='/tmp',
@@ -251,9 +251,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # check required arguments by individual operations
-    if args.operation == 'fine-tune' and args.model_path is None:
+    if args.operation == 'fine-tune' and args.weights_path is None:
         raise parser.error(
-            'Argument model_path required for operation == fine-tune')
+            'Argument weights_path required for operation == fine-tune')
     if args.operation == 'train' and args.initial_epoch != 0:
         raise parser.error(
             'Argument initial_epoch must be 0 for operation == train')
@@ -270,7 +270,7 @@ if __name__ == '__main__':
             '0 and smaller or equal than 1')
 
     main(args.operation, args.data_dir, args.output_dir,
-         args.model, args.model_fn, args.model_path, args.visualization_path,
+         args.model, args.model_fn, args.weights_path, args.visualization_path,
          args.nr_epochs, args.initial_epoch, args.batch_size,
          args.loss_function, args.seed, args.patience,
          (args.tensor_height, args.tensor_width), args.monitored_value,
