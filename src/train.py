@@ -251,9 +251,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # check required arguments by individual operations
-    if args.operation == 'fine-tune' and args.model_path is None:
+    if args.operation == 'fine-tune' and args.weights_path is None:
         raise parser.error(
-            'Argument model_path required for operation == fine-tune')
+            'Argument weights_path required for operation == fine-tune')
     if args.operation == 'train' and args.initial_epoch != 0:
         raise parser.error(
             'Argument initial_epoch must be 0 for operation == train')
