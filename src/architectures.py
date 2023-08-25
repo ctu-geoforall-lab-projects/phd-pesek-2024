@@ -929,6 +929,346 @@ class DeepLabv3Plus(_BaseModel):
         return f'id_block_{out_stage}_{desired_stage_depth}'
 
 
+class VGG(_BaseModel):
+    """VGG architecture.
+
+    For the original paper, see <https://arxiv.org/abs/1409.1556>.
+    The original architecture was enhanced by the option to perform dropout
+    after every convolutional layer instead of only after the two
+    fully-connected ones. Another change is the implementation of batch
+    normalization.
+    """
+
+    def __init__(self, *args, depth=16, include_top=True,
+                 return_layers=None, **kwargs):
+        """Model constructor.
+
+        :param nr_classes: number of classes to be predicted
+        :param nr_bands: number of bands of intended input images
+        :param nr_filters: base number of convolution filters (multiplied
+            deeper in the model)
+        :param batch_norm: boolean saying whether to use batch normalization
+            or not
+        :param dilation_rate: convolution dilation rate
+        :param tensor_shape: shape of the first two dimensions of input tensors
+        :param activation: activation function, such as tf.nn.relu, or string
+            name of built-in activation function, such as 'relu'
+        :param padding: 'valid' means no padding. 'same' results in padding
+            evenly to the left/right or up/down of the input such that output
+            has the same height/width dimension as the input
+        :param dropout_rate_input: float between 0 and 1. Fraction of the input
+            units of the input layer to drop
+        :param dropout_rate_hidden: float between 0 and 1. Fraction of
+            the input
+        :param depth: depth of the VGG model (so far, only VGG-16 implemented)
+        :param include_top: whether to include the fully-connected layer
+            at the top of the network
+        :param return_layers: layers to be returned (allows multistage
+            returns for the usage of ResNet as a backbone architecture)
+        """
+        if depth != 16:
+            raise ModelConfigError(
+                f'VGG variant of depth {depth} not supported. Supported '
+                f'depth is only 16 so far')
+
+        self.depth = depth
+        self.include_top = include_top
+        self.return_layers = return_layers
+
+        super(VGG, self).__init__(*args, **kwargs)
+
+        self.instantiate_layers()
+
+
+    def call(self, inputs, training=None, mask=None):
+        """Call the model on new inputs.
+
+        :param inputs: Input tensor, or dict/list/tuple of input tensors
+        :param training: Boolean or boolean scalar tensor, indicating whether
+            to run the Network in training mode or inference mode
+        :param mask: A mask or list of masks
+        :return: the output of the last layer
+            (either classifier or pooling for the case of the backbone usage)
+        """
+        x = self.dropout_in(inputs)
+
+        # run resnet
+        return_outputs = []  # used if self.return_layers is not None
+        for layer in self.vgg_layers:
+            x = layer(x)
+
+            if self.return_layers is not None:
+                if layer.name in self.return_layers:
+                    return_outputs.append(x)
+                    if len(return_outputs) == len(self.return_layers):
+                        return return_outputs
+
+        classes = self.outputs(x)
+        if self.return_layers is not None:
+            return_outputs.append(classes)
+            return return_outputs
+
+        return classes
+
+    def get_config(self):
+        """Return the configuration of the convolutional block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        model class name.
+
+        :return: the configuration dictionary of the convolutional block
+        """
+        config = super(VGG, self).get_config()
+
+        config.update(pooling=self.pooling,
+                      depth=self.depth,
+                      return_layers=self.return_layers)
+
+        return config
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the classifier.
+
+        TODO: Maybe the layers could be put defined as class variables instead
+              of returned values?
+
+        :return: this thing unfortunately differs
+        """
+        layers = []
+        # stage 1 and 2
+        for i in range(2):
+            # blocks of the depth 2
+            layers.append(ConvBlock((self.nr_filters * (2 ** i), ),
+                                    ((3, 3), ),
+                                    (self.activation, ), (self.padding, ),
+                                    self.dilation_rate,
+                                    dropout_rate=self.dropout_rate_hidden,
+                                    depth=2,
+                                    name=f'downsampling_block{i}'))
+            layers.append(MaxPooling2D(pool_size=(2, 2), strides=(2, 2),
+                                       data_format='channels_last',
+                                       name=f'downsampling_pooling{i}'))
+
+        for i in range(2, 5):
+            # blocks of the depth 3
+            layers.append(ConvBlock((self.nr_filters * (2 ** i), ),
+                                    ((3, 3), ),
+                                    (self.activation, ), (self.padding, ),
+                                    self.dilation_rate,
+                                    dropout_rate=self.dropout_rate_hidden,
+                                    depth=3,
+                                    name=f'downsampling_block{i}'))
+            layers.append(MaxPooling2D(pool_size=(2, 2), strides=(2, 2),
+                                       data_format='channels_last',
+                                       name=f'downsampling_pooling{i}'))
+
+        if self.include_top is True:
+            layers.append(Dense(self.nr_filters * (2 ** i) * 8,
+                                # in the original paper it is 4096; the
+                                # preceding will result in 4096 in the case
+                                # of default nr of filters, but will keep
+                                # it dynamic for other settings
+                                activation=self.activation,
+                                name='fc0'))
+            layers.append(Dense(self.nr_filters * (2 ** i) * 8,
+                                # in the original paper it is 4096; the
+                                # preceding will result in 4096 in the case
+                                # of default nr of filters, but will keep
+                                # it dynamic for other settings
+                                activation=self.activation,
+                                name='fc1'))
+
+        return layers
+
+    def get_classifier_layer(self):
+        """Get the classifier layer.
+
+        :return: the classifier layer
+        """
+        if self.include_top is True:
+            return Dense(self.nr_classes, activation=self.activation,
+                         name='classifier_layer')
+        else:
+            return None
+
+
+class FCN(_BaseModel):
+    """FCN architecture.
+
+    For the original paper, see <https://arxiv.org/abs/1411.4038>.
+    The original architecture was enhanced by the option to perform dropout.
+    """
+
+    def __init__(self, *args, variant='8s', vgg_depth=16, **kwargs):
+        """Model constructor.
+
+        :param nr_classes: number of classes to be predicted
+        :param nr_bands: number of bands of intended input images
+        :param nr_filters: base number of convolution filters (multiplied
+            deeper in the model)
+        :param batch_norm: boolean saying whether to use batch normalization
+            or not
+        :param dilation_rate: convolution dilation rate
+        :param tensor_shape: shape of the first two dimensions of input tensors
+        :param activation: activation function, such as tf.nn.relu, or string
+            name of built-in activation function, such as 'relu'
+        :param padding: 'valid' means no padding. 'same' results in padding
+            evenly to the left/right or up/down of the input such that output
+            has the same height/width dimension as the input
+        :param dropout_rate_input: float between 0 and 1. Fraction of the input
+            units of the input layer to drop
+        :param dropout_rate_hidden: float between 0 and 1. Fraction of
+            the input
+        :param variant: variant of FCN (8s, 16s, 32s)
+        :param vgg_pooling: global pooling mode for feature extraction
+            in the backbone ResNet model (must be 'avg' or 'max')
+        :param vgg_depth: depth of the ResNet backbone model
+            (must be 16)
+        """
+        if variant not in ('8s', '16s', '32s'):
+            raise ModelConfigError(
+                f'FCN variant {variant} not supported. Supported variants are '
+                f'8s, 16s, and 32s'
+            )
+
+        self.variant = variant
+        self.vgg_depth = vgg_depth
+
+        super(FCN, self).__init__(*args, **kwargs)
+
+        # instantiate layers
+        self.backbone = None
+        self.level5_classifier_layers = None
+        self.upsamples = None
+        self.classifiers = None
+        self.adds = None
+        self.final_upsample = None
+        self.instantiate_layers()
+
+    def call(self, inputs, training=None, mask=None):
+        """Call the model on new inputs.
+
+        :param inputs: Input tensor, or dict/list/tuple of input tensors
+        :param training: Boolean or boolean scalar tensor, indicating whether
+            to run the Network in training mode or inference mode
+        :param mask: A mask or list of masks
+        :return: the output of the classifier layer
+        """
+        # in contrast to other architectures, the input layer is skipped
+        # here, because the backbone architecture has its own input handling
+        vgg_out = self.backbone(inputs)
+
+        x = self.level5_classifier_layers(vgg_out[-1])
+
+        if self.upsamples is not None:
+            for i in range(len(self.upsamples)):
+                x = self.upsamples[i](x)
+                upper_stage_classes = self.classifiers[i](vgg_out[-(i + 2)])
+                x = self.adds[i](x, upper_stage_classes)
+
+        x = self.final_upsample(x)
+
+        # softmax classifier head layer
+        classes = self.outputs(x)
+
+        return classes
+
+    def instantiate_layers(self):
+        """Instantiate layers lying between the input and the classifier."""
+        # skip top layers of VGG because FCN replaces fully connected layers
+        # with convolutional ones
+        self.backbone = VGG(self.nr_classes,
+                            include_top=False,
+                            depth=self.vgg_depth,
+                            activation=self.activation,
+                            use_bias=self.use_bias,
+                            dropout_rate_hidden=self.dropout_rate_hidden,
+                            return_layers=('downsampling_pooling3',
+                                           'downsampling_pooling4',
+                                           'downsampling_pooling5'),
+                            name=f'vgg{self.vgg_depth}')
+
+        # FCN-32s
+        self.level5_classifier_layers = []
+        # 1. if you wish to understand the nr of filters, see the corresponding
+        #    comment in VGG
+        # 2. the kernel corresponds to the entire feature map
+        self.level5_classifier_layers.append(
+            ConvBlock((self.nr_filters * (2 ** 4), ),
+                      ((self.tensor_shape[0] / (2 ** 5),
+                        self.tensor_shape[1] / (2 ** 5)), ),
+                      (self.activation, ), (self.padding, ),
+                      self.dilation_rate,
+                      dropout_rate=self.dropout_rate_hidden,
+                      depth=1,
+                      name=f'block5_conv1')
+        )
+        self.level5_classifier_layers.append(
+            ConvBlock((self.nr_filters * (2 ** 4), ),
+                      ((1, 1), ),
+                      (self.activation, ), (self.padding, ),
+                      self.dilation_rate,
+                      dropout_rate=self.dropout_rate_hidden,
+                      depth=1,
+                      name=f'block5_conv2')
+        )
+        self.level5_classifier_layers.append(
+            Conv2D((self.nr_classes, ),
+                   (1, 1),
+                   activation=self.get_classifier_function(),
+                   padding=self.padding,
+                   dilation_rate=self.dilation_rate,
+                   name=f'block5_class')
+        )
+
+        if self.variant == '32s':
+            self.final_upsample = MaxPooling2D(pool_size=(32, 32),
+                                               name='upsampling_final')
+            return 0
+        elif self.variant == '16s':
+            stop_level = 4
+        else:
+            stop_level = 3
+
+        self.upsamples = []
+        self.classifiers = []
+        self.adds = []
+        for i in range(5, stop_level):
+            self.upsamples.append(
+                UpSampling2D(pool_size=(2, 2),
+                             name=f'upsampling_{i}_to_{i - 1}'))
+            self.classifiers.append(Conv2D(
+                (self.nr_classes, ),
+                (1, 1),
+                activation=self.get_classifier_function(),
+                padding=self.padding,
+                dilation_rate=self.dilation_rate,
+                name=f'block{i - 1}_class'
+            ))
+            self.adds.append(Concatenate(axis=3, name=f'concat_{i}_to_{i - 1}'))
+
+        self.final_upsample = MaxPooling2D(pool_size=(2 ** stop_level,
+                                                      2 ** stop_level),
+                                           name='upsampling_final')
+
+    def get_config(self):
+        """Return the configuration of the convolutional block.
+
+        Allows later reinstantiation (without its trained weights) from this
+        configuration. It does not include connectivity information, nor the
+        model class name.
+
+        :return: the configuration dictionary of the convolutional block
+        """
+        config = super(FCN, self).get_config()
+
+        config.update(vgg_pooling=self.vgg_pooling,
+                      vgg_depth=self.vgg_depth)
+
+        return config
+
+
 def create_model(model, nr_classes, nr_bands, tensor_shape,
                  nr_filters=64, optimizer='adam', loss='dice', metrics=None,
                  activation='relu', padding='same', verbose=1, alpha=None,
@@ -960,10 +1300,12 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
         units of the input layer to drop
     :param dropout_rate_hidden: float between 0 and 1. Fraction of the input
         units of the hidden layers to drop
+    :param backbone: backbone architecture
     :param name: The name of the model
     :return: compiled model
     """
-    model_classes = {'U-Net': UNet, 'SegNet': SegNet, 'DeepLab': DeepLabv3Plus}
+    model_classes = {'U-Net': UNet, 'SegNet': SegNet, 'DeepLab': DeepLabv3Plus,
+                     'FCN': FCN}
     activations = {'relu': k_layers.ReLU, 'leaky_relu': k_layers.LeakyReLU,
                    'prelu': k_layers.PReLU}
 
@@ -974,6 +1316,10 @@ def create_model(model, nr_classes, nr_bands, tensor_shape,
         # so far, only ResNet backbones
         resnet_depth = int(backbone.split('ResNet')[1])
         kwargs.update({'resnet_depth': resnet_depth})
+    elif model == 'FCN':
+        # so far, only VGG backbones
+        vgg_depth = int(backbone.split('VGG')[1])
+        kwargs.update({'vgg_depth': vgg_depth})
 
     model = model_classes[model](nr_classes, nr_bands=nr_bands,
                                  nr_filters=nr_filters,
