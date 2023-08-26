@@ -1214,7 +1214,7 @@ class FCN(_BaseModel):
                       name=f'block5_conv2')
         )
         self.level5_classifier_layers.append(
-            Conv2D((self.nr_classes, ),
+            Conv2D(self.nr_classes,
                    (1, 1),
                    activation=self.get_classifier_function(),
                    padding=self.padding,
@@ -1239,7 +1239,7 @@ class FCN(_BaseModel):
                 UpSampling2D(pool_size=(2, 2),
                              name=f'upsampling_{i}_to_{i - 1}'))
             self.classifiers.append(Conv2D(
-                (self.nr_classes, ),
+                self.nr_classes,
                 (1, 1),
                 activation=self.get_classifier_function(),
                 padding=self.padding,
