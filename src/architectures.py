@@ -1184,9 +1184,9 @@ class FCN(_BaseModel):
                             activation=self.activation,
                             use_bias=self.use_bias,
                             dropout_rate_hidden=self.dropout_rate_hidden,
-                            return_layers=('downsampling_pooling3',
-                                           'downsampling_pooling4',
-                                           'downsampling_pooling5'),
+                            return_layers=('downsampling_pooling2',
+                                           'downsampling_pooling3',
+                                           'downsampling_pooling4'),
                             name=f'vgg{self.vgg_depth}')
 
         # FCN-32s
