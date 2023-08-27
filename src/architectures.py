@@ -1196,10 +1196,15 @@ class FCN(_BaseModel):
         # 1. if you wish to understand the nr of filters, see the corresponding
         #    comment in VGG
         # 2. the kernel corresponds to the entire feature map
+        level5_tensor_shape = self.tensor_shape[0] / (2 ** 5)
+        if level5_tensor_shape % 1 == 0:
+            level5_tensor_shape = int(level5_tensor_shape)
+        else:
+            raise ModelConfigError('Last layer dimensions do not seem to be'
+                                   'integers.')
         self.level5_classifier_layers.append(
             ConvBlock((self.nr_filters * (2 ** 4), ),
-                      ((self.tensor_shape[0] / (2 ** 5),
-                        self.tensor_shape[1] / (2 ** 5)), ),
+                      ((level5_tensor_shape, level5_tensor_shape, ),
                       (self.activation, ), (self.padding, ),
                       self.dilation_rate,
                       dropout_rate=self.dropout_rate_hidden,
