@@ -977,7 +977,7 @@ class VGG(_BaseModel):
 
         super(VGG, self).__init__(*args, **kwargs)
 
-        self.instantiate_layers()
+        self.vgg_layers = self.instantiate_layers()
 
 
     def call(self, inputs, training=None, mask=None):
