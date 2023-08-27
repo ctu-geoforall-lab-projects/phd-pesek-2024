@@ -1159,7 +1159,9 @@ class FCN(_BaseModel):
         # here, because the backbone architecture has its own input handling
         vgg_out = self.backbone(inputs)
 
-        x = self.level5_classifier_layers(vgg_out[-1])
+        x = self.level5_classifier_layers[0](vgg_out[-1])
+        for level5_layer in self.level5_classifier_layers[1:]:
+            x = level5_layer(x)
 
         if self.upsamples is not None:
             for i in range(len(self.upsamples)):
