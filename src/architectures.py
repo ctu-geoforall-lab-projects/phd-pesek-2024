@@ -1204,7 +1204,7 @@ class FCN(_BaseModel):
                                    'integers.')
         self.level5_classifier_layers.append(
             ConvBlock((self.nr_filters * (2 ** 4), ),
-                      ((level5_tensor_shape, level5_tensor_shape, ),
+                      ((level5_tensor_shape, level5_tensor_shape, ), ),
                       (self.activation, ), (self.padding, ),
                       self.dilation_rate,
                       dropout_rate=self.dropout_rate_hidden,
