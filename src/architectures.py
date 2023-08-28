@@ -1230,7 +1230,7 @@ class FCN(_BaseModel):
         )
 
         if self.variant == '32s':
-            self.final_upsample = UpSampling2D(pool_size=(32, 32),
+            self.final_upsample = UpSampling2D(size=(32, 32),
                                                name='upsampling_final')
             return 0
         elif self.variant == '16s':
@@ -1243,7 +1243,7 @@ class FCN(_BaseModel):
         self.adds = []
         for i in range(5, stop_level, -1):
             self.upsamples.append(
-                UpSampling2D(pool_size=(2, 2),
+                UpSampling2D(size=(2, 2),
                              name=f'upsampling_{i}_to_{i - 1}'))
             self.classifiers.append(Conv2D(
                 self.nr_classes,
@@ -1255,8 +1255,8 @@ class FCN(_BaseModel):
             ))
             self.adds.append(Concatenate(axis=3, name=f'concat_{i}_to_{i - 1}'))
 
-        self.final_upsample = UpSampling2D(pool_size=(2 ** stop_level,
-                                                      2 ** stop_level),
+        self.final_upsample = UpSampling2D(size=(2 ** stop_level,
+                                                 2 ** stop_level),
                                            name='upsampling_final')
 
     def get_config(self):
