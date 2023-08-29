@@ -1167,7 +1167,7 @@ class FCN(_BaseModel):
             for i in range(len(self.upsamples)):
                 x = self.upsamples[i](x)
                 upper_stage_classes = self.classifiers[i](vgg_out[-(i + 2)])
-                x = self.adds[i](x, upper_stage_classes)
+                x = self.adds[i]([x, upper_stage_classes])
 
         x = self.final_upsample(x)
 
