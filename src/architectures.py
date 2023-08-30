@@ -1064,14 +1064,14 @@ class VGG(_BaseModel):
                                        name=f'downsampling_pooling{i}'))
 
         if self.include_top is True:
-            layers.append(Dense(self.nr_filters * (2 ** i) * 8,
+            layers.append(Dense(self.nr_filters * (2 ** i) * 4,
                                 # in the original paper it is 4096; the
                                 # preceding will result in 4096 in the case
                                 # of default nr of filters, but will keep
                                 # it dynamic for other settings
                                 activation=self.activation,
                                 name='fc0'))
-            layers.append(Dense(self.nr_filters * (2 ** i) * 8,
+            layers.append(Dense(self.nr_filters * (2 ** i) * 4,
                                 # in the original paper it is 4096; the
                                 # preceding will result in 4096 in the case
                                 # of default nr of filters, but will keep
@@ -1203,7 +1203,7 @@ class FCN(_BaseModel):
             raise ModelConfigError('Last layer dimensions do not seem to be'
                                    'integers.')
         self.level5_classifier_layers.append(
-            ConvBlock((self.nr_filters * (2 ** 4) * 8, ),
+            ConvBlock((self.nr_filters * (2 ** 4) * 4, ),
                       ((level5_tensor_shape, level5_tensor_shape, ), ),
                       (self.activation, ), (self.padding, ),
                       self.dilation_rate,
@@ -1212,7 +1212,7 @@ class FCN(_BaseModel):
                       name=f'block5_conv1')
         )
         self.level5_classifier_layers.append(
-            ConvBlock((self.nr_filters * (2 ** 4) * 8, ),
+            ConvBlock((self.nr_filters * (2 ** 4) * 4, ),
                       ((1, 1), ),
                       (self.activation, ), (self.padding, ),
                       self.dilation_rate,
