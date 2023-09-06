@@ -39,4 +39,8 @@ jobs:
         run: docker build docker/docker-cpu -t docker-cpu:1.0
       - name: pytest
         run: |
-          docker run --rm -v /tmp:/tmp:rw -v ${GITHUB_WORKSPACE}/src:/src:ro -e PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages:/src --cpus=2 -m 20g docker-cpu:1.0 pytest src/test/consistency_test.py
+          docker run --rm -v /tmp:/tmp:rw -v ${GITHUB_WORKSPACE}/src:/src:ro -e PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3/dist-packages:/src --cpus=2 -m 20g docker-cpu:1.0 pytest src/test/consistency_test.py && \
+          echo "drop0" && \
+          cat /tmp/fcn_drop0_VGG16_categorical_crossentropy.txt && \
+          echo "drop0.5" && \
+          cat /tmp/fcn_drop0.5_VGG16_categorical_crossentropy.txt
