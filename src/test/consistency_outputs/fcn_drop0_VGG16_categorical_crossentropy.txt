@@ -48,4 +48,3 @@ ________________________________________________________________________________
 Epoch 00001: val_loss improved from inf to 0.99691, saving model to /tmp/output_fcn_drop0_VGG16_categorical_crossentropy/model.h5
 
 Epoch 00002: val_loss improved from 0.99691 to 0.89872, saving model to /tmp/output_fcn_drop0_VGG16_categorical_crossentropy/model.h5
-drop0.5
