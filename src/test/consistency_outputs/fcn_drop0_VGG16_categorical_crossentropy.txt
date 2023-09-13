@@ -1,0 +1,50 @@
+Model: "fcn_drop0_VGG16_categorical_crossentropy"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input (InputLayer)             [(None, 192, 192, 1  0           []                               
+                                2)]                                                               
+                                                                                                  
+ vgg16 (VGG)                    [(None, 24, 24, 256  31259520    ['input[0][0]']                  
+                                ),                                                                
+                                 (None, 12, 12, 512                                               
+                                ),                                                                
+                                 (None, 6, 6, 1024)                                               
+                                ]                                                                 
+                                                                                                  
+ block5_conv1 (ConvBlock)       (None, 6, 6, 4096)   151015424   ['vgg16[0][2]']                  
+                                                                                                  
+ block5_conv2 (ConvBlock)       (None, 6, 6, 4096)   16797696    ['block5_conv1[0][0]']           
+                                                                                                  
+ block5_class (Conv2D)          (None, 6, 6, 3)      12291       ['block5_conv2[0][0]']           
+                                                                                                  
+ upsampling_5_to_4 (UpSampling2  (None, 12, 12, 3)   0           ['block5_class[0][0]']           
+ D)                                                                                               
+                                                                                                  
+ block4_class (Conv2D)          (None, 12, 12, 3)    1539        ['vgg16[0][1]']                  
+                                                                                                  
+ concat_5_to_4 (Concatenate)    (None, 12, 12, 6)    0           ['upsampling_5_to_4[0][0]',      
+                                                                  'block4_class[0][0]']           
+                                                                                                  
+ upsampling_4_to_3 (UpSampling2  (None, 24, 24, 6)   0           ['concat_5_to_4[0][0]']          
+ D)                                                                                               
+                                                                                                  
+ block3_class (Conv2D)          (None, 24, 24, 3)    771         ['vgg16[0][0]']                  
+                                                                                                  
+ concat_4_to_3 (Concatenate)    (None, 24, 24, 9)    0           ['upsampling_4_to_3[0][0]',      
+                                                                  'block3_class[0][0]']           
+                                                                                                  
+ upsampling_final (UpSampling2D  (None, 192, 192, 9)  0          ['concat_4_to_3[0][0]']          
+ )                                                                                                
+                                                                                                  
+ classifier_layer (Conv2D)      (None, 192, 192, 3)  30          ['upsampling_final[0][0]']       
+                                                                                                  
+==================================================================================================
+Total params: 199,087,271
+Trainable params: 199,059,367
+Non-trainable params: 27,904
+__________________________________________________________________________________________________
+
+Epoch 00001: val_loss improved from inf to 0.99691, saving model to /tmp/output_fcn_drop0_VGG16_categorical_crossentropy/model.h5
+
+Epoch 00002: val_loss improved from 0.99691 to 0.89872, saving model to /tmp/output_fcn_drop0_VGG16_categorical_crossentropy/model.h5

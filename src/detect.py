@@ -122,7 +122,7 @@ if __name__ == '__main__':
         help='Path to the directory containing images and labels')
     parser.add_argument(
         '--model', type=str, default='U-Net',
-        choices=('U-Net', 'SegNet', 'DeepLab'),
+        choices=('U-Net', 'SegNet', 'DeepLab', 'FCN'),
         help='Model architecture')
     parser.add_argument(
         '--weights_path', type=str, default=None,
@@ -165,7 +165,7 @@ if __name__ == '__main__':
              'comma-separated (e.g. "1,2,6" to filter by classes 1, 2 and 6)')
     parser.add_argument(
         '--backbone', type=str, default=None,
-        choices=('ResNet50', 'ResNet101', 'ResNet152'),
+        choices=('ResNet50', 'ResNet101', 'ResNet152', 'VGG16'),
         help='Backbone architecture')
     parser.add_argument(
         '--ignore_masks', type=utils.str2bool, default=False,
