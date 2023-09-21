@@ -19,9 +19,9 @@ class _BaseModel(Model, ABC):
 
     def __init__(self, nr_classes, nr_bands=12, nr_filters=64, batch_norm=True,
                  dilation_rate=1, tensor_shape=(256, 256),
-                 activation=k_layers.ReLU,
-                 padding='same', dropout_rate_input=None,
-                 dropout_rate_hidden=None, use_bias=True, name='model', **kwargs):
+                 activation=k_layers.ReLU, padding='same',
+                 dropout_rate_input=None, dropout_rate_hidden=None,
+                 use_bias=True, onehot_encode=True, name='model', **kwargs):
         """Model constructor.
 
         :param nr_classes: number of classes to be predicted
@@ -40,8 +40,9 @@ class _BaseModel(Model, ABC):
             units of the input layer to drop
         :param dropout_rate_hidden: float between 0 and 1. Fraction of
             the input
-        :param name: The name of the model
         :param use_bias: Boolean, whether the layer uses a bias vector
+        :param onehot_encode: boolean to onehot-encode masks in the last layer
+        :param name: The name of the model
         """
         super(_BaseModel, self).__init__(name=name, **kwargs)
 
@@ -58,6 +59,7 @@ class _BaseModel(Model, ABC):
         self.use_bias = use_bias
         # TODO: Maybe use_bias should be by default == False, see:
         #       https://arxiv.org/pdf/1502.03167.pdf
+        self.onehot_encode = onehot_encode
 
         self.check_parameters()
 
@@ -106,7 +108,11 @@ class _BaseModel(Model, ABC):
 
         :return: the classifier layer
         """
-        return Conv2D(self.nr_classes,
+        if self.onehot_encode is True:
+            nr_filters = self.nr_classes
+        else:
+            nr_filters = 1
+        return Conv2D(nr_filters,
                       (1, 1),
                       activation=self.get_classifier_function(),
                       padding=self.padding,
