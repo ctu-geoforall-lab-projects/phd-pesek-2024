@@ -1206,8 +1206,11 @@ class FCN(_BaseModel):
         if level5_tensor_shape % 1 == 0:
             level5_tensor_shape = int(level5_tensor_shape)
         else:
-            raise ModelConfigError('Last layer dimensions do not seem to be'
+            raise ModelConfigError('Last layer dimensions do not seem to be '
                                    'integers.')
+        # why the kernel in the size of the feature map?
+        # cite: these fully connected layers can also be viewed as
+        # convolutions with kernels that cover their entire input regions
         self.level5_classifier_layers.append(
             ConvBlock((self.nr_filters * (2 ** 4) * 4, ),
                       ((level5_tensor_shape, level5_tensor_shape, ), ),
@@ -1251,6 +1254,7 @@ class FCN(_BaseModel):
             self.upsamples.append(
                 UpSampling2D(size=(2, 2),
                              name=f'upsampling_{i}_to_{i - 1}'))
+            # seems like only 1x1 convolutions are in the upper levels
             self.classifiers.append(Conv2D(
                 self.nr_classes,
                 (1, 1),
