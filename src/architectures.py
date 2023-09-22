@@ -136,7 +136,7 @@ class _BaseModel(Model, ABC):
                         self.nr_bands), name='input')
         model = Model(inputs=[inputs], outputs=self.call(inputs),
                       name=self.name)
-        return model.summary()
+        return model.summary(line_length, positions, print_fn)
 
     @abstractmethod
     def instantiate_layers(self):
