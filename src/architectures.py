@@ -1027,8 +1027,8 @@ class VGG(_BaseModel):
         """
         config = super(VGG, self).get_config()
 
-        config.update(pooling=self.pooling,
-                      depth=self.depth,
+        config.update(depth=self.depth,
+                      include_top=include_top,
                       return_layers=self.return_layers)
 
         return config
